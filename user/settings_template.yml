@@ -1,5 +1,6 @@
 # MANDATORY ITEMS
 # Without these five items, the uploader will throw an error and stop.
+# Please note that the adoc file should not contain any metadata.
 
 # The file that contains the full book data. The book title will be pulled from the first header in the file.
 file: 'MyShortBookTitle.adoc'
@@ -21,8 +22,8 @@ auto-update: 'yes'
 # You can include as many of these, as you like, and they will simply be appended as tag-value pairs. If you write nonsense, the tags will contain nonsense, and will be ignored. You can remove any you do not wish to use, or add new ones.
 
 tags:
-# Cover image, that Alexandria will use for the index cards and when exporting to ePUB format.
-  - ['image', 'imagefile.jpg']
+# URL to the cover image, that Alexandria will use for the index cards and when exporting to ePUB format.
+  - ['image', 'https://mymediaserver.com/imagefile.jpg']
 # document content-type for the publication
 # choices are: book (default), Bible, illustrated, magazine, documentation, academic, blog, flyer, scroll
   - ['type', 'book']
