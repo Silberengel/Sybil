@@ -6,8 +6,9 @@ This is a simple PHP program that takes an edited/pre-formatted Asciidoc documen
 
 ## Prerequisites
 
-You will need to have php (including php-cli) and composer installed on the machine and configured.
-Then run ```composer install``` to download the dependencies to a *vendor* folder and create the *composer.lock* file.
+1. You will need to have php (including php-cli) and composer installed on the machine and configured.
+2. Then run ```composer install``` to download the dependencies to a *vendor* folder and create the *composer.lock* file.
+3. If you do not yet have the yaml PECL library installed, run ```sudo apt-get install php-yaml```.
 
 ## Directions
 
