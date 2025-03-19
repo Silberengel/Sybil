@@ -122,14 +122,17 @@ class BookEvent{
       $this->set_book_autoupdate($this->bookSettings['auto-update']);
       $this->set_book_filetags($this->bookSettings['tags']);
       
-      // check if the file contains too many header levels
-      (stripos($markdown,'=== ') !== false) ? throw new InvalidArgumentException('This markdown file contains too many header levels. Please correct down to 2 levels and retry.') : $markdown;
+      // replace headers above == with &s, so that they can be adding back in as discrete headings, after the split
+      $markdown = str_replace('====== ', '&&&&&& ', $markdown);
+      $markdown = str_replace('===== ', '&&&&& ', $markdown);
+      $markdown = str_replace('==== ', '&&&& ', $markdown);
+      $markdown = str_replace('=== ', '&&& ', $markdown);
 
       // break the file into metadata and sections
       $markdownFormatted = explode("== ", $markdown);
 
       // check if the file contains too few header levels
-      (count($markdownFormatted) === 1) ? throw new InvalidArgumentException('This markdown file contain no headers or only one level of headers. Please add a second level and retry.') : $markdownFormatted;
+      (count($markdownFormatted) === 1) ? throw new InvalidArgumentException('This markdown file contains no headers or only one level of headers. Please ensure there are two levels and retry.') : $markdownFormatted;
 
       $bookTitle= array_shift($markdownFormatted);
       $this->set_book_title(trim(trim($bookTitle, "= ")));
@@ -144,6 +147,17 @@ class BookEvent{
 
       // write the 30041s from the == sections and add the eventID to the section array
       
+      // replace headers above == with &s, so that they can be adding back in as discrete headings, after the split
+      $markdownFormatted = str_replace('&&&&&& ', '[discrete]
+      ====== ', $markdownFormatted);
+      $markdownFormatted = str_replace('&&&&& ', '[discrete]
+      ===== ', $markdownFormatted);
+      $markdownFormatted = str_replace('&&&& ', '[discrete]
+      ==== ', $markdownFormatted);
+      $markdownFormatted = str_replace('&&& ', '[discrete]
+      === ', $markdownFormatted);
+      $markdownFormatted = str_replace('      ', '', $markdownFormatted);
+
       $sectionNum = 0;
       foreach ($markdownFormatted as &$section) {
         $sectionNum++;
