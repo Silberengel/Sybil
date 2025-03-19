@@ -122,6 +122,9 @@ class BookEvent{
       $this->set_book_autoupdate($this->bookSettings['auto-update']);
       $this->set_book_filetags($this->bookSettings['tags']);
       
+      // check if the file contains too many header levels
+      (stripos($markdown,'======= ') !== false) ? throw new InvalidArgumentException('This markdown file contains too many header levels. Please correct down to maximum six = levels and retry.') : $markdown;
+
       // replace headers above == with &s, so that they can be adding back in as discrete headings, after the split
       $markdown = str_replace('====== ', '&&&&&& ', $markdown);
       $markdown = str_replace('===== ', '&&&&& ', $markdown);
