@@ -3,7 +3,7 @@
 use swentel\nostr\Event\Event;
 
 include_once 'helperFunctions.php';
-include_once 'BookEvent.php';
+include_once 'PublicationEvent.php';
 class SectionEvent{
 
 // Properties

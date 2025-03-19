@@ -1,7 +1,7 @@
 <?php
 
 include_once __DIR__.'/vendor/autoload.php';
-include_once 'src/BookEvent.php';
+include_once 'src/PublicationEvent.php';
 include_once 'src/helperFunctions.php';
 
 echo PHP_EOL;
@@ -33,14 +33,14 @@ if ($settings['auto-update'] != ('yes' || 'ask' || 'no')) {
     throw new InvalidArgumentException('The auto-update option is missing or wrong.');
 }
 
-// Define book
-$book = new BookEvent();
-$book->set_book_settings($settings);
+// Define publication
+$publication = new PublicationEvent();
+$publication->set_publication_settings($settings);
 
-// Write book into events
+// Write publication into events
 try {
-    $book->publish_book();
-    echo "The book has been written.".PHP_EOL.PHP_EOL;
+    $publication->publish_publication();
+    echo "The publication has been written.".PHP_EOL.PHP_EOL;
 } catch (Exception $e) {
     echo $e->getMessage().PHP_EOL.PHP_EOL;
 }

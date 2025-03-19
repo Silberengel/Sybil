@@ -5,85 +5,85 @@ use swentel\nostr\Key\Key;
 include_once 'helperFunctions.php';
 include_once 'SectionEvent.php';
 
-class BookEvent{
+class PublicationEvent{
 
   // Properties
 
-  public $bookSettings;
-  public $bookDTag;
-  public $bookTitle;
-  public $bookAuthor;
-  public $bookVersion;
-  public $bookTagType;
-  public $bookAutoUpdate;
-  public $bookFileTags;
+  public $publicationSettings;
+  public $publicationDTag;
+  public $publicationTitle;
+  public $publicationAuthor;
+  public $publicationVersion;
+  public $publicationTagType;
+  public $publicationAutoUpdate;
+  public $publicationFileTags;
   public $sectionEvents = [];
   public $sectionDtags = [];
 
   // Methods
 
-  function set_book_settings($bookSettings) {
-    $this->bookSettings = $bookSettings;
+  function set_publication_settings($publicationSettings) {
+    $this->publicationSettings = $publicationSettings;
   }
 
-  function get_book_settings() {
-    return $this->bookSettings;
+  function get_publication_settings() {
+    return $this->publicationSettings;
   }
 
-  function set_book_d_tag($bookDTag) {
-    $this->bookDTag = $bookDTag;
+  function set_publication_d_tag($publicationDTag) {
+    $this->publicationDTag = $publicationDTag;
   }
 
-  function get_book_d_tag() {
-    return $this->bookDTag;
+  function get_publication_d_tag() {
+    return $this->publicationDTag;
   }
 
-  function set_book_title($bookTitle) {
-    $this->bookTitle = $bookTitle;
+  function set_publication_title($publicationTitle) {
+    $this->publicationTitle = $publicationTitle;
   }
 
-  function get_book_title() {
-    return $this->bookTitle;
+  function get_publication_title() {
+    return $this->publicationTitle;
   }
 
-  function set_book_author($bookAuthor) {
-    $this->bookAuthor = $bookAuthor;
+  function set_publication_author($publicationAuthor) {
+    $this->publicationAuthor = $publicationAuthor;
   }
 
-  function get_book_author() {
-    return $this->bookAuthor;
+  function get_publication_author() {
+    return $this->publicationAuthor;
   }
 
-  function set_book_version($bookVersion) {
-    $this->bookVersion = $bookVersion;
+  function set_publication_version($publicationVersion) {
+    $this->publicationVersion = $publicationVersion;
   }
 
-  function get_book_version() {
-    return $this->bookVersion;
+  function get_publication_version() {
+    return $this->publicationVersion;
   }
 
-  function set_book_tagtype($bookTagType) {
-    $this->bookTagType = $bookTagType;
+  function set_publication_tagtype($publicationTagType) {
+    $this->publicationTagType = $publicationTagType;
   }
 
-  function get_book_tagtype() {
-    return $this->bookTagType;
+  function get_publication_tagtype() {
+    return $this->publicationTagType;
   }
 
-  function set_book_autoupdate($bookAutoUpdate) {
-    $this->bookAutoUpdate = $bookAutoUpdate;
+  function set_publication_autoupdate($publicationAutoUpdate) {
+    $this->publicationAutoUpdate = $publicationAutoUpdate;
   }
 
-  function get_book_autoupdate() {
-    return $this->bookAutoUpdate;
+  function get_publication_autoupdate() {
+    return $this->publicationAutoUpdate;
   }
 
-  function set_book_filetags($bookFileTags) {
-    $this->bookFileTags = $bookFileTags;
+  function set_publication_filetags($publicationFileTags) {
+    $this->publicationFileTags = $publicationFileTags;
   }
 
-  function get_book_filetags(): mixed {
-    return $this->bookFileTags;
+  function get_publication_filetags(): mixed {
+    return $this->publicationFileTags;
   }
 
   function set_section_events($sectionEvents) {
@@ -108,19 +108,19 @@ class BookEvent{
    *
    * @return void
    */
-  function publish_book()
+  function publish_publication()
   {
 
-      $markdown = file_get_contents($this->bookSettings['file']);
+      $markdown = file_get_contents($this->publicationSettings['file']);
       if (!$markdown) {
           throw new InvalidArgumentException('The file could not be found or is empty.');
       }
 
-      $this->set_book_author($this->bookSettings['author']);
-      $this->set_book_version($this->bookSettings['version']);
-      $this->set_book_tagtype($this->bookSettings['tag-type']);
-      $this->set_book_autoupdate($this->bookSettings['auto-update']);
-      $this->set_book_filetags($this->bookSettings['tags']);
+      $this->set_publication_author($this->publicationSettings['author']);
+      $this->set_publication_version($this->publicationSettings['version']);
+      $this->set_publication_tagtype($this->publicationSettings['tag-type']);
+      $this->set_publication_autoupdate($this->publicationSettings['auto-update']);
+      $this->set_publication_filetags($this->publicationSettings['tags']);
       
       // check if the file contains too many header levels
       (stripos($markdown,'======= ') !== false) ? throw new InvalidArgumentException('This markdown file contains too many header levels. Please correct down to maximum six = levels and retry.') : $markdown;
@@ -137,14 +137,22 @@ class BookEvent{
       // check if the file contains too few header levels
       (count($markdownFormatted) === 1) ? throw new InvalidArgumentException('This markdown file contains no headers or only one level of headers. Please ensure there are two levels and retry.') : $markdownFormatted;
 
-      $bookTitle= array_shift($markdownFormatted);
-      $this->set_book_title(trim(trim($bookTitle, "= ")));
+      // set aside publication title
+      $firstSection = explode(PHP_EOL, $markdownFormatted[0], 2);
+      $this->set_publication_title(trim(trim($firstSection[0], "= ")));
+      
+      // check if preamble exists and make it the first section
+      $markdownFormatted[0] = trim($firstSection[1]);
 
-      $title = $this->get_book_title();
-      $author = $this->get_book_author();
-      $version = $this->get_book_version();
+      if(!empty($markdownFormatted[0])){
+        $markdownFormatted[0] = 'Preamble'.PHP_EOL.PHP_EOL.$markdownFormatted[0];
+      }else unset($markdownFormatted[0]);
+
+      $title = $this->get_publication_title();
+      $author = $this->get_publication_author();
+      $version = $this->get_publication_version();
       $dTag = construct_d_tag($title, $author, $version); 
-      $this->set_book_d_tag($dTag);
+      $this->set_publication_d_tag($dTag);
 
       echo PHP_EOL;
 
@@ -166,10 +174,10 @@ class BookEvent{
         $sectionNum++;
         $sectionTitle = trim(strstr($section, "\n", true));
         $nextSection = new SectionEvent();
-          $nextSection->set_section_author($this->bookAuthor);
-          $nextSection->set_section_version($this->bookVersion);
+          $nextSection->set_section_author($this->publicationAuthor);
+          $nextSection->set_section_version($this->publicationVersion);
                   $nextSection->set_section_title($sectionTitle);
-          $nextSection->set_section_d_tag(construct_d_tag($this->get_book_title()."-".$nextSection->get_section_title()."-".$sectionNum, $nextSection->get_section_author(), $nextSection->get_section_version()));
+          $nextSection->set_section_d_tag(construct_d_tag($this->get_publication_title()."-".$nextSection->get_section_title()."-".$sectionNum, $nextSection->get_section_author(), $nextSection->get_section_version()));
           $nextSection->set_section_content(trim(trim(strval($section), $sectionTitle)));
           
           $sectionData = $nextSection->create_section();       
@@ -179,10 +187,10 @@ class BookEvent{
         }
 
       // write the 30040 and add the new 30041s
-      if($this->get_book_tagtype() === 'e'){
-        $this->create_book_with_e_tags();
+      if($this->get_publication_tagtype() === 'e'){
+        $this->create_publication_with_e_tags();
       } else{
-        $this->create_book_with_a_tags();
+        $this->create_publication_with_a_tags();
       }
 
       return;
@@ -192,10 +200,10 @@ class BookEvent{
    * Create an index event and hang on the associated section events.
    * Returns the index as an event.
    *
-   * @param BookEvent
+   * @param PublicationEvent
    * 
    */
-  function create_book_with_a_tags()
+  function create_publication_with_a_tags()
   {
     $kind = "30040";
 
@@ -221,7 +229,7 @@ class BookEvent{
     
   }
 
-  function create_book_with_e_tags()
+  function create_publication_with_e_tags()
   {
     $kind = "30040";
 
@@ -241,11 +249,11 @@ class BookEvent{
 
   function build_tags(): array 
   {
-    $tags = $this->get_book_filetags();
-    $tags[] = ['d', $this->get_book_d_tag()];
-    $tags[] = ['title', $this->get_book_title()];
-    $tags[] = ['author', $this->get_book_author()];
-    $tags[] = ['version', $this->get_book_version()];
+    $tags = $this->get_publication_filetags();
+    $tags[] = ['d', $this->get_publication_d_tag()];
+    $tags[] = ['title', $this->get_publication_title()];
+    $tags[] = ['author', $this->get_publication_author()];
+    $tags[] = ['version', $this->get_publication_version()];
     $tags[] = ["m", "application/json"];
     $tags[] = ["M", "meta-data/index/replaceable"];
 
@@ -263,11 +271,11 @@ class BookEvent{
     } while (($i <= 10) && empty($eventID));
 
     if (empty($eventID)) {
-              throw new InvalidArgumentException('The book eventID was not created');
+              throw new InvalidArgumentException('The publication eventID was not created');
           }
     
     echo "Published ".$kind." event with ".$type." tags and ID ".$eventID.PHP_EOL.PHP_EOL;
-    print_event_data($kind, $eventID, $this->get_book_d_tag());
+    print_event_data($kind, $eventID, $this->get_publication_d_tag());
     
     // print a njump hyperlink to the 30040
     print "https://njump.me/".$eventID.PHP_EOL;

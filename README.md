@@ -35,7 +35,7 @@ more text
 
 5. On the command line, enter the program name and the name of your settings file.
 
-```php createBook.php user/MyShortBookSettings.yml```
+```php createPublication.php user/MyShortBookSettings.yml```
 
 6. All of the event metadata will be added to the *eventsCreated.txt* file.
 8. The 30040 eventID will be sent to stdout (usually the command line) in the form of an njump hyperlink. The link will not work, if you wrote to a local relay, but you can still see the eventID.

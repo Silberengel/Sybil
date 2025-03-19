@@ -77,7 +77,7 @@ function prepare_event_data($note): array
 
     $relays = [];
     foreach ($relaysRead as &$relay) {
-        $relays[] = new Relay($relay);
+        $relays[] = new Relay(websocket: $relay);
     }
     (empty($relays)) ? ($relays = ["wss://thecitadel.nostr1.com"]) : $relays;
 
