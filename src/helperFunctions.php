@@ -89,7 +89,7 @@ function prepare_event_data($note): array
         $result = $relaySet->send();
     }catch(TypeError $e)
     {
-        echo "Sending to relay did not work. Will be retried.";
+        echo "Sending to relay did not work. Will be retried.".PHP_EOL;
         sleep(10);
         $result = $relaySet->send();
     }
