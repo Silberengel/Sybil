@@ -35,7 +35,7 @@ if ($settings['auto-update'] != ('yes' || 'ask' || 'no')) {
 
 // Define publication
 $publication = new PublicationEvent();
-$publication->set_publication_settings($settings);
+$publication->setPublicationSettings($settings);
 
 // Write publication into events
 try {
