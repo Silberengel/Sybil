@@ -474,6 +474,10 @@ class PublicationEvent
      */
     private function processSection(string $section, int $sectionNum): void
     {
+        // Count down the publication of all sections
+        $sectionCount = count($this->getSectionEvents());
+        echo PHP_EOL.'Building section '.$sectionNum.' of '.$sectionCount.'.'.PHP_EOL;
+        
         // Extract section title
         $sectionTitle = trim(strstr($section, "\n", true));
         
@@ -582,7 +586,7 @@ class PublicationEvent
         $note->setTags($tags);
         $note->setContent('');
         
-        $result = prepare_event_data($note);
+        prepare_event_data($note);
         $this->recordResult(self::EVENT_KIND, $note, $type);
     }
     
