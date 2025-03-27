@@ -1,14 +1,35 @@
 = Test Blog
+////
+<<YAML>>
+author: 'Stella'
+version: '1'
+tag-type: 'a'
+auto-update: 'yes'
+tags:
+  - ['image', 'https://upload.wikimedia.org/wikipedia/commons/9/90/Jacob_van_Oost_%28I%29_-_Young_Man_Writing.jpg']
+  - ['type', 'blog']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'journalism']
+  - ['summary', 'An example of how you could use the publication events to create a blog.']
+  - ['p', 'fd208ee8c8f283780a9552896e4823cc9dc6bfd442063889577106940fd927c1']
+<</YAML>>
+////
+
+A bit of text, to test if the preamble works.
 
 == This is the first blog entry
 ////
+<<YAML>>
 author: 'Testerin'
-tags: 'image', 'https://www.boredpanda.com/blog/wp-content/uploads/2022/09/relatable-funny-memes-29-6328543dcdcbc__700.jpg'
-tags: 'p', '573634b648634cbad10f2451776089ea21090d9407f715e83c577b4611ae6edc'
-tags: 't', 'humor'
-tags: 't', 'testfile'
-tags: 'published_on', '2025-03-25'
-tags: 'source', 'https://nostrudel.ninja/#/u/npub12umrfdjgvdxt45g0y3ghwcyfagssjrv5qlm3t6pu2aa5vydwdmwq8q0z04/articles'
+tags:
+  - ['image', 'https://www.boredpanda.com/blog/wp-content/uploads/2022/09/relatable-funny-memes-29-6328543dcdcbc__700.jpg']
+  - ['t', 'humor']
+  - ['t', 'testfile']
+  - ['published_on', '2025-03-25']
+  - ['p', '573634b648634cbad10f2451776089ea21090d9407f715e83c577b4611ae6edc']
+  - ['source', 'https://nostrudel.ninja/#/u/npub12umrfdjgvdxt45g0y3ghwcyfagssjrv5qlm3t6pu2aa5vydwdmwq8q0z04/articles']
+<</YAML>>
 ////
 
 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
@@ -19,12 +40,15 @@ Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie co
 
 == This is the second blog entry
 ////
+<<YAML>>
 author: 'Laeserin'
-tags: 'image', 'https://i.pinimg.com/236x/e8/38/45/e83845f08ac905adfde60feaf24f4e63.jpg'
-tags: 'p', 'dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319'
-tags: 't', 'blog'
-tags: 'published_on', '2025-03-24'
-tags: 'E', '2777ba32ff10c374eef55648f8106821d066b11914cf79cd0373f7142e60e7c0, wss://thecitadel.nostr1.com, dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319']
+tags:
+  - ['image', 'https://i.pinimg.com/236x/e8/38/45/e83845f08ac905adfde60feaf24f4e63.jpg']
+  - ['t', 'blog']
+  - ['published_on', '2025-03-24']
+  - ['p', 'dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319']
+  - ['E', '2777ba32ff10c374eef55648f8106821d066b11914cf79cd0373f7142e60e7c0, wss://thecitadel.nostr1.com, dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319']
+<</YAML>>
 ////
 
 Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus. 
