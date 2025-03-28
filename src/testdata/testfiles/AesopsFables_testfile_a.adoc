@@ -1,4 +1,25 @@
 = Aesop's Fables Testfile
+////
+<<YAML>>
+author: 'Æsop'
+version: 'testdata'
+tag-type: 'a'
+auto-update: 'ask'
+tags:
+  - ['image', 'https://www.gutenberg.org/files/49010/49010-h/images/cover.jpg']
+  - ['type', 'book']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'fables']
+  - ['t', 'classical']
+  - ['summary', 'A short version of Aesop, that we use for testing Alexandria.']
+  - ['i', 'isbn:9781853261282']
+  - ['published_on', '0425-01-01']
+  - ['published_by', 'public domain']
+  - ['p', 'dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319']
+  - ['source', 'https://www.gutenberg.org/ebooks/18732']
+<</YAML>>
+////
 
 == Life of Aesop
 

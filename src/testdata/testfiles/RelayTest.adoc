@@ -1,8 +1,19 @@
-= Relay Test: TheForest
+= Relay Test: TheCitadel
+////
+<<YAML>>
+author: 'unknown'
+version: '1'
+tag-type: 'a'
+auto-update: 'yes'
+tags:
+  - ['image', 'https://plsn.com/site/wp-content/uploads/fig-2.-1920px-SMPTE_Color_Bars_16x9.png']
+  - ['t', 'testfile']
+<</YAML>>
+////
 
 == Purpose
 
-This is a test of writing directly to the relay *wss://theforest.nostr1.com*.
+This is a test of writing directly to the relay *wss://thecitadel.nostr1.com*.
 
 If you can see this file, it means that the upload was successful and you are either reading from the same relay, or from a relay that has since copied the original test event.
 

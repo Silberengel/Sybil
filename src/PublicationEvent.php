@@ -2,287 +2,61 @@
 
 use swentel\nostr\Event\Event;
 use swentel\nostr\Key\Key;
-include_once 'helperFunctions.php';
-include_once 'SectionEvent.php';
 
 /**
  * Class PublicationEvent
  * 
  * Handles the creation and publishing of publication events in the Nostr protocol.
+ * This class processes AsciiDoc files, extracts metadata and content sections,
+ * creates section events for each content section, and then creates a main
+ * publication event that references all the section events. It supports both
+ * a-tag and e-tag referencing methods.
  */
 class PublicationEvent
 {
     // Publication properties
-    private array $publicationSettings = [];
-    private string $publicationDTag = '';
-    private string $publicationTitle = '';
-    private string $publicationAuthor = '';
-    private string $publicationVersion = '';
-    private string $publicationTagType = '';
-    private bool $publicationAutoUpdate = false;
-    private array $publicationFileTags = [];
+    public string $file = '';
+    public string $dTag = '';
+    public string $title = '';
+    public string $author = '';
+    public string $version = '';
+    public string $tagType = '';
+    public string $autoUpdate = '';
+    public array $optionaltags = [];
     
     // Section tracking
-    private array $sectionEvents = [];
-    private array $sectionDtags = [];
+    public array $sectionEvents = [];
+    public array $sectionDtags = [];
     
     // Constants
-    private const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
-    private const EVENT_KIND = '30040';
-    private const SECTION_EVENT_KIND = '30041';
+    public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
+    public const EVENT_KIND = '30040';
+    public const SECTION_EVENT_KIND = '30041';
     
-    /**
-     * Constructor for PublicationEvent
-     * 
-     * @param array $settings Optional initial settings for the publication
-     */
-    public function __construct(array $settings = [])
+/**
+ * Constructor for PublicationEvent
+ * 
+ * @param array $data Optional initial data for the publication
+ */
+    public function __construct(array $data = [])
     {
-        if (!empty($settings)) {
-            $this->setPublicationSettings($settings);
+        if (!empty($data)) {
+            if (isset($data['title'])) {
+                $this->title = $data['title'];
+            }
+            
+            if (isset($data['author'])) {
+                $this->author = $data['author'];
+            }
+            
+            if (isset($data['version'])) {
+                $this->version = $data['version'];
+            }
+            
+            if (isset($data['dTag'])) {
+                $this->dTag = $data['dTag'];
+            }
         }
-    }
-    
-    /**
-     * Sets the publication settings
-     * 
-     * @param array $publicationSettings The settings array
-     * @return self
-     */
-    public function setPublicationSettings(array $publicationSettings): self
-    {
-        $this->publicationSettings = $publicationSettings;
-        
-        // Initialize properties from settings if available
-        if (isset($publicationSettings['author'])) {
-            $this->setPublicationAuthor($publicationSettings['author']);
-        }
-        
-        if (isset($publicationSettings['version'])) {
-            $this->setPublicationVersion($publicationSettings['version']);
-        }
-        
-        if (isset($publicationSettings['tag-type'])) {
-            $this->setPublicationTagtype($publicationSettings['tag-type']);
-        }
-        
-        if (isset($publicationSettings['auto-update'])) {
-            $this->setPublicationAutoupdate($publicationSettings['auto-update']);
-        }
-        
-        if (isset($publicationSettings['tags'])) {
-            $this->setPublicationFiletags($publicationSettings['tags']);
-        }
-        
-        return $this;
-    }
-    
-    /**
-     * Gets the publication settings
-     * 
-     * @return array
-     */
-    public function getPublicationSettings(): array
-    {
-        return $this->publicationSettings;
-    }
-    
-    /**
-     * Sets the publication d-tag
-     * 
-     * @param string $publicationDTag The d-tag
-     * @return self
-     */
-    public function setPublicationDTag(string $publicationDTag): self
-    {
-        $this->publicationDTag = $publicationDTag;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication d-tag
-     * 
-     * @return string
-     */
-    public function getPublicationDTag(): string
-    {
-        return $this->publicationDTag;
-    }
-    
-    /**
-     * Sets the publication title
-     * 
-     * @param string $publicationTitle The title
-     * @return self
-     */
-    public function setPublicationTitle(string $publicationTitle): self
-    {
-        $this->publicationTitle = $publicationTitle;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication title
-     * 
-     * @return string
-     */
-    public function getPublicationTitle(): string
-    {
-        return $this->publicationTitle;
-    }
-    
-    /**
-     * Sets the publication author
-     * 
-     * @param string $publicationAuthor The author
-     * @return self
-     */
-    public function setPublicationAuthor(string $publicationAuthor): self
-    {
-        $this->publicationAuthor = $publicationAuthor;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication author
-     * 
-     * @return string
-     */
-    public function getPublicationAuthor(): string
-    {
-        return $this->publicationAuthor;
-    }
-    
-    /**
-     * Sets the publication version
-     * 
-     * @param string $publicationVersion The version
-     * @return self
-     */
-    public function setPublicationVersion(string $publicationVersion): self
-    {
-        $this->publicationVersion = $publicationVersion;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication version
-     * 
-     * @return string
-     */
-    public function getPublicationVersion(): string
-    {
-        return $this->publicationVersion;
-    }
-    
-    /**
-     * Sets the publication tag type
-     * 
-     * @param string $publicationTagType The tag type ('a' or 'e')
-     * @return self
-     */
-    public function setPublicationTagtype(string $publicationTagType): self
-    {
-        $this->publicationTagType = $publicationTagType;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication tag type
-     * 
-     * @return string
-     */
-    public function getPublicationTagtype(): string
-    {
-        return $this->publicationTagType;
-    }
-    
-    /**
-     * Sets the publication auto-update flag
-     * 
-     * @param bool $publicationAutoUpdate The auto-update flag
-     * @return self
-     */
-    public function setPublicationAutoupdate(bool $publicationAutoUpdate): self
-    {
-        $this->publicationAutoUpdate = $publicationAutoUpdate;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication auto-update flag
-     * 
-     * @return bool
-     */
-    public function getPublicationAutoupdate(): bool
-    {
-        return $this->publicationAutoUpdate;
-    }
-    
-    /**
-     * Sets the publication file tags
-     * 
-     * @param array $publicationFileTags The file tags
-     * @return self
-     */
-    public function setPublicationFiletags(array $publicationFileTags): self
-    {
-        $this->publicationFileTags = $publicationFileTags;
-        return $this;
-    }
-    
-    /**
-     * Gets the publication file tags
-     * 
-     * @return array
-     */
-    public function getPublicationFiletags(): array
-    {
-        return $this->publicationFileTags;
-    }
-    
-    /**
-     * Adds a section event ID
-     * 
-     * @param string $sectionEvent The section event ID
-     * @return self
-     */
-    public function addSectionEvent(string $sectionEvent): self
-    {
-        $this->sectionEvents[] = $sectionEvent;
-        return $this;
-    }
-    
-    /**
-     * Gets all section events
-     * 
-     * @return array
-     */
-    public function getSectionEvents(): array
-    {
-        return $this->sectionEvents;
-    }
-    
-    /**
-     * Adds a section d-tag
-     * 
-     * @param string $sectionDtag The section d-tag
-     * @return self
-     */
-    public function addSectionDTag(string $sectionDtag): self
-    {
-        $this->sectionDtags[] = $sectionDtag;
-        return $this;
-    }
-    
-    /**
-     * Gets all section d-tags
-     * 
-     * @return array
-     */
-    public function getSectionDTags(): array
-    {
-        return $this->sectionDtags;
     }
 
     /**
@@ -291,98 +65,84 @@ class PublicationEvent
      * @return void
      * @throws InvalidArgumentException If the file is invalid or has formatting issues
      */
-    public function publish_publication(): void
+    public function publish(): void
     {
-        $this->publishPublication();
-    }
+        // Load and validate the markup file
+        $markup = $this->loadMarkupFile();
+        
+        // Process the markup content
+        $markupFormatted = $this->preprocessMarkup($markup);
+        unset($markup);
 
-    /**
-     * Create an index event and hang on the associated section events
-     * 
-     * @return void
-     * @throws InvalidArgumentException If the file is invalid or has formatting issues
-     */
-    public function publishPublication(): void
-    {
-        // Load and validate the markdown file
-        $markdown = $this->loadMarkdownFile();
-        
-        // Process the markdown content
-        $markdownFormatted = $this->preprocessMarkdown($markdown);
-        
         // Extract title and create d-tag
-        $this->extractTitleAndCreateDTag($markdownFormatted);
+        $this->extractTitleAndCreateDTag($markupFormatted);
         
         // Process sections
-        $this->processSections($markdownFormatted);
+        $this->processSections($markupFormatted);
         
         // Create the publication event with appropriate tag type
-        if ($this->getPublicationTagtype() === 'e') {
-            $this->createPublicationWithETags();
+        if ($this->tagType === 'a') {
+            $this->createWithATags();
         } else {
-            $this->createPublicationWithATags();
+            $this->createWithETags();
         }
     }
     
     /**
-     * Loads and validates the markdown file
+     * Loads and validates the markup file
      * 
-     * @return string The markdown content
+     * @return string The markup content
      * @throws InvalidArgumentException If the file is invalid
      */
-    private function loadMarkdownFile(): string
+    private function loadMarkupFile(): string
     {
-        if (!isset($this->publicationSettings['file'])) {
-            throw new InvalidArgumentException('No file specified in publication settings.');
-        }
-        
-        $markdown = file_get_contents($this->publicationSettings['file']);
-        if (!$markdown) {
+        $markup = file_get_contents($this->file);
+        if (!$markup) {
             throw new InvalidArgumentException('The file could not be found or is empty.');
         }
-        
+
         // Validate header levels
-        if (stripos($markdown, '======= ') !== false) {
+        if (stripos($markup, '======= ') !== false) {
             throw new InvalidArgumentException(
-                'This markdown file contains too many header levels. Please correct down to maximum six = levels and retry.'
+                'This markup file contains too many header levels. Please correct down to maximum six = levels and retry.'
             );
         }
         
-        return $markdown;
+        return $markup;
     }
     
     /**
-     * Preprocesses the markdown content
+     * Preprocesses the markup content
      * 
-     * @param string $markdown The raw markdown content
-     * @return array The processed markdown sections
-     * @throws InvalidArgumentException If the markdown structure is invalid
+     * @param string $markup The raw markup content
+     * @return array The processed markup sections
+     * @throws InvalidArgumentException If the markup structure is invalid
      */
-    private function preprocessMarkdown(string $markdown): array
+    private function preprocessMarkup(string $markup): array
     {
         // Replace headers above == with &s for later processing
-        $markdown = $this->replaceHeadersForProcessing($markdown);
+        $markup = $this->replaceHeadersForProcessing($markup);
         
         // Break the file into metadata and sections
-        $markdownFormatted = explode("== ", $markdown);
+        $markupFormatted = explode("== ", $markup);
         
         // Validate section count
-        if (count($markdownFormatted) === 1) {
+        if (count($markupFormatted) === 1) {
             throw new InvalidArgumentException(
-                'This markdown file contains no headers or only one level of headers. Please ensure there are two levels and retry.'
+                'This markup file contains no headers or only one level of headers. Please ensure there are two levels and retry.'
             );
         }
         
-        return $markdownFormatted;
+        return $markupFormatted;
     }
     
     /**
      * Replaces header markers for processing
      * 
-     * @param string $markdown The markdown content
-     * @return string The processed markdown
+     * @param string $markup The markup content
+     * @return string The processed markup
      */
-    private function replaceHeadersForProcessing(string $markdown): string
+    private function replaceHeadersForProcessing(string $markup): string
     {
         $replacements = [
             '====== ' => '&&&&&& ',
@@ -391,16 +151,20 @@ class PublicationEvent
             '=== ' => '&&& '
         ];
         
-        return str_replace(array_keys($replacements), array_values($replacements), $markdown);
+        return str_replace(
+            array_keys($replacements), 
+            array_values($replacements), 
+            $markup);
     }
     
     /**
      * Restores header markers after processing
      * 
-     * @param array $markdownFormatted The markdown sections
-     * @return array The processed markdown sections
+     * @param array $markupFormatted The markup sections
+     * @return array The processed markup sections
      */
-    private function restoreHeaderMarkers(array $markdownFormatted): array
+    private function restoreHeaderMarkers(
+        array $markupFormatted): array
     {
         $replacements = [
             '&&&&&& ' => "[discrete]\n====== ",
@@ -410,8 +174,11 @@ class PublicationEvent
         ];
         
         $result = [];
-        foreach ($markdownFormatted as $section) {
-            $result[] = str_replace(array_keys($replacements), array_values($replacements), $section);
+        foreach ($markupFormatted as $section) {
+            $result[] = str_replace(
+                array_keys($replacements), 
+                array_values($replacements), 
+                $section);
         }
         
         return $result;
@@ -420,49 +187,106 @@ class PublicationEvent
     /**
      * Extracts the title and creates the d-tag
      * 
-     * @param array &$markdownFormatted The markdown sections (modified in place)
+     * @param array &$markupFormatted The markup sections (modified in place)
      */
-    private function extractTitleAndCreateDTag(array &$markdownFormatted): void
+    private function extractTitleAndCreateDTag(array &$markupFormatted): void
     {
         // Extract title from first section
-        $firstSection = explode(PHP_EOL, $markdownFormatted[0], 2);
-        $this->setPublicationTitle(trim(trim($firstSection[0], "= ")));
+        $firstSection = explode(PHP_EOL, 
+        $markupFormatted[0], 2);
+        $this->title = trim(
+            trim($firstSection[0], "= "));
         
-        // Process preamble
-        $markdownFormatted[0] = trim($firstSection[1]);
+        $firstSectionNew = explode('////', $firstSection[1]);
+        unset($firstSection);
         
-        if (!empty($markdownFormatted[0])) {
-            $markdownFormatted[0] = 'Preamble' . PHP_EOL . PHP_EOL . $markdownFormatted[0];
-        } else {
-            unset($markdownFormatted[0]);
+        // Make sure we have at least one part after the //// delimiter
+        if (count($firstSectionNew) < 2) {
+            throw new InvalidArgumentException(
+                'The file format is incorrect. Missing YAML section.');
         }
         
-        // Create d-tag
-        $dTag = construct_d_tag(
-            $this->getPublicationTitle(),
-            $this->getPublicationAuthor(),
-            $this->getPublicationVersion()
-        );
-        $this->setPublicationDTag($dTag);
+        array_shift($firstSectionNew);
+
+        // Process preamble if it exists
+        $preamble = isset($firstSectionNew[1]) ? trim($firstSectionNew[1]) : '';
+        if (!empty($preamble)) {
+            $markupFormatted[0] = 'Preamble' . PHP_EOL . PHP_EOL . $preamble;
+        } else {
+            unset($markupFormatted[0]);
+        }
+        unset($preamble);
+
+        // Get the yaml tags
+        if (!isset($firstSectionNew[0])) {
+            throw new InvalidArgumentException(
+                'The file format is incorrect. Missing YAML content.');
+        }
         
+        $yamlTags = create_tags_from_yaml($firstSectionNew[0]);
+        unset($firstSectionNew);
+
+        // Set publication properties from YAML data
+        if (empty($yamlTags['author'])) {
+            throw new InvalidArgumentException(
+                'The author is missing.');
+        }
+        $this->author = $yamlTags['author'];
+        
+        if (empty($yamlTags['version'])) {
+            throw new InvalidArgumentException(
+                'The version is missing.');
+        }
+        $this->version = $yamlTags['version'];
+        
+        if ($yamlTags['tag-type'] !== 'e' && $yamlTags['tag-type'] !== 'a') {
+            throw new InvalidArgumentException(
+                'The event type (e/a) is missing or wrong.');
+        }
+        $this->tagType = $yamlTags['tag-type'];
+        
+        if ($yamlTags['auto-update'] !== 'yes' && $yamlTags['auto-update'] !== 'ask' && $yamlTags['auto-update'] !== 'no') {
+            throw new InvalidArgumentException(
+                'The auto-update option is missing or wrong.');
+        }
+        $this->autoUpdate = $yamlTags['auto-update'];
+        
+        // Store optional tags
+        $this->optionaltags = $yamlTags['tags'];
+
+        // Create d-tag
+        $this->dTag = construct_d_tag(
+            $this->title,
+            $this->author,
+            $this->version
+        );
+        
+        unset($yamlTags);
+
         echo PHP_EOL;
     }
     
     /**
      * Processes sections and creates section events
      * 
-     * @param array $markdownFormatted The markdown sections
+     * @param array $markupFormatted The markup sections
      */
-    private function processSections(array $markdownFormatted): void
+    private function processSections(array $markupFormatted): void
     {
         // Restore header markers
-        $markdownFormatted = $this->restoreHeaderMarkers($markdownFormatted);
-        
+        $markupFormatted = $this->restoreHeaderMarkers(
+            $markupFormatted);
+        $sectionCount = count($markupFormatted);
+
         // Process each section
         $sectionNum = 0;
-        foreach ($markdownFormatted as $section) {
+        foreach ($markupFormatted as $section) {
             $sectionNum++;
-            $this->processSection($section, $sectionNum);
+            echo PHP_EOL.'Building section '.$sectionNum.' of '
+            .$sectionCount.'.'.PHP_EOL;
+            $this->processSection(
+                $section, 
+                $sectionNum);
         }
     }
     
@@ -474,42 +298,93 @@ class PublicationEvent
      */
     private function processSection(string $section, int $sectionNum): void
     {
-        // Count down the publication of all sections
-        $sectionCount = count($this->getSectionEvents());
-        echo PHP_EOL.'Building section '.$sectionNum.' of '.$sectionCount.'.'.PHP_EOL;
-        
-        // Extract section title
-        $sectionTitle = trim(strstr($section, "\n", true));
+        $sectionParts = explode('////', $section);
+
+        // Get the yaml tags
+        $yamlTags = null;
+        if(isset($sectionParts[1]) && !empty($sectionParts[1])){
+            if (str_contains($sectionParts[1], '<<YAML>>')) {
+                $yamlContent = trim($sectionParts[1]);
+                $yamlTags = create_tags_from_yaml($yamlContent);
+            }
+        }
         
         // Create section event
         $nextSection = new SectionEvent();
-        $nextSection->set_section_author($this->publicationAuthor);
-        $nextSection->set_section_version($this->publicationVersion);
-        $nextSection->set_section_title($sectionTitle);
+        
+        if($yamlTags){
+            // Set author from section YAML if available, 
+            // otherwise use publication author
+            if (!isset($yamlTags['author']) || empty($yamlTags['author'])) {
+                $nextSection->sectionAuthor = $this->author;
+            } else{
+                $nextSection->sectionAuthor = $yamlTags['author'];
+            }
+            if (!isset($yamlTags['version']) || empty($yamlTags['version'])) {
+                $nextSection->sectionVersion = $this->version;
+            } else{
+                $nextSection->sectionVersion = $yamlTags['version'];
+            }
+            if (!isset($yamlTags['title']) || empty($yamlTags['title'])) {
+                $nextSection->sectionTitle = trim(
+                    strstr($sectionParts[0], 
+                    "\n", true));
+            } else{
+                $nextSection->sectionTitle = $yamlTags['title'];
+            }      
+        } else {
+            $nextSection->sectionAuthor = $this->author;
+            $nextSection->sectionVersion = $this->version;
+            $nextSection->sectionTitle = trim(
+                strstr(
+                    $sectionParts[0], 
+                    "\n", 
+                    true));
+        }
         
         // Create section d-tag
-        $sectionDTag = construct_d_tag(
-            $this->getPublicationTitle() . "-" . $sectionTitle . "-" . $sectionNum,
-            $nextSection->get_section_author(),
-            $nextSection->get_section_version()
+        $nextSection->sectionDTag = construct_d_tag(
+            $this->title . "-" . $nextSection->sectionTitle 
+            . "-" . $sectionNum,
+            $nextSection->sectionAuthor,
+            $nextSection->sectionVersion
         );
-        $nextSection->set_section_d_tag($sectionDTag);
         
         // Set section content
-        $nextSection->set_section_content(trim(trim(strval($section), $sectionTitle)));
+
+        if($yamlTags){
+            $nextSection->sectionContent = (
+                trim(trim(
+                        trim(
+                            strval($section), 
+                            $nextSection->sectionTitle
+                            ), 
+                            $sectionParts[0]
+                    )
+                )
+            );
+        } else{
+            $nextSection->sectionContent = (
+                trim(trim(
+                    strval($section), 
+                    $nextSection->sectionTitle
+                    )
+                )
+            );
+        }
         
         // Create section and store results
-        $sectionData = $nextSection->create_section();
-        $this->addSectionEvent($sectionData["eventID"]);
-        $this->addSectionDTag($sectionData["dTag"]);
+        $sectionData = $nextSection->createSection();
+        $this->sectionEvents[] = $sectionData["eventID"];
+        $this->sectionDtags[] = $sectionData["dTag"];
     }
-
+    
     /**
      * Creates a publication event with a-tags
      * 
      * @return void
      */
-    public function createPublicationWithATags(): void
+    public function createWithATags(): void
     {
         // Get public hex key
         $keys = new Key();
@@ -518,21 +393,15 @@ class PublicationEvent
         $publicHex = $keys->getPublicKey(private_hex: $privateHex);
         
         // Build base tags
-        $tags = $this->buildTags();
+        $publicationEvent = $this->buildPublicationEvent(
+            'a',
+            $publicHex);
         
-        // Add section references with a-tags
-        foreach ($this->getSectionEvents() as $eventID) {
-            $dTag = array_shift($this->sectionDtags);
-            $tags[] = [
-                'a', 
-                self::SECTION_EVENT_KIND . ':' . $publicHex . ':' . $dTag, 
-                self::DEFAULT_RELAY, 
-                $eventID
-            ];
-        }
-        
-        // Create and send the event
-        $this->createAndSendEvent($tags, 'a');
+        prepare_event_data($publicationEvent);
+        $this->recordResult(
+            self::EVENT_KIND, 
+            $publicationEvent,
+            $this->tagType);
     }
     
     /**
@@ -540,54 +409,17 @@ class PublicationEvent
      * 
      * @return void
      */
-    public function createPublicationWithETags(): void
+    public function createWithETags(): void
     {
         // Build base tags
-        $tags = $this->buildTags();
-        
-        // Add section references with e-tags
-        foreach ($this->getSectionEvents() as $eventID) {
-            $tags[] = ['e', $eventID];
-        }
+        $event = $this->buildPublicationEvent('e');
         
         // Create and send the event
-        $this->createAndSendEvent($tags, 'e');
-    }
-    
-    /**
-     * Builds the base tags for the publication event
-     * 
-     * @return array The base tags
-     */
-    public function buildTags(): array
-    {
-        $tags = $this->getPublicationFiletags();
-        $tags[] = ['d', $this->getPublicationDTag()];
-        $tags[] = ['title', $this->getPublicationTitle()];
-        $tags[] = ['author', $this->getPublicationAuthor()];
-        $tags[] = ['version', $this->getPublicationVersion()];
-        $tags[] = ['m', 'application/json'];
-        $tags[] = ['M', 'meta-data/index/replaceable'];
-        
-        return $tags;
-    }
-    
-    /**
-     * Creates and sends an event with the given tags
-     * 
-     * @param array $tags The event tags
-     * @param string $type The tag type ('a' or 'e')
-     * @return void
-     */
-    private function createAndSendEvent(array $tags, string $type): void
-    {
-        $note = new Event();
-        $note->setKind(self::EVENT_KIND);
-        $note->setTags($tags);
-        $note->setContent('');
-        
-        prepare_event_data($note);
-        $this->recordResult(self::EVENT_KIND, $note, $type);
+        prepare_event_data($event);
+        $this->recordResult(
+            self::EVENT_KIND, 
+            $event, 
+            $this->tagType);
     }
     
     /**
@@ -605,8 +437,13 @@ class PublicationEvent
         $eventID = $this->getEventIdWithRetry($note);
         
         // Log the event
-        echo "Published " . $kind . " event with " . $type . " tags and ID " . $eventID . PHP_EOL . PHP_EOL;
-        print_event_data($kind, $eventID, $this->getPublicationDTag());
+        echo "Published " . $kind . " event with " 
+        . $type . " tags and ID " . $eventID . PHP_EOL . PHP_EOL;
+
+        print_event_data(
+            $kind, 
+            $eventID, 
+            $this->dTag);
         
         // Print a njump hyperlink
         echo "https://njump.me/" . $eventID . PHP_EOL;
@@ -621,7 +458,8 @@ class PublicationEvent
      * @return string The event ID
      * @throws InvalidArgumentException If the event ID could not be created
      */
-    private function getEventIdWithRetry(Event $note, int $maxRetries = 10, int $delay = 5): string
+    private function getEventIdWithRetry(
+        Event $note, int $maxRetries = 10, int $delay = 5): string
     {
         $i = 0;
         $eventID = '';
@@ -635,9 +473,55 @@ class PublicationEvent
         } while (($i <= $maxRetries) && empty($eventID));
         
         if (empty($eventID)) {
-            throw new InvalidArgumentException('The publication eventID was not created');
+            throw new InvalidArgumentException(
+                'The publication eventID was not created');
         }
         
         return $eventID;
+    }
+
+    /**
+     * Builds a publication event with the appropriate tags
+     * 
+     * @param string $type The tag type ('a' or 'e')
+     * @param string $publicHex The public hex key (required for a-tags)
+     * @return Event The configured event
+     */
+    private function buildPublicationEvent(
+        string $type = 'a', $publicHex = ""): Event
+    {
+
+        if($type === 'a'){
+            $eventTags = Tag::addATags(
+                $this->sectionEvents,
+                $this->sectionDtags,
+                self::SECTION_EVENT_KIND,
+                $publicHex,
+                self::DEFAULT_RELAY
+            );
+        }else {
+            $eventTags = Tag::addETags(
+                $this->sectionEvents
+            );
+        }
+
+        // Merge with optional tags
+        $eventTags = array_merge($eventTags, $this->optionaltags);
+        
+        $note = new Event();
+        
+        $note->setKind(self::EVENT_KIND);
+        $note->setTags(
+            Tag::createPublicationTags(
+                $this->dTag,
+                $this->title,
+                $this->author,
+                $this->version,
+                $eventTags
+            )
+        );
+        $note->setContent("");
+        
+        return $note;
     }
 }

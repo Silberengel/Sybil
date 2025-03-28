@@ -16,8 +16,6 @@ tags:
 <</YAML>>
 ////
 
-A bit of text, to test if the preamble works.
-
 == This is the first blog entry
 ////
 <<YAML>>

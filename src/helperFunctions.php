@@ -1,11 +1,20 @@
 <?php
+/**
+ * Helper Functions
+ * 
+ * This file contains utility functions used throughout the application for:
+ * - Creating and formatting d-tags
+ * - Handling Nostr event preparation and sending
+ * - Managing relay connections
+ * - Logging event data
+ * - Processing YAML metadata
+ */
 
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Sign\Sign;
 use swentel\nostr\Event\Event;
-use swentel\nostr\CommandResultInterface;
 
 /**
  * Constructs a d tag from title, author, and version.
@@ -17,6 +26,7 @@ use swentel\nostr\CommandResultInterface;
  * - Words normalized to lowercase, and all punctuation and whitespace removed, except "."
  * - Author preceded with "by"
  * - Version preceded with "v"
+ * - Not longer than 75 characters in length
  * 
  * Valid d-tags formats:
  * - title
@@ -30,7 +40,7 @@ use swentel\nostr\CommandResultInterface;
  * @param string $version The version number (optional)
  * @return string The formatted d-tag
  */
-function construct_d_tag($title, $author = "unknown", $version = "")
+function construct_d_tag($title, $author = "unknown", $version = "1")
 {
     // Replace spaces with dashes
     $normalizedTitle = normalize_tag_component($title);
@@ -197,4 +207,63 @@ function print_event_data($eventKind, $eventID, $dTag): bool
         error_log("Error writing to event log: " . $e->getMessage());
         return false;
     }
+}
+
+/**
+ * Creates tags using YAML data extracted from .adoc file.
+ * 
+ * @param string $yamlSnippet The content of the yaml snippet
+ * @return array The yaml-derived tags
+ */
+function create_tags_from_yaml(string $yamlSnippet): array
+{
+    // Initialize result array
+    $result = [
+        'author' => '',
+        'version' => '',
+        'tag-type' => '',
+        'auto-update' => '',
+        'tags' => []
+    ];
+    
+    // Extract YAML content
+    $yamlSnippet = trim($yamlSnippet);
+    $yamlSnippet = ltrim($yamlSnippet, '<<YAML>>');
+    $yamlSnippet = rtrim($yamlSnippet, '<</YAML>>');
+    $yamlSnippet = trim($yamlSnippet);
+    
+    $parsedYaml = yaml_parse($yamlSnippet);
+    
+    // Check if parsing was successful
+    if ($parsedYaml === false) {
+        return $result;
+    }
+    
+    // Extract basic metadata
+    if (isset($parsedYaml['author'])) {
+        $result['author'] = $parsedYaml['author'];
+    }
+    
+    if (isset($parsedYaml['version'])) {
+        $result['version'] = $parsedYaml['version'];
+    }
+    
+    if (isset($parsedYaml['tag-type'])) {
+        $result['tag-type'] = $parsedYaml['tag-type'];
+    }
+    
+    if (isset($parsedYaml['auto-update'])) {
+        $result['auto-update'] = $parsedYaml['auto-update'];
+    }
+    
+    // Extract tags
+    if (isset($parsedYaml['tags']) && is_array($parsedYaml['tags'])) {
+        foreach ($parsedYaml['tags'] as $tag) {
+            if (is_array($tag) && count($tag) >= 2) {
+                $result['tags'][] = $tag;
+            }
+        }
+    }
+    
+    return $result;
 }

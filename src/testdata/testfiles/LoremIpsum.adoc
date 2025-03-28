@@ -1,4 +1,14 @@
 = Lorem Ipsum
+////
+<<YAML>>
+author: 'unknown'
+version: '1'
+tag-type: 'a'
+auto-update: 'yes'
+tags:
+  - ['t', 'testfile']
+<</YAML>>
+////
 
 This should be become a preamble.
 

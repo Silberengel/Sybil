@@ -2,9 +2,6 @@
 # Without these five items, the uploader will throw an error and stop.
 # Please note that the adoc file should not contain any metadata.
 
-# The file that contains the full book data. The book title will be pulled from the first header in the file.
-file: 'MyShortBookTitle.adoc'
-
 # Who wrote the original book, contained in the file?
 author: 'unknown'
 
@@ -44,3 +41,28 @@ tags:
   - ['E', '<original event ID>, <relay URL>, <hex pubkey>']
 # source of the data, if the source is a website
   - ['source', 'https://website.com/article19484']
+
+---
+
+////
+<<YAML>>
+author: 'unknown'
+version: '1'
+tag-type: 'a'
+auto-update: 'yes'
+tags:
+  - ['image', 'https://mymediaserver.com/imagefile.jpg']
+  - ['type', 'book']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'novel']
+  - ['t', 'classical']
+  - ['summary', 'This is a description of this book.']
+  - ['i', 'isbn:978...']
+  - ['published_on', 'yyyy-mm-dd']
+  - ['published_by', 'public domain']
+  - ['p', '<hex pubkey>']
+  - ['E', '<original event ID>, <relay URL>, <hex pubkey>']
+  - ['source', 'https://website.com/article19484']
+  <</YAML>>
+  ////

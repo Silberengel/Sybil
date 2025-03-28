@@ -1,4 +1,14 @@
 = Document Test
+////
+<<YAML>>
+author: 'unknown'
+version: '1'
+tag-type: 'a'
+auto-update: 'yes'
+tags:
+  - ['t', 'testfile']
+<</YAML>>
+////
 
 == First level heading
 
