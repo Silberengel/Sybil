@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a simple PHP program that takes an edited/pre-formatted Asciidoc document, splits it into the specific sections or chapters defined (based upon the first and second level headers, for further levels, please use the [Alexandria client](https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqy2hwumn8ghj7un9d3shjtnyv9kh2uewd9hj7qq2g9kx27rpdej8y6tpq7z4jt)), generates a [curated publication](https://github.com/nostr-protocol/nips/pull/1600) from that file, and writes it to the relays selected.
+This is a simple PHP program that takes an edited/pre-formatted Asciidoc document, splits it into the specific sections or chapters defined (based upon the first and second level headers, for further levels, please use the [Alexandria client](https://next-alexandria.gitcitadel.eu/about)), generates a [curated publication](https://next-alexandria.gitcitadel.eu/publication?d=gitcitadel-project-documentation-curated-publications-specification-7-by-stella-v-1) from that file, and writes it to the relays selected.
 
 ## Prerequisites
 
@@ -17,35 +17,46 @@ This is a simple PHP program that takes an edited/pre-formatted Asciidoc documen
 ## Directions
 
 1. Save your Bech32 nsec in the environment variable with `export NOSTR_SECRET_KEY=nsec123`.
-2. Open the folder *user* and edit the file *relays.yml* containing your list of relays. We recommend keeping wss://thecitadel.nostr1.com in your list and adding at least one other, that you have write access to. If you remove all relays, the Citadel relay will be used as default. ```a``` tags will always contain thecitadel relay as relay hint.
-3. Copy the file in the *user* folder called *settings_template.yml* and paste it into the same folder, giving it a name similar to your publication title. Edit the information within and remove/add any optional tags.
-4. Return to the main/upper folder, create an Asciidoc file entitled something like *MyShortBookTitle.adoc* and have it formatted with precisely two levels of headers.
+2. Open the folder *user* and edit the file *relays.yml* containing your list of relays. We recommend keeping wss://thecitadel.nostr1.com in your list and adding at least one other, that you have write access to. If you remove all relays, the Citadel relay will be used as default. ```a``` tags will always contain thecitadel relay as the relay hint.
+3. Open the file in the *user* folder called *settings_template.yml*, read the descriptions of the event tags at the top, and then copy out the `////<<YAML>>` section.
+4. Paste the section beneath the document header (=) of your publication. The publication file should be located at in the top/root folder and have an `.adoc` ending.
+4. Edit the information within that yaml section and remove/add any optional tags.
+5. If you like, you can do the same for each 1st-level header (==). That will give the 30041 events more-customized tags. Otherwise, they derive their tags from the 30040 index event.
+6. On the command line, enter the program name and the name of your publication file.
 
-```
-= title you want as the full book title (mind the space after the equal sign)
+```php createPublication.php MyShortBook.adoc```
 
-== topic1
-
-text that you want displayed as content
-
-== topic2
-
-more text
-```
-
-5. On the command line, enter the program name and the name of your settings file.
-
-```php createPublication.php user/MyShortBookSettings.yml```
-
-6. All of the event metadata will be added to the *eventsCreated.txt* file.
+6. All of the events will be added to the *eventsCreated.txt* file.
 8. The 30040 eventID will be sent to stdout (usually the command line) in the form of an njump hyperlink. The link will not work, if you wrote to a local relay, but you can still see the eventID.
 
-## Integration Test
+## Automated Tests
 
 To check that everything is installed correctly, you can run 
 
 ```
-./vendor/bin/phpunit src/IntegrationTest.php
+./vendor/bin/phpunit src/
 ```
 
-to see the integration test, if you have PHPUnit installed.
+to see the unit and integration tests, if you have PHPUnit installed.
+
+## Example
+
+If you go to [next-alexandria](https://next-alexandria.gitcitadel.eu), you can then see the publications which you have produced, so long as you have published them to [wss://thecitadel.nostr1.com](https://thecitadel.nostr1.com) or one of your npub's outbox relays.
+
+An example of a typical document, produced with this tool, is the test file `AesopsFables_testfile_a.adoc` which looks like this:
+
+![source](./src/testdata/images/adocFile.png)
+
+And produces a book, like this:
+
+![landing page](./src/testdata/images/landingPage.png)
+
+![json view](./src/testdata/images/jsonView.png)
+
+![detailed view](./src/testdata/images/detailedView.png)
+
+![reading view](./src/testdata/images/readingView.png)
+
+## Contact information
+
+If you have any questions, comments, or zaps, then please feel free to contact me on Nostr. My npub is [npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z](https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z).
