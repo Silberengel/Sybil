@@ -8,7 +8,7 @@
       {
         "name": "Silberengel",
         "email": "support@gitcitadel.com",
-        "homepage": "https://github.com/SilberWitch",
+        "homepage": "https://github.com/Silberengel",
         "role": "Developer & maintainer"
       }
     ],
@@ -16,14 +16,15 @@
       "chat": "https://nosta.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z"
     },
     "require": {
-      "php": ">=8.1 <8.5",
-      "ext-gmp": "*",
-      "ext-xml": "*",
-      "bitwasp/bech32": "^0.0.1",
-      "paragonie/ecc": "^2.4",
-      "phrity/websocket": "^3.0",
-      "simplito/elliptic-php": "^1.0",
-      "swentel/nostr-php": "^1.5.3"
+        "php": ">=8.1 <8.5",
+        "ext-gmp": "*",
+        "ext-xml": "*",
+        "bitwasp/bech32": "^0.0.1",
+        "paragonie/ecc": "^2.4",
+        "paragonie/sodium_compat": "^2.1",
+        "phrity/websocket": "^3.0",
+        "simplito/elliptic-php": "^1.0",
+        "swentel/nostr-php": "^1.6"
     },
     "require-dev": {
       "friendsofphp/php-cs-fixer": "^3.51",
