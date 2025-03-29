@@ -122,14 +122,9 @@ class WikiEvent extends BaseEvent
         
         // Format and limit to 50 characters
         $formattedTitle = format_d_tag($normalizedTitle);
-        $limitedTitle = substr($formattedTitle, 0, 50);
-        
-        // Get public hex key and take first 10 chars
-        $publicHex = get_public_hex_key();
-        $shortHex = substr($publicHex, 0, 10);
         
         // Create the d-tag
-        $this->dTag = $limitedTitle . "-by-" . $shortHex;
+        $this->dTag = substr($formattedTitle, 0, 50);
         
         // Clean up
         unset($firstSection);

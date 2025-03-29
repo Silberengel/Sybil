@@ -41,7 +41,7 @@ I've since begun to expand it, to keep up with the development of our web GUI.
 3. Edit the information within that yaml section and remove/add any optional tags.
 5. On the command line, enter the program name, the command, and the name of your article file.
 
-```php Sybil.php longform MyShortBook.adoc```
+```php Sybil.php longform MyArticle.md```
 
 6. All of the events will be added to the *eventsCreated.txt* file.
 8. The 30023 eventID will be sent to stdout (usually the command line) in the form of an njump hyperlink. The link will not work, if you wrote to a local relay, but you can still see the eventID.
@@ -52,7 +52,7 @@ I've since begun to expand it, to keep up with the development of our web GUI.
 3. Edit the information within that yaml section and remove/add any optional tags.
 5. On the command line, enter the program name, the command, and the name of your wiki file.
 
-```php Sybil.php wiki MyShortBook.adoc```
+```php Sybil.php wiki WikiPage.adoc```
 
 6. All of the events will be added to the *eventsCreated.txt* file.
 8. The 30818 eventID will be sent to stdout (usually the command line) in the form of an njump hyperlink. The link will not work, if you wrote to a local relay, but you can still see the eventID.
@@ -111,3 +111,4 @@ And produces a book, like this:
 ## Contact information
 
 If you have any questions, comments, or zaps, then please feel free to contact me on Nostr. My npub is [npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z](https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z).
+Or use the issues on [the GitCitadel homepage](https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqythwumn8ghj7un9d3shjtnwdaehgu3wvfskuep0qqz4x7tzd9kqftxaxq)

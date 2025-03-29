@@ -285,7 +285,8 @@ function send_event_with_retry($eventMessage, array $customRelays = []): array
                 new Relay('wss://relay.damus.io'),
                 new Relay('wss://relay.nostr.band'),
                 new Relay('wss://nos.lol'),
-                new Relay('wss://theforest.nostr1.com')
+                new Relay('wss://theforest.nostr1.com'),
+                new Relay('ws://localhost:8080')
             ];
         } else {
             $relays = [
@@ -299,7 +300,8 @@ function send_event_with_retry($eventMessage, array $customRelays = []): array
                 new Relay('wss://freelay.sovbit.host'),
                 new Relay('wss://wheat.happytavern.co'),
                 new Relay('wss://nostr21.com'),
-                new Relay('wss://theforest.nostr1.com')
+                new Relay('wss://theforest.nostr1.com'),
+                new Relay('ws://localhost:8080')
             ];
         }
     }

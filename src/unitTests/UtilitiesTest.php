@@ -21,7 +21,8 @@ final class UtilitiesTest extends TestCase
         'wss://freelay.sovbit.host',
         'wss://wheat.happytavern.co',
         'wss://nostr21.com',
-        'wss://theforest.nostr1.com'
+        'wss://theforest.nostr1.com',
+        'ws://localhost:8080'
     ];
 
     /**

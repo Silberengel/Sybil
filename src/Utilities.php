@@ -125,7 +125,8 @@ class Utilities
             new Relay('wss://relay.lumina.rocks'),
             new Relay('wss://wheat.happytavern.co'),
             new Relay('wss://nostr21.com'),
-            new Relay('wss://theforest.nostr1.com')
+            new Relay('wss://theforest.nostr1.com'),
+            new Relay('ws://localhost:8080')
         ];
         
         $relaysWithEvent = [];
