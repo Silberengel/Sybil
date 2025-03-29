@@ -96,17 +96,17 @@ If you go to [next-alexandria](https://next-alexandria.gitcitadel.eu), you can t
 
 An example of a typical document, produced with this tool, is the test file `AesopsFables_testfile_a.adoc` which looks like this:
 
-![source](./src/testdata/images/adocFile.png)
+![source](https://i.nostr.build/qE3NVGZCTQ59TVEl.png)
 
 And produces a book, like this:
 
-![landing page](./src/testdata/images/landingPage.png)
+![landing page](https://i.nostr.build/gxf1A3WsYyJ64vVu.png)
 
-![json view](./src/testdata/images/jsonView.png)
+![json view](https://i.nostr.build/uS56H0WYGt5qcUiR.png)
 
-![detailed view](./src/testdata/images/detailedView.png)
+![detailed view](https://i.nostr.build/zHobLiKYjfvsIwTI.png)
 
-![reading view](./src/testdata/images/readingView.png)
+![reading view](https://i.nostr.build/DC7ROcViizNRzbzV.png)
 
 ## Contact information
 
