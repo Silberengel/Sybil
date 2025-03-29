@@ -22,12 +22,12 @@ final class SectionEventTest extends TestCase
     {
         $sectionEvent = new SectionEvent();
         
-        $this->assertEquals('', $sectionEvent->sectionDTag);
-        $this->assertEquals('', $sectionEvent->sectionTitle);
-        $this->assertEquals('', $sectionEvent->sectionAuthor);
-        $this->assertEquals('', $sectionEvent->sectionVersion);
-        $this->assertEquals('', $sectionEvent->sectionContent);
-        $this->assertEmpty($sectionEvent->sectionOptionalTags);
+        $this->assertEquals('', $sectionEvent->getSectionDTag());
+        $this->assertEquals('', $sectionEvent->getSectionTitle());
+        $this->assertEquals('', $sectionEvent->getSectionAuthor());
+        $this->assertEquals('', $sectionEvent->getSectionVersion());
+        $this->assertEquals('', $sectionEvent->getSectionContent());
+        $this->assertEmpty($sectionEvent->getSectionOptionalTags());
     }
 
     /**
@@ -45,12 +45,12 @@ final class SectionEventTest extends TestCase
         
         $sectionEvent = new SectionEvent($data);
         
-        $this->assertEquals('test-d-tag', $sectionEvent->sectionDTag);
-        $this->assertEquals('Test Title', $sectionEvent->sectionTitle);
-        $this->assertEquals('Test Author', $sectionEvent->sectionAuthor);
-        $this->assertEquals('1.0', $sectionEvent->sectionVersion);
-        $this->assertEquals('Test Content', $sectionEvent->sectionContent);
-        $this->assertEmpty($sectionEvent->sectionOptionalTags);
+        $this->assertEquals('test-d-tag', $sectionEvent->getSectionDTag());
+        $this->assertEquals('Test Title', $sectionEvent->getSectionTitle());
+        $this->assertEquals('Test Author', $sectionEvent->getSectionAuthor());
+        $this->assertEquals('1.0', $sectionEvent->getSectionVersion());
+        $this->assertEquals('Test Content', $sectionEvent->getSectionContent());
+        $this->assertEmpty($sectionEvent->getSectionOptionalTags());
     }
 
     /**
@@ -65,12 +65,45 @@ final class SectionEventTest extends TestCase
         
         $sectionEvent = new SectionEvent($data);
         
-        $this->assertEquals('', $sectionEvent->sectionDTag);
-        $this->assertEquals('Test Title', $sectionEvent->sectionTitle);
-        $this->assertEquals('Test Author', $sectionEvent->sectionAuthor);
-        $this->assertEquals('', $sectionEvent->sectionVersion);
-        $this->assertEquals('', $sectionEvent->sectionContent);
-        $this->assertEmpty($sectionEvent->sectionOptionalTags);
+        $this->assertEquals('', $sectionEvent->getSectionDTag());
+        $this->assertEquals('Test Title', $sectionEvent->getSectionTitle());
+        $this->assertEquals('Test Author', $sectionEvent->getSectionAuthor());
+        $this->assertEquals('', $sectionEvent->getSectionVersion());
+        $this->assertEquals('', $sectionEvent->getSectionContent());
+        $this->assertEmpty($sectionEvent->getSectionOptionalTags());
+    }
+    
+    /**
+     * Test getters and setters
+     */
+    public function testGettersAndSetters(): void
+    {
+        $sectionEvent = new SectionEvent();
+        
+        // Test dTag getter/setter
+        $sectionEvent->setSectionDTag('test-d-tag');
+        $this->assertEquals('test-d-tag', $sectionEvent->getSectionDTag());
+        
+        // Test title getter/setter
+        $sectionEvent->setSectionTitle('Test Title');
+        $this->assertEquals('Test Title', $sectionEvent->getSectionTitle());
+        
+        // Test author getter/setter
+        $sectionEvent->setSectionAuthor('Test Author');
+        $this->assertEquals('Test Author', $sectionEvent->getSectionAuthor());
+        
+        // Test version getter/setter
+        $sectionEvent->setSectionVersion('1.0');
+        $this->assertEquals('1.0', $sectionEvent->getSectionVersion());
+        
+        // Test content getter/setter
+        $sectionEvent->setSectionContent('Test Content');
+        $this->assertEquals('Test Content', $sectionEvent->getSectionContent());
+        
+        // Test optionalTags getter/setter
+        $optionalTags = [['tag1', 'value1'], ['tag2', 'value2']];
+        $sectionEvent->setSectionOptionalTags($optionalTags);
+        $this->assertEquals($optionalTags, $sectionEvent->getSectionOptionalTags());
     }
 
     /**
@@ -173,10 +206,10 @@ final class SectionEventTest extends TestCase
     {
         // Create a SectionEvent instance
         $sectionEvent = new SectionEvent();
-        $sectionEvent->sectionDTag = 'test-d-tag';
-        $sectionEvent->sectionTitle = 'Test Title';
-        $sectionEvent->sectionAuthor = 'Test Author';
-        $sectionEvent->sectionContent = 'Test Content';
+        $sectionEvent->setSectionDTag('test-d-tag');
+        $sectionEvent->setSectionTitle('Test Title');
+        $sectionEvent->setSectionAuthor('Test Author');
+        $sectionEvent->setSectionContent('Test Content');
         
         // Use reflection to access the private method
         $reflectionMethod = new ReflectionMethod(SectionEvent::class, 'buildSectionEvent');
@@ -220,7 +253,7 @@ final class SectionEventTest extends TestCase
     {
         // Create a SectionEvent instance
         $sectionEvent = new SectionEvent();
-        $sectionEvent->sectionDTag = 'test-d-tag';
+        $sectionEvent->setSectionDTag('test-d-tag');
         
         // We'll use a mock implementation for print_event_data
         // Instead of redefining the function, we'll just check the output

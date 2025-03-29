@@ -6,17 +6,25 @@
  * It processes the input file, extracts metadata and content sections,
  * and creates the necessary publication and section events.
  * 
- * It also publishes longform and wiki notes and has a set of basic Nostr utilities.
+ * It also publishes longform and wiki notes, simple text notes, and has a set of basic Nostr utilities.
  * 
- * Usage: php Sybil.php <command> <path-to-asciidoc-file>
+ * Usage: php Sybil.php <command> <path-to-asciidoc-file-or-content> [relay-url]
  * 
  * It recognizes the commands:
- * publication, longform, wiki, fetch, delete, and broadcast.
+ * publication, longform, wiki, note, fetch, delete, and broadcast.
+ * 
+ * For the 'note' command, the second argument is the content of the note,
+ * and an optional third argument can be provided to specify a relay URL.
+ * Example: php Sybil.php note "Hello, Nostr world!" wss://relay.example.com
  * 
  */
 
 include_once __DIR__.'/vendor/autoload.php';
+include_once 'src/BaseEvent.php';
 include_once 'src/PublicationEvent.php';
+include_once 'src/LongformEvent.php';
+include_once 'src/WikiEvent.php';
+include_once 'src/TextNoteEvent.php';
 include_once 'src/Tag.php';
 include_once 'src/SectionEvent.php';
 include_once 'src/HelperFunctions.php';
@@ -25,7 +33,7 @@ include_once 'src/Utilities.php';
 echo PHP_EOL;
 
 $command = $argv[1];
-$secondArg = $arg[2];
+$secondArg = $argv[2];
 
     if(!$command){
         throw new InvalidArgumentException(
@@ -37,14 +45,14 @@ $secondArg = $arg[2];
             It should be a filename or a hex event ID.'.PHP_EOL.PHP_EOL);
     }
     
-    if(str_contains($command, 'publication' ||'longform' || 'wiki')){
+    if(str_contains($command, 'publication') || str_contains($command, 'longform') || str_contains($command, 'wiki') || str_contains($command, 'note')){
     
         if(str_contains($command, 'publication')){
             // Define publication
             $publication = new PublicationEvent();
             // read in settings file argument passed
-            $publication->file = $secondArg;
-            if (empty($publication->file)) {
+            $publication->setFile($secondArg);
+            if (empty($publication->getFile())) {
                 throw new InvalidArgumentException(
                     PHP_EOL.'The source file argument is missing.'.PHP_EOL.PHP_EOL);
             }
@@ -52,25 +60,27 @@ $secondArg = $arg[2];
             // Write publication into events
             try {
                 $publication->publish();
-                echo PHP_EOL."The publication has been written.".PHP_EOL.PHP_EOL;
+                // The success message is now handled by the publish method
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
 
+        }
+        
         if(str_contains($command, 'longform')){
             // Define longform article
             $longform = new LongformEvent();
             // read in settings file argument passed
-            $longform->file = $secondArg;
-            if (empty($longform->file)) {
+            $longform->setFile($secondArg);
+            if (empty($longform->getFile())) {
                 throw new InvalidArgumentException(
                     PHP_EOL.'The source file argument is missing.'.PHP_EOL.PHP_EOL);
             }
 
             // Write longform article into events
             try {
-                $publication->publish();
-                echo PHP_EOL."The longform article has been written.".PHP_EOL.PHP_EOL;
+                $longform->publish();
+                // The success message is now handled by the publish method
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
@@ -80,8 +90,8 @@ $secondArg = $arg[2];
             // Define wiki page
             $wiki = new WikiEvent();
             // read in settings file argument passed
-            $wiki->file = $secondArg;
-            if (empty($wiki->file)) {
+            $wiki->setFile($secondArg);
+            if (empty($wiki->getFile())) {
                 throw new InvalidArgumentException(
                     PHP_EOL.'The source file argument is missing.'.PHP_EOL.PHP_EOL);
             }
@@ -89,31 +99,64 @@ $secondArg = $arg[2];
             // Write wiki into events
             try {
                 $wiki->publish();
-                echo PHP_EOL."The wiki page has been written.".PHP_EOL.PHP_EOL;
+                // The success message is now handled by the publish method
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
         }
-    } else {
-        throw new InvalidArgumentException(
-            PHP_EOL.'That is not a valid event type.'.PHP_EOL.PHP_EOL);
-    }
-    
-    if(str_contains($command, 'fetch' ||'delete' || 'broadcast')){
+
+        if(str_contains($command, 'note')){
+            // Define text note
+            $textNote = new TextNoteEvent($secondArg);
+            
+            // Check if a third argument was provided for the relay URL
+            $relayUrl = isset($argv[3]) ? $argv[3] : '';
+            
+            // Write text note into events
+            try {
+                if (!empty($relayUrl)) {
+                    // Publish to a specific relay
+                    $result = $textNote->publishToRelay($relayUrl);
+                } else {
+                    // Publish to all relays in relays.yml
+                    $textNote->publish();
+                }
+            } catch (Exception $e) {
+                echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
+            }
+        }
+    } 
+    else if(str_contains($command, 'fetch') || str_contains($command, 'delete') || str_contains($command, 'broadcast')){
         // Define utility
         $utility = new Utilities();
-        $utility->eventID = $secondArg;
+        $utility->setEventID($secondArg);
 
         // Call the appropriate utility
         try {
-            $utility->run_utility($command);
+            $result = $utility->run_utility($command);
+            
+            // For fetch command, display the event data
+            if ($command === 'fetch' && !empty($result)) {
+                echo PHP_EOL.json_encode($result, JSON_PRETTY_PRINT).PHP_EOL;
+            }
+            
+            // For delete command, display the verification message
+            if ($command === 'delete' && !empty($result) && isset($result['verification'])) {
+                echo PHP_EOL.$result['verification']['message'].PHP_EOL;
+                
+                // If detailed results are requested, display the full result
+                if (isset($argv[3]) && $argv[3] === '--verbose') {
+                    echo PHP_EOL."Detailed results:".PHP_EOL;
+                    echo json_encode($result, JSON_PRETTY_PRINT).PHP_EOL;
+                }
+            }
+            
             echo PHP_EOL."The utility run has finished.".PHP_EOL.PHP_EOL;
         } catch (Exception $e) {
             echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
         }
-    } else {
+    } 
+    else {
         throw new InvalidArgumentException(
             PHP_EOL.'That is not a valid command.'.PHP_EOL.PHP_EOL);
     }
-    
-}

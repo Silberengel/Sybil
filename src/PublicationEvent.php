@@ -11,52 +11,198 @@ use swentel\nostr\Key\Key;
  * creates section events for each content section, and then creates a main
  * publication event that references all the section events. It supports both
  * a-tag and e-tag referencing methods.
+ * Extends BaseEvent to leverage common event handling functionality.
  */
-class PublicationEvent
+class PublicationEvent extends BaseEvent
 {
-    // Publication properties
-    public string $file = '';
-    public string $dTag = '';
-    public string $title = '';
-    public string $author = '';
-    public string $version = '';
-    public string $tagType = '';
-    public string $autoUpdate = '';
-    public array $optionaltags = [];
+    // Publication-specific properties
+    protected string $author = '';
+    protected string $version = '';
+    protected string $tagType = '';
+    protected string $autoUpdate = '';
     
     // Section tracking
-    public array $sectionEvents = [];
-    public array $sectionDtags = [];
+    protected array $sectionEvents = [];
+    protected array $sectionDtags = [];
     
     // Constants
-    public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
     public const EVENT_KIND = '30040';
     public const SECTION_EVENT_KIND = '30041';
     
-/**
- * Constructor for PublicationEvent
- * 
- * @param array $data Optional initial data for the publication
- */
+    /**
+     * Constructor for PublicationEvent
+     * 
+     * @param array $data Optional initial data for the publication
+     */
     public function __construct(array $data = [])
     {
+        parent::__construct($data);
+        
         if (!empty($data)) {
-            if (isset($data['title'])) {
-                $this->title = $data['title'];
-            }
-            
             if (isset($data['author'])) {
-                $this->author = $data['author'];
+                $this->setAuthor($data['author']);
             }
             
             if (isset($data['version'])) {
-                $this->version = $data['version'];
-            }
-            
-            if (isset($data['dTag'])) {
-                $this->dTag = $data['dTag'];
+                $this->setVersion($data['version']);
             }
         }
+    }
+    
+    /**
+     * Get the author
+     * 
+     * @return string The author
+     */
+    public function getAuthor(): string
+    {
+        return $this->author;
+    }
+    
+    /**
+     * Set the author
+     * 
+     * @param string $author The author
+     * @return self
+     */
+    public function setAuthor(string $author): self
+    {
+        $this->author = $author;
+        return $this;
+    }
+    
+    /**
+     * Get the version
+     * 
+     * @return string The version
+     */
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
+    
+    /**
+     * Set the version
+     * 
+     * @param string $version The version
+     * @return self
+     */
+    public function setVersion(string $version): self
+    {
+        $this->version = $version;
+        return $this;
+    }
+    
+    /**
+     * Get the tag type
+     * 
+     * @return string The tag type
+     */
+    public function getTagType(): string
+    {
+        return $this->tagType;
+    }
+    
+    /**
+     * Set the tag type
+     * 
+     * @param string $tagType The tag type
+     * @return self
+     */
+    public function setTagType(string $tagType): self
+    {
+        $this->tagType = $tagType;
+        return $this;
+    }
+    
+    /**
+     * Get the auto update setting
+     * 
+     * @return string The auto update setting
+     */
+    public function getAutoUpdate(): string
+    {
+        return $this->autoUpdate;
+    }
+    
+    /**
+     * Set the auto update setting
+     * 
+     * @param string $autoUpdate The auto update setting
+     * @return self
+     */
+    public function setAutoUpdate(string $autoUpdate): self
+    {
+        $this->autoUpdate = $autoUpdate;
+        return $this;
+    }
+    
+    /**
+     * Get the section events
+     * 
+     * @return array The section events
+     */
+    public function getSectionEvents(): array
+    {
+        return $this->sectionEvents;
+    }
+    
+    /**
+     * Set the section events
+     * 
+     * @param array $sectionEvents The section events
+     * @return self
+     */
+    public function setSectionEvents(array $sectionEvents): self
+    {
+        $this->sectionEvents = $sectionEvents;
+        return $this;
+    }
+    
+    /**
+     * Add a section event
+     * 
+     * @param string $eventID The event ID
+     * @return self
+     */
+    public function addSectionEvent(string $eventID): self
+    {
+        $this->sectionEvents[] = $eventID;
+        return $this;
+    }
+    
+    /**
+     * Get the section d-tags
+     * 
+     * @return array The section d-tags
+     */
+    public function getSectionDtags(): array
+    {
+        return $this->sectionDtags;
+    }
+    
+    /**
+     * Set the section d-tags
+     * 
+     * @param array $sectionDtags The section d-tags
+     * @return self
+     */
+    public function setSectionDtags(array $sectionDtags): self
+    {
+        $this->sectionDtags = $sectionDtags;
+        return $this;
+    }
+    
+    /**
+     * Add a section d-tag
+     * 
+     * @param string $dTag The d-tag
+     * @return self
+     */
+    public function addSectionDtag(string $dTag): self
+    {
+        $this->sectionDtags[] = $dTag;
+        return $this;
     }
 
     /**
@@ -89,17 +235,34 @@ class PublicationEvent
     }
     
     /**
+     * Get the event kind number
+     * 
+     * @return string The event kind number
+     */
+    protected function getEventKind(): string
+    {
+        return self::EVENT_KIND;
+    }
+    
+    /**
+     * Get the event kind name
+     * 
+     * @return string The event kind name
+     */
+    protected function getEventKindName(): string
+    {
+        return "publication";
+    }
+    
+    /**
      * Loads and validates the markup file
      * 
      * @return string The markup content
      * @throws InvalidArgumentException If the file is invalid
      */
-    private function loadMarkupFile(): string
+    protected function loadMarkupFile(): string
     {
-        $markup = file_get_contents($this->file);
-        if (!$markup) {
-            throw new InvalidArgumentException('The file could not be found or is empty.');
-        }
+        $markup = parent::loadMarkupFile();
 
         // Validate header levels
         if (stripos($markup, '======= ') !== false) {
@@ -118,7 +281,7 @@ class PublicationEvent
      * @return array The processed markup sections
      * @throws InvalidArgumentException If the markup structure is invalid
      */
-    private function preprocessMarkup(string $markup): array
+    protected function preprocessMarkup(string $markup): array
     {
         // Replace headers above == with &s for later processing
         $markup = $this->replaceHeadersForProcessing($markup);
@@ -189,7 +352,7 @@ class PublicationEvent
      * 
      * @param array &$markupFormatted The markup sections (modified in place)
      */
-    private function extractTitleAndCreateDTag(array &$markupFormatted): void
+    protected function extractTitleAndCreateDTag(array &$markupFormatted): void
     {
         // Extract title from first section
         $firstSection = explode(PHP_EOL, 
@@ -231,28 +394,28 @@ class PublicationEvent
             throw new InvalidArgumentException(
                 'The author is missing.');
         }
-        $this->author = $yamlTags['author'];
+        $this->setAuthor($yamlTags['author']);
         
         if (empty($yamlTags['version'])) {
             throw new InvalidArgumentException(
                 'The version is missing.');
         }
-        $this->version = $yamlTags['version'];
+        $this->setVersion($yamlTags['version']);
         
         if ($yamlTags['tag-type'] !== 'e' && $yamlTags['tag-type'] !== 'a') {
             throw new InvalidArgumentException(
                 'The event type (e/a) is missing or wrong.');
         }
-        $this->tagType = $yamlTags['tag-type'];
+        $this->setTagType($yamlTags['tag-type']);
         
         if ($yamlTags['auto-update'] !== 'yes' && $yamlTags['auto-update'] !== 'ask' && $yamlTags['auto-update'] !== 'no') {
             throw new InvalidArgumentException(
                 'The auto-update option is missing or wrong.');
         }
-        $this->autoUpdate = $yamlTags['auto-update'];
+        $this->setAutoUpdate($yamlTags['auto-update']);
         
         // Store optional tags
-        $this->optionaltags = $yamlTags['tags'];
+        $this->setOptionalTags($yamlTags['tags']);
 
         // Create d-tag
         $this->dTag = construct_d_tag_publication(
@@ -316,58 +479,61 @@ class PublicationEvent
             // Set author from section YAML if available, 
             // otherwise use publication author
             if (!isset($yamlTags['author']) || empty($yamlTags['author'])) {
-                $nextSection->sectionAuthor = $this->author;
+                $nextSection->setSectionAuthor($this->author);
             } else{
-                $nextSection->sectionAuthor = $yamlTags['author'];
+                $nextSection->setSectionAuthor($yamlTags['author']);
             }
             if (!isset($yamlTags['version']) || empty($yamlTags['version'])) {
-                $nextSection->sectionVersion = $this->version;
+                $nextSection->setSectionVersion($this->version);
             } else{
-                $nextSection->sectionVersion = $yamlTags['version'];
+                $nextSection->setSectionVersion($yamlTags['version']);
             }
             if (!isset($yamlTags['title']) || empty($yamlTags['title'])) {
-                $nextSection->sectionTitle = trim(
+                $nextSection->setSectionTitle(trim(
                     strstr($sectionParts[0], 
-                    "\n", true));
+                    "\n", true)));
             } else{
-                $nextSection->sectionTitle = $yamlTags['title'];
+                $nextSection->setSectionTitle($yamlTags['title']);
             }      
         } else {
-            $nextSection->sectionAuthor = $this->author;
-            $nextSection->sectionVersion = $this->version;
-            $nextSection->sectionTitle = trim(
+            $nextSection->setSectionAuthor($this->author);
+            $nextSection->setSectionVersion($this->version);
+            $nextSection->setSectionTitle(trim(
                 strstr(
                     $sectionParts[0], 
                     "\n", 
-                    true));
+                    true)));
         }
         
         // Create section d-tag
-        $nextSection->sectionDTag = construct_d_tag_publication(
-            $this->title . "-" . $nextSection->sectionTitle 
+        $sectionTitle = $nextSection->getSectionTitle();
+        $sectionAuthor = $nextSection->getSectionAuthor();
+        $sectionVersion = $nextSection->getSectionVersion();
+        
+        $nextSection->setSectionDTag(construct_d_tag_publication(
+            $this->title . "-" . $sectionTitle 
             . "-" . $sectionNum,
-            $nextSection->sectionAuthor,
-            $nextSection->sectionVersion
-        );
+            $sectionAuthor,
+            $sectionVersion
+        ));
         
         // Set section content
-
         if($yamlTags){
-            $nextSection->sectionContent = (
+            $nextSection->setSectionContent(
                 trim(trim(
                         trim(
                             strval($section), 
-                            $nextSection->sectionTitle
+                            $sectionTitle
                             ), 
                             $sectionParts[0]
                     )
                 )
             );
         } else{
-            $nextSection->sectionContent = (
+            $nextSection->setSectionContent(
                 trim(trim(
                     strval($section), 
-                    $nextSection->sectionTitle
+                    $sectionTitle
                     )
                 )
             );
@@ -375,8 +541,8 @@ class PublicationEvent
         
         // Create section and store results
         $sectionData = $nextSection->createSection();
-        $this->sectionEvents[] = $sectionData["eventID"];
-        $this->sectionDtags[] = $sectionData["dTag"];
+        $this->addSectionEvent($sectionData["eventID"]);
+        $this->addSectionDtag($sectionData["dTag"]);
     }
     
     /**
@@ -398,7 +564,7 @@ class PublicationEvent
             $publicHex);
         
         prepare_event_data($publicationEvent);
-        $this->recordResult(
+        $this->recordResultWithTagType(
             self::EVENT_KIND, 
             $publicationEvent,
             $this->tagType);
@@ -416,14 +582,14 @@ class PublicationEvent
         
         // Create and send the event
         prepare_event_data($event);
-        $this->recordResult(
+        $this->recordResultWithTagType(
             self::EVENT_KIND, 
             $event, 
             $this->tagType);
     }
     
     /**
-     * Records the result of creating an event
+     * Records the result of creating an event with tag type
      * 
      * @param string $kind The event kind
      * @param Event $note The event
@@ -431,55 +597,35 @@ class PublicationEvent
      * @return void
      * @throws InvalidArgumentException If the event ID was not created
      */
-    public function recordResult(string $kind, Event $note, string $type): void
+    public function recordResultWithTagType(string $kind, Event $note, string $type): void
     {
         // Get event ID with retry
         $eventID = $this->getEventIdWithRetry($note);
         
         // Log the event
-        echo "Published " . $kind . " event with " 
+        echo PHP_EOL."Published " . $kind . " event with " 
         . $type . " tags and ID " . $eventID . PHP_EOL . PHP_EOL;
 
         print_event_data(
             $kind, 
             $eventID, 
-            $this->dTag);
+            $this->getDTag());
         
         // Print a njump hyperlink
         echo "https://njump.me/" . $eventID . PHP_EOL;
     }
-    
-    /**
-     * Gets an event ID with retry
-     * 
-     * @param Event $note The event
-     * @param int $maxRetries Maximum number of retries
-     * @param int $delay Delay between retries in seconds
-     * @return string The event ID
-     * @throws InvalidArgumentException If the event ID could not be created
-     */
-    private function getEventIdWithRetry(
-        Event $note, int $maxRetries = 10, int $delay = 5): string
-    {
-        $i = 0;
-        $eventID = '';
-        
-        do {
-            $eventID = $note->getId();
-            $i++;
-            if (empty($eventID) && $i <= $maxRetries) {
-                sleep($delay);
-            }
-        } while (($i <= $maxRetries) && empty($eventID));
-        
-        if (empty($eventID)) {
-            throw new InvalidArgumentException(
-                'The publication eventID was not created');
-        }
-        
-        return $eventID;
-    }
 
+    /**
+     * Builds an event with the appropriate tags
+     * 
+     * @return Event The configured event
+     */
+    protected function buildEvent(): Event
+    {
+        // This is a placeholder - publication events are created through createWithATags or createWithETags
+        throw new \LogicException("Publication events should be created through createWithATags or createWithETags");
+    }
+    
     /**
      * Builds a publication event with the appropriate tags
      * 
@@ -487,36 +633,36 @@ class PublicationEvent
      * @param string $publicHex The public hex key (required for a-tags)
      * @return Event The configured event
      */
-    private function buildPublicationEvent(
+    protected function buildPublicationEvent(
         string $type = 'a', $publicHex = ""): Event
     {
 
         if($type === 'a'){
             $eventTags = Tag::addATags(
-                $this->sectionEvents,
-                $this->sectionDtags,
+                $this->getSectionEvents(),
+                $this->getSectionDtags(),
                 self::SECTION_EVENT_KIND,
                 $publicHex,
                 self::DEFAULT_RELAY
             );
         }else {
             $eventTags = Tag::addETags(
-                $this->sectionEvents
+                $this->getSectionEvents()
             );
         }
 
         // Merge with optional tags
-        $eventTags = array_merge($eventTags, $this->optionaltags);
+        $eventTags = array_merge($eventTags, $this->getOptionalTags());
         
         $note = new Event();
         
         $note->setKind(self::EVENT_KIND);
         $note->setTags(
             Tag::createPublicationTags(
-                $this->dTag,
-                $this->title,
-                $this->author,
-                $this->version,
+                $this->getDTag(),
+                $this->getTitle(),
+                $this->getAuthor(),
+                $this->getVersion(),
                 $eventTags
             )
         );

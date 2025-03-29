@@ -6,88 +6,47 @@ use swentel\nostr\Event\Event;
  * Class WikiEvent
  * 
  * Handles the creation and publishing of wiki page events in the Nostr protocol.
- * This class processes Markdown files, extracts metadata, and then creates a wiki event.
+ * This class processes AsciiDoc files, extracts metadata, and then creates a wiki event.
+ * Extends BaseEvent to leverage common event handling functionality.
  */
-class WikiEvent
+class WikiEvent extends BaseEvent
 {
-    // Wiki properties
-    public string $file = '';
-    public string $dTag = '';
-    public string $title = '';
-    public string $content = '';
-    public array $optionaltags = [];
-    
     // Constants
-    public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
     public const EVENT_KIND = '30818';
     
-/**
- * Constructor for WikiEvent
- * 
- * @param array $data Optional initial data for the wiki page.
- */
-    public function __construct(array $data = [])
-    {
-        if (!empty($data)) {
-            if (isset($data['title'])) {
-                $this->title = $data['title'];
-            }
-            
-            if (isset($data['dTag'])) {
-                $this->dTag = $data['dTag'];
-            }
-        }
-    }
-
     /**
-     * Create the wiki event
+     * Get the event kind number
      * 
-     * @return void
-     * @throws InvalidArgumentException If the file is invalid or has formatting issues
+     * @return string The event kind number
      */
-    public function publish(): void
+    protected function getEventKind(): string
     {
-        // Load and validate the markup file
-        $markup = $this->loadMarkupFile();
-        
-        // Process the markup content
-        $markupFormatted = $this->preprocessMarkup($markup);
-        unset($markup);
-
-        // Extract title and create d-tag
-        $this->extractTitleAndCreateDTag($markupFormatted);
-        
+        return self::EVENT_KIND;
     }
     
     /**
-     * Loads and validates the markup file
+     * Get the event kind name
      * 
-     * @return string The markup content
-     * @throws InvalidArgumentException If the file is invalid
+     * @return string The event kind name
      */
-    private function loadMarkupFile(): string
+    protected function getEventKindName(): string
     {
-        $markup = file_get_contents($this->file);
-        if (!$markup) {
-            throw new InvalidArgumentException('The file could not be found or is empty.');
-        }
-
-        return $markup;
+        return "wiki";
     }
     
     /**
      * Preprocesses the markup content
      * 
      * @param string $markup The raw markup content
-     * @return array
+     * @return array The processed markup
      * @throws InvalidArgumentException If the markup structure is invalid
      */
-    private function preprocessMarkup(string $markup): array
+    protected function preprocessMarkup(string $markup): array
     {
         // Validate header count
-        if (!str_contains($markup, '# ')) {
+        if (!str_contains($markup, '= ')) {
             throw new InvalidArgumentException(
-                'This markup file contains no headers. It must have at least one # header. 
+                'This markup file contains no headers. It must have at least one = header. 
                 Please correct and retry.');
         }
 
@@ -108,118 +67,104 @@ class WikiEvent
      * 
      * @param array &$markupFormatted The markup sections (modified in place)
      */
-    private function extractTitleAndCreateDTag(array &$markupFormatted): void
+    protected function extractTitleAndCreateDTag(array &$markupFormatted): void
     {
-        // Extract title from second section
-        $this->title = $markupFormatted[1];
-        $this->title = trim($this->title);
-       
-        //// Extract yaml from the first section
-        $firstSection = explode('////', $markupFormatted[0]);
-        unset($markupFormatted);
+        // Extract title from the first section after the YAML metadata
+        // The first element (index 0) contains the YAML metadata
+        // The second element (index 1) contains the title
+        if (!isset($markupFormatted[1])) {
+            throw new InvalidArgumentException(
+                'The file format is incorrect. Missing title section.');
+        }
         
-        // Make sure we have at least one part after the //// delimiter
+        // Extract the title from the second section
+        $this->title = trim($markupFormatted[1]);
+        
+        // Extract YAML from the first section
+        $firstSection = explode('////', $markupFormatted[0]);
+        
+        // Make sure we have at least two parts (before and after the //// delimiter)
         if (count($firstSection) < 2) {
             throw new InvalidArgumentException(
                 'The file format is incorrect. Either the content 
                 or the metadata is missing.');
         }
         
-        // Get the yaml tags
-        if (!isset($firstSection[0])) {
-            throw new InvalidArgumentException(
-                'The file format is incorrect. Missing YAML content.');
-        }
-        
-        $yamlTags = create_tags_from_yaml($firstSection[0]);
+        // Get the YAML tags
+        $yamlTags = create_tags_from_yaml($firstSection[1]);
         
         // Store optional tags
         $this->optionaltags = $yamlTags['tags'];
-        unset($yamlTags);
-
-        // Get the title tags
-        if (!isset($firstSection[0])) {
-            throw new InvalidArgumentException(
-                'The file format is incorrect. Missing a header/title content.');
+        
+        // Set the content to be everything after the title
+        // Join all sections after the title with "= " to restore the original format
+        $contentSections = array_slice($markupFormatted, 2);
+        $this->content = "= " . implode("= ", $contentSections);
+        
+        // Extract the first header as the title
+        $titleLines = explode("\n", $markupFormatted[1]);
+        $headerTitle = trim($titleLines[0]);
+        
+        // Clean up the header title by removing newlines, extra spaces, and trailing "="
+        $headerTitle = trim(preg_replace('/\s+/', ' ', $headerTitle));
+        $headerTitle = rtrim($headerTitle, '= ');
+        
+        // Use the title from the YAML metadata if available, otherwise use the first header
+        if (!empty($yamlTags['title'])) {
+            $this->title = $yamlTags['title'];
+        } else {
+            $this->title = $headerTitle;
         }
         
-        $content = explode($firstSection[0], PHP_EOL);
-        $this->title = $content[0];
-        $this->content = $content[1];
-
-        // Create d-tag
-        $this->dTag = construct_d_tag_articles(
-            $this->title
-        );
+        // Create d-tag - custom implementation for wiki events
+        // Get the normalized title
+        $normalizedTitle = normalize_tag_component($this->title);
         
+        // Format and limit to 50 characters
+        $formattedTitle = format_d_tag($normalizedTitle);
+        $limitedTitle = substr($formattedTitle, 0, 50);
+        
+        // Get public hex key and take first 10 chars
+        $publicHex = get_public_hex_key();
+        $shortHex = substr($publicHex, 0, 10);
+        
+        // Create the d-tag
+        $this->dTag = $limitedTitle . "-by-" . $shortHex;
+        
+        // Clean up
         unset($firstSection);
-        unset($content);
+        unset($yamlTags);
+        unset($contentSections);
+        unset($markupFormatted);
 
         echo PHP_EOL;
     }
     
-    public function recordResult(string $kind, Event $note): void
-    {
-        // Get event ID with retry
-        $eventID = $this->getEventIdWithRetry($note);
-        
-        // Log the event
-        echo "Published " . $kind . " event with  ID " . $eventID . PHP_EOL . PHP_EOL;
-
-        print_event_data(
-            $kind, 
-            $eventID, 
-            $this->dTag);
-        
-        // Print a njump hyperlink
-        echo "https://njump.me/" . $eventID . PHP_EOL;
-    }
-    
     /**
-     * Gets an event ID with retry
-     * 
-     * @param Event $note The event
-     * @param int $maxRetries Maximum number of retries
-     * @param int $delay Delay between retries in seconds
-     * @return string The event ID
-     * @throws InvalidArgumentException If the event ID could not be created
-     */
-    private function getEventIdWithRetry(
-        Event $note, int $maxRetries = 10, int $delay = 5): string
-    {
-        $i = 0;
-        $eventID = '';
-        
-        do {
-            $eventID = $note->getId();
-            $i++;
-            if (empty($eventID) && $i <= $maxRetries) {
-                sleep($delay);
-            }
-        } while (($i <= $maxRetries) && empty($eventID));
-        
-        if (empty($eventID)) {
-            throw new InvalidArgumentException(
-                'The wiki eventID was not created');
-        }
-        
-        return $eventID;
-    }
-
-    /**
-     * Builds a wiki event with the appropriate tags
+     * Builds an event with the appropriate tags
      * 
      * @return Event The configured event
      */
-    private function buildWikiEvent(): Event
+    protected function buildEvent(): Event
     {
-        // Add the UNIX time stamp, of when the article was first published.
-        $this->optionaltags[] = ['published_at', time()];
-
-        $tags[] = $this->dTag;
-        $tags[] = $this->title;
-        $tags[] = $this->optionaltags;
+        // Initialize tags array
+        $tags = [];
         
+        // Add the d-tag
+        $tags[] = ['d', $this->dTag];
+        
+        // Add the title tag
+        $tags[] = ['title', $this->title];
+        
+        // Add the published_at tag with current timestamp
+        $tags[] = ['published_at', (string)time()];
+        
+        // Add all optional tags
+        foreach ($this->optionaltags as $tag) {
+            $tags[] = $tag;
+        }
+        
+        // Create the event
         $note = new Event();
         $note->setKind(self::EVENT_KIND);
         $note->setTags($tags);

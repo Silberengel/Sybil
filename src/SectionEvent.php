@@ -9,19 +9,23 @@ use swentel\nostr\Event\Event;
  * Section events represent individual content sections within a publication,
  * each with its own metadata (title, author, version) and content.
  * These events are linked to the main publication event.
+ * 
+ * This class follows object-oriented principles with encapsulated properties
+ * and clear method responsibilities.
  */
 class SectionEvent
 {
     // Section properties
-    public string $sectionDTag = '';
-    public string $sectionTitle = '';
-    public string $sectionAuthor = '';
-    public string $sectionVersion = '';
-    public string $sectionContent = '';
-    public array $sectionOptionalTags = [];
+    private string $sectionDTag = '';
+    private string $sectionTitle = '';
+    private string $sectionAuthor = '';
+    private string $sectionVersion = '';
+    private string $sectionContent = '';
+    private array $sectionOptionalTags = [];
     
     // Constants
     public const EVENT_KIND = '30041';
+    public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
     
     /**
      * Constructor for SectionEvent
@@ -32,25 +36,157 @@ class SectionEvent
     {
         if (!empty($data)) {
             if (isset($data['title'])) {
-                $this->sectionTitle = $data['title'];
+                $this->setSectionTitle($data['title']);
             }
             
             if (isset($data['author'])) {
-                $this->sectionAuthor = $data['author'];
+                $this->setSectionAuthor($data['author']);
             }
             
             if (isset($data['version'])) {
-                $this->sectionVersion = $data['version'];
+                $this->setSectionVersion($data['version']);
             }
             
             if (isset($data['content'])) {
-                $this->sectionContent = $data['content'];
+                $this->setSectionContent($data['content']);
             }
             
             if (isset($data['dTag'])) {
-                $this->sectionDTag = $data['dTag'];
+                $this->setSectionDTag($data['dTag']);
             }
         }
+    }
+    
+    /**
+     * Get the section d-tag
+     * 
+     * @return string The section d-tag
+     */
+    public function getSectionDTag(): string
+    {
+        return $this->sectionDTag;
+    }
+    
+    /**
+     * Set the section d-tag
+     * 
+     * @param string $dTag The section d-tag
+     * @return self
+     */
+    public function setSectionDTag(string $dTag): self
+    {
+        $this->sectionDTag = $dTag;
+        return $this;
+    }
+    
+    /**
+     * Get the section title
+     * 
+     * @return string The section title
+     */
+    public function getSectionTitle(): string
+    {
+        return $this->sectionTitle;
+    }
+    
+    /**
+     * Set the section title
+     * 
+     * @param string $title The section title
+     * @return self
+     */
+    public function setSectionTitle(string $title): self
+    {
+        $this->sectionTitle = $title;
+        return $this;
+    }
+    
+    /**
+     * Get the section author
+     * 
+     * @return string The section author
+     */
+    public function getSectionAuthor(): string
+    {
+        return $this->sectionAuthor;
+    }
+    
+    /**
+     * Set the section author
+     * 
+     * @param string $author The section author
+     * @return self
+     */
+    public function setSectionAuthor(string $author): self
+    {
+        $this->sectionAuthor = $author;
+        return $this;
+    }
+    
+    /**
+     * Get the section version
+     * 
+     * @return string The section version
+     */
+    public function getSectionVersion(): string
+    {
+        return $this->sectionVersion;
+    }
+    
+    /**
+     * Set the section version
+     * 
+     * @param string $version The section version
+     * @return self
+     */
+    public function setSectionVersion(string $version): self
+    {
+        $this->sectionVersion = $version;
+        return $this;
+    }
+    
+    /**
+     * Get the section content
+     * 
+     * @return string The section content
+     */
+    public function getSectionContent(): string
+    {
+        return $this->sectionContent;
+    }
+    
+    /**
+     * Set the section content
+     * 
+     * @param string $content The section content
+     * @return self
+     */
+    public function setSectionContent(string $content): self
+    {
+        $this->sectionContent = $content;
+        return $this;
+    }
+    
+    /**
+     * Get the section optional tags
+     * 
+     * @return array The section optional tags
+     */
+    public function getSectionOptionalTags(): array
+    {
+        return $this->sectionOptionalTags;
+    }
+    
+    /**
+     * Set the section optional tags
+     * 
+     * @param array $tags The section optional tags
+     * @return self
+     */
+    public function setSectionOptionalTags(array $tags): self
+    {
+        $this->sectionOptionalTags = $tags;
+        return $this;
     }
     
     /**
@@ -77,7 +213,7 @@ class SectionEvent
         // Return the result
         return [
             "eventID" => $noteEventID,
-            "dTag" => $this->sectionDTag
+            "dTag" => $this->getSectionDTag()
         ];
     }
     
@@ -140,7 +276,7 @@ class SectionEvent
      */
     private function logSectionEvent(string $eventID): void
     {
-        echo "Published " . self::EVENT_KIND . " event with ID " . $eventID . PHP_EOL;
-        print_event_data(self::EVENT_KIND, $eventID, $this->sectionDTag);
+        echo PHP_EOL."Published " . self::EVENT_KIND . " event with ID " . $eventID . PHP_EOL;
+        print_event_data(self::EVENT_KIND, $eventID, $this->getSectionDTag());
     }
 }
