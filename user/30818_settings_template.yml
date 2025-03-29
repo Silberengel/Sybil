@@ -1,0 +1,39 @@
+# OPTIONAL ITEMS
+# You can include as many of these, as you like, and they will 
+# simply be appended as tag-value pairs. If you write nonsense, 
+# the tags will contain nonsense, and will be ignored. You can 
+# remove any you do not wish to use, or add new ones.
+
+title: 'Use in case you want something different than the first header.'
+
+tags:
+# URL to the article image.
+  - ['image', 'https://mymediaserver.com/imagefile.jpg']
+# document instructions for the stylesheet of the viewer. 
+# The default is set here.
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+# The genre of the article, to be added as a hashtag.
+# Add a new 't:' line for each hashtag.
+  - ['t', 'journalism']
+# Human-readable paragraph describing the text. This will be 
+# displayed within the index card.
+  - ['summary', 'This is a description of this article.']
+
+---
+
+# Tags for 30818 wiki pages
+# Insert the following text above the first header, 
+# which will become the page title, and edit.
+
+////
+<<YAML>>
+title: 'Use in case you want something different than the first header.'
+tags:
+  - ['image', 'https://mymediaserver.com/imagefile.jpg']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'journalism']
+  - ['summary', 'This is a description of this article.']
+<<YAML>>
+////

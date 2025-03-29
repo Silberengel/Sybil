@@ -481,7 +481,7 @@ final class PublicationEventTest extends TestCase
         $publicationEvent->dTag = 'test-d-tag';
         
         // We'll use the actual print_event_data function
-        // which is already defined in helperFunctions.php
+        // which is already defined in HelperFunctions.php
         
         // Start output buffering
         ob_start();

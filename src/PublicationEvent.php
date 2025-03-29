@@ -129,7 +129,7 @@ class PublicationEvent
         // Validate section count
         if (count($markupFormatted) === 1) {
             throw new InvalidArgumentException(
-                'This markup file contains no headers or only one level of headers. Please ensure there are two levels and retry.'
+                'This markup file contains no = headers or only one level of headers. Please ensure there are two levels and retry.'
             );
         }
         
@@ -255,7 +255,7 @@ class PublicationEvent
         $this->optionaltags = $yamlTags['tags'];
 
         // Create d-tag
-        $this->dTag = construct_d_tag(
+        $this->dTag = construct_d_tag_publication(
             $this->title,
             $this->author,
             $this->version
@@ -343,7 +343,7 @@ class PublicationEvent
         }
         
         // Create section d-tag
-        $nextSection->sectionDTag = construct_d_tag(
+        $nextSection->sectionDTag = construct_d_tag_publication(
             $this->title . "-" . $nextSection->sectionTitle 
             . "-" . $sectionNum,
             $nextSection->sectionAuthor,

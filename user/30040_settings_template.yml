@@ -1,6 +1,6 @@
 # MANDATORY ITEMS
-# Without these five items, the uploader will throw an error and stop.
-# Please note that the adoc file should not contain any metadata.
+# Without these items, the uploader will throw an error and stop.
+# The file format must be Asciidoc.
 
 # Who wrote the original book, contained in the file?
 author: 'unknown'
@@ -44,6 +44,9 @@ tags:
 
 ---
 
+# Tags for 30040/41 publications
+# Insert below the first header, which will become the title.
+
 ////
 <<YAML>>
 author: 'unknown'
@@ -64,5 +67,5 @@ tags:
   - ['p', '<hex pubkey>']
   - ['E', '<original event ID>, <relay URL>, <hex pubkey>']
   - ['source', 'https://website.com/article19484']
-  <</YAML>>
-  ////
+<</YAML>>
+////

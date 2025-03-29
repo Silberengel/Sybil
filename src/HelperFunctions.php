@@ -15,6 +15,9 @@ use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Sign\Sign;
 use swentel\nostr\Event\Event;
+use swentel\nostr\Key\Key;
+use swentel\nostr\Request\Request;
+use swentel\nostr\RelayResponse\RelayResponse;
 
 /**
  * Constructs a d tag from title, author, and version.
@@ -40,7 +43,7 @@ use swentel\nostr\Event\Event;
  * @param string $version The version number (optional)
  * @return string The formatted d-tag
  */
-function construct_d_tag($title, $author = "unknown", $version = "1")
+function construct_d_tag_publication($title, $author = "unknown", $version = "1")
 {
     // Replace spaces with dashes
     $normalizedTitle = normalize_tag_component($title);
@@ -55,8 +58,32 @@ function construct_d_tag($title, $author = "unknown", $version = "1")
         $dTag .= "-v-" . $normalizedVersion;
     }
     
-    // Final formatting: lowercase and remove punctuation except periods and hyphens
+    // Final formatting: lowercase and remove punctuation except and hyphens
     return format_d_tag($dTag);
+}
+
+function construct_d_tag_articles($title): string
+{
+
+    $publicHex = get_public_hex_key();
+
+    // Replace spaces with dashes
+    $normalizedTitle = normalize_tag_component($title);
+    
+    // Construct the base d-tag
+    $dTag = $normalizedTitle . "-by-" . substr($publicHex, 10);
+    
+    // Final formatting: lowercase and remove punctuation except hyphens
+    return format_d_tag($dTag);
+}
+
+function get_public_hex_key(): string
+{
+    // Get public hex key
+    $keys = new Key();
+    $privateBech32 = getenv('NOSTR_SECRET_KEY');
+    $privateHex = $keys->convertToHex(key: $privateBech32);
+    return $keys->getPublicKey(private_hex: $privateHex);
 }
 
 /**
@@ -159,17 +186,45 @@ function get_relay_list(): array
 /**
  * Sends an event with retry on failure.
  *
- * @param RelaySet $relaySet The relay set to send
+ * @param $requestMessage The event you want to send
  * @return array The result from sending the event
  */
-function send_event_with_retry(RelaySet $relaySet): array
+function send_event_with_retry($requestMessage): array
 {
+    $r1 = new Relay('wss://thecitadel.nostr1.com');
+    $r2 = new Relay('wss://relay.damus.io');
+    $r3 = new Relay('wss://relay.nostr.band');
+    $r4 = new Relay('wss://nostr.einundzwanzig.space');
+    $r5 = new Relay('wss://relay.primal.net');
+    $r6 = new Relay('wss://nos.lol');
+    $r7 = new Relay('wss://relay.lumina.rocks');
+    $r8 = new Relay('wss://freelay.sovbit.host');
+    $r9 = new Relay('wss://wheat.happytavern.co');
+    $r10 = new Relay('wss://nostr21.com');
+
+    $relaySet = new RelaySet();
+    $relaySet->setRelays([$r1, $r2, $r3, $r4, $r5, $r6, $r7, $r8, $r9, $r10]);
+    $relaySet->setMessage($requestMessage);
+
     try {
         return $relaySet->send();
     } catch (TypeError $e) {
         echo "Sending to relay did not work. Will be retried." . PHP_EOL;
         sleep(10);
         return $relaySet->send();
+    }
+}
+
+function request_send_with_retry($relay, $requestMessage): array
+{
+    $request = new Request($relay, $requestMessage);
+
+     try {
+        return $request->send();
+    } catch (TypeError $e) {
+        echo "Sending to relay did not work. Will be retried." . PHP_EOL;
+        sleep(10);
+        return $request->send();
     }
 }
 

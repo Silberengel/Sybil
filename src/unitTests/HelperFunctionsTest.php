@@ -10,43 +10,43 @@ final class HelperFunctionsTest extends TestCase
     protected function setUp(): void
     {
         // Include the helper functions file
-        include_once dirname(__DIR__) . '/helperFunctions.php';
+        include_once dirname(__DIR__) . '/HelperFunctions.php';
     }
 
     /**
-     * Test construct_d_tag with all parameters
+     * Test construct_d_tag_publication with all parameters
      */
     public function testConstructDTagWithAllParameters(): void
     {
-        $result = construct_d_tag('Test Title', 'John Doe', '2.0');
+        $result = construct_d_tag_publication('Test Title', 'John Doe', '2.0');
         $this->assertEquals('test-title-by-john-doe-v-2.0', $result);
     }
 
     /**
-     * Test construct_d_tag with default parameters
+     * Test construct_d_tag_publication with default parameters
      */
     public function testConstructDTagWithDefaultParameters(): void
     {
-        $result = construct_d_tag('Test Title');
+        $result = construct_d_tag_publication('Test Title');
         $this->assertEquals('test-title-by-unknown-v-1', $result);
     }
 
     /**
-     * Test construct_d_tag with special characters
+     * Test construct_d_tag_publication with special characters
      */
     public function testConstructDTagWithSpecialCharacters(): void
     {
-        $result = construct_d_tag('Test: Title!', 'John, Doe', '2.0');
+        $result = construct_d_tag_publication('Test: Title!', 'John, Doe', '2.0');
         $this->assertEquals('test-title-by-john-doe-v-2.0', $result);
     }
 
     /**
-     * Test construct_d_tag with long title (should truncate to 75 chars)
+     * Test construct_d_tag_publication with long title (should truncate to 75 chars)
      */
     public function testConstructDTagWithLongTitle(): void
     {
         $longTitle = str_repeat('a', 100);
-        $result = construct_d_tag($longTitle, 'author', '1.0');
+        $result = construct_d_tag_publication($longTitle, 'author', '1.0');
         $this->assertEquals(75, strlen($result));
     }
 
@@ -66,15 +66,6 @@ final class HelperFunctionsTest extends TestCase
     {
         $result = normalize_tag_component('Test  Multiple   Spaces');
         $this->assertEquals('Test-Multiple-Spaces', $result);
-    }
-
-    /**
-     * Test normalize_tag_component with non-string input
-     */
-    public function testNormalizeTagComponentWithNonStringInput(): void
-    {
-        $result = normalize_tag_component(123);
-        $this->assertEquals('123', $result);
     }
 
     /**

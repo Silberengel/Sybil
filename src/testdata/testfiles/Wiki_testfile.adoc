@@ -1,0 +1,47 @@
+////
+<<YAML>>
+title: 'Sybil'
+tags:
+  - ['image', 'https://i.nostr.build/Jo7qwDu7rgYkMIWJ.png']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'software']
+  - ['t', 'apps']
+  - ['summary', 'Description of the Sybil Test Utility, a CLI that I wrote to publish and manage Nostr articles, books, wiki pages, and research papers.']
+<<YAML>>
+////
+
+= Sybil Test Utility
+
+== Description
+
+image::https://i.nostr.build/Jo7qwDu7rgYkMIWJ.png"[Sybil gazing into a crystal ball, 200]
+
+This is a simple PHP CLI program that takes an edited/pre-formatted Asciidoc document, splits it into the specific sections defined, generates a https://next-alexandria.gitcitadel.eu/publication?d=gitcitadel-project-documentation-curated-publications-specification-7-by-stella-v-1[curated publication] from that file (kind ```30040```, with an included, ordered list of kind ```30041``` sections/articles), and writes it to the relays selected.
+
+I've since begun to expand it, to keep up with the development of our web GUI, and to provide myself with some functions I often require in testing. It now also covers longform articles (kind ```30023```) and wiki pages (kind ```30818```), as well as offering event delete, fetch, and broadcast utilities.
+
+I've changed the project name to _Sybil_, from _ebook Upload Utility_ to reflect the more universal application it now covers. It's slowly becoming an interesting app, in its own right.
+Special thanks goes to https://njump.me/nprofile1qy2hwumn8ghj7un9d3shjtnyv9kh2uewd9hj7qg3waehxw309ahx7um5wgh8w6twv5hsqgqxvwdrsmyuzq2zza3zej70gzggcnc6pse7y0udd450f2lk2hu0wyaycs4u[nostr:npub1qe3e5wrvnsgpggtkytxteaqfprz0rgxr8c3l34kk3a9t7e2l3acslezefe], the main developer for the https://gitcitadel.com/r/naddr1qvzqqqrhnypzqpnrnguxe8qszsshvgkvhn6qjzxy7xsvx03rlrtddr62haj4lrm3qy88wumn8ghj7mn0wvhxcmmv9uqqjmn0wd68yttsdpcqa874nw[PHP Helper library], that Sybil is based upon.
+
+== Examples
+
+If you go to https://next-alexandria.gitcitadel.eu[next-alexandria], you can see some of the publications which this tool has produced.
+
+An example of a typical document, produced with this tool, is the test file `AesopsFables_testfile_a.adoc` which looks like this:
+
+image::https://i.nostr.build/qE3NVGZCTQ59TVEl.png[source, 400]
+
+And produces a book, like this:
+
+image::https://i.nostr.build/gxf1A3WsYyJ64vVu.png[landing page, 400]
+
+image::https://i.nostr.build/uS56H0WYGt5qcUiR.png[json view, 400]
+
+image::https://i.nostr.build/zHobLiKYjfvsIwTI.png[detailed view, 400]
+
+image::https://i.nostr.build/DC7ROcViizNRzbzV.png[reading view, 400]
+
+## Contact information
+
+If you have any questions, comments, or zaps, then please feel free to contact me on Nostr, at https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[nostr:npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z], or over the https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqy88wumn8ghj7mn0wvhxcmmv9uqsuamnwvaz7tmwdaejumr0dshsqrr9gfhk7664w35kc6t50ypt5c8t[Sybil repo].
