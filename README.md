@@ -1,6 +1,6 @@
 # Sybil Test Utility
 
-![Sybil gazing into a crystal ball](src/testdata/images/Sybil.png)
+![Sybil gazing into a crystal ball](https://i.nostr.build/Jo7qwDu7rgYkMIWJ.png)
 
 ## Description
 
