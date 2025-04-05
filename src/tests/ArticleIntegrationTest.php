@@ -31,8 +31,7 @@ final class ArticleIntegrationTest extends TestCase
     public function testSourcefileHas_Atags(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/AesopsFables_testfile_a.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
         $this->assertStringContainsString(needle: 'Published 30040 event with a tags', haystack: $return);
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
@@ -43,8 +42,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testSourcefileHas_Etags(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/AesopsFables_testfile_e.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'Published 30040 event with e tags', haystack: $return);
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
@@ -55,8 +54,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testAsciidocBasic(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/Asciidoctest_basic.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
 
@@ -66,8 +65,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testBlogFile(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/Blog_testfile.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
 
@@ -77,8 +76,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testLoremIpsum(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/LoremIpsum.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
 
@@ -88,8 +87,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testRelayTestFile(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/RelayTest.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
     }
     
@@ -99,8 +98,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testLongformFile(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/Markdown_testfile.md";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php longform ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php longform ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The longform article has been written.', haystack: $return);
     }
 
@@ -110,8 +109,8 @@ final class ArticleIntegrationTest extends TestCase
     public function testWikiFile(): void
     {
         $testFile = dirname(__DIR__) . "/testdata/testfiles/Wiki_testfile.adoc";
-        $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php wiki ' . $testFile . ' 2>&1');
-        var_dump($return);
+        $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php wiki ' . $testFile . ' 2>&1');
+        
         $this->assertStringContainsString(needle: 'The wiki page has been written.', haystack: $return);
     }
 
@@ -136,8 +135,8 @@ final class ArticleIntegrationTest extends TestCase
 
             // make sure that publication can still be printed using the default Citadel relay.
             $testFile = dirname(__DIR__) . "/testdata/testfiles/AesopsFables_testfile_a.adoc";
-            $return = shell_exec(command: 'php ' . __DIR__ . '/TestSybil.php publication ' . $testFile . ' 2>&1');
-            var_dump($return);
+            $return = shell_exec(command: 'php ' . dirname(__DIR__, 2) . '/Sybil.php publication ' . $testFile . ' 2>&1');
+            
             $this->assertStringContainsString(needle: 'The publication has been written.', haystack: $return);
         } finally {
             // Restore the original content regardless of test outcome

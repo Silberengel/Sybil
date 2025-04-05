@@ -60,7 +60,7 @@ $secondArg = $argv[2];
             // Write publication into events
             try {
                 $publication->publish();
-                // The success message is now handled by the publish method
+                echo "The publication has been written." . PHP_EOL;
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
@@ -80,7 +80,7 @@ $secondArg = $argv[2];
             // Write longform article into events
             try {
                 $longform->publish();
-                // The success message is now handled by the publish method
+                echo "The longform article has been written." . PHP_EOL;
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
@@ -99,7 +99,7 @@ $secondArg = $argv[2];
             // Write wiki into events
             try {
                 $wiki->publish();
-                // The success message is now handled by the publish method
+                echo "The wiki page has been written." . PHP_EOL;
             } catch (Exception $e) {
                 echo PHP_EOL.$e->getMessage().PHP_EOL.PHP_EOL;
             }
