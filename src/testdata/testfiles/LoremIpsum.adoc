@@ -5,6 +5,7 @@ author: 'unknown'
 version: '1'
 tag-type: 'a'
 auto-update: 'yes'
+image: 'https://i.pinimg.com/474x/bd/02/21/bd022104b73d5e5c1f0cccfd9892dff2.jpg'
 tags:
   - ['t', 'testfile']
 <</YAML>>
