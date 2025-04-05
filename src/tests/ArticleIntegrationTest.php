@@ -22,8 +22,7 @@ final class ArticleIntegrationTest extends TestCase
         require_once dirname(__DIR__) . '/LongformEvent.php';
         require_once dirname(__DIR__) . '/WikiEvent.php';
         
-        // Include mock helper functions
-        require_once __DIR__ . '/MockHelperFunctions.php';
+        // Mock helper functions have been removed
     }
 
     /**
