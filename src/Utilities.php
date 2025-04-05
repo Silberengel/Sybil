@@ -11,7 +11,7 @@
  * and clear method responsibilities.
  */
 
-use React\Dns\RecordNotFoundException;
+use Sybil\Exception\RecordNotFoundException;
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Filter\Filter;

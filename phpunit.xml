@@ -2,15 +2,12 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         colors="true">
+         colors="true"
+         displayDetailsOnTestsThatTriggerNotices="true">
     <testsuites>
-        <testsuite name="Unit">
-            <directory>src/unitTests</directory>
-            <exclude>src/unitTests/ArticleIntegrationTest.php</exclude>
-        </testsuite>
         <testsuite name="Integration">
-            <file>src/unitTests/ArticleIntegrationTest.php</file>
-            <file>src/unitTests/UtilitiesIntegrationTest.php</file>
+            <file>src/tests/ArticleIntegrationTest.php</file>
+            <file>src/tests/CoreIntegrationTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>

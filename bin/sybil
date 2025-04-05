@@ -1,0 +1,132 @@
+#!/usr/bin/env php
+<?php
+
+// Check if the script is being run from the correct directory
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
+    require_once __DIR__ . '/../../../autoload.php';
+} else {
+    die('Autoloader not found. Please run "composer install" first.' . PHP_EOL);
+}
+
+// Include the application files
+require_once __DIR__ . '/../src/Application.php';
+require_once __DIR__ . '/../src/Command/CommandInterface.php';
+require_once __DIR__ . '/../src/Command/BaseCommand.php';
+require_once __DIR__ . '/../src/Command/PublicationCommand.php';
+require_once __DIR__ . '/../src/Command/LongformCommand.php';
+require_once __DIR__ . '/../src/Command/WikiCommand.php';
+require_once __DIR__ . '/../src/Command/NoteCommand.php';
+require_once __DIR__ . '/../src/Command/FetchCommand.php';
+require_once __DIR__ . '/../src/Command/DeleteCommand.php';
+require_once __DIR__ . '/../src/Command/BroadcastCommand.php';
+require_once __DIR__ . '/../src/Command/HelpCommand.php';
+require_once __DIR__ . '/../src/Service/LoggerService.php';
+require_once __DIR__ . '/../src/Service/RelayService.php';
+require_once __DIR__ . '/../src/Service/EventService.php';
+require_once __DIR__ . '/../src/Service/TagService.php';
+require_once __DIR__ . '/../src/Service/UtilityService.php';
+require_once __DIR__ . '/../src/Event/BaseEvent.php';
+require_once __DIR__ . '/../src/Event/PublicationEvent.php';
+require_once __DIR__ . '/../src/Event/LongformEvent.php';
+require_once __DIR__ . '/../src/Event/WikiEvent.php';
+require_once __DIR__ . '/../src/Event/TextNoteEvent.php';
+require_once __DIR__ . '/../src/Event/SectionEvent.php';
+
+// Load configuration
+$appConfig = require_once __DIR__ . '/../config/app.php';
+$relayConfig = require_once __DIR__ . '/../config/relays.php';
+
+// Create the application
+$app = new Sybil\Application();
+
+// Register services
+$app->register('logger', function($app) {
+    return new Sybil\Service\LoggerService(true);
+});
+
+$app->register('relay_service', function($app) use ($relayConfig) {
+    return new Sybil\Service\RelayService($relayConfig);
+});
+
+$app->register('event_service', function($app) use ($appConfig) {
+    return new Sybil\Service\EventService(
+        $appConfig,
+        $app->get('relay_service'),
+        $app->get('logger')
+    );
+});
+
+$app->register('tag_service', function($app) {
+    return new Sybil\Service\TagService(
+        $app->get('event_service')
+    );
+});
+
+$app->register('utility_service', function($app) use ($appConfig) {
+    return new Sybil\Service\UtilityService(
+        $appConfig,
+        $app->get('relay_service'),
+        $app->get('event_service'),
+        $app->get('logger')
+    );
+});
+
+// Register commands
+$app->registerCommand(new Sybil\Command\PublicationCommand(
+    $app,
+    $app->get('event_service'),
+    $app->get('tag_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\LongformCommand(
+    $app,
+    $app->get('event_service'),
+    $app->get('tag_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\WikiCommand(
+    $app,
+    $app->get('event_service'),
+    $app->get('tag_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\NoteCommand(
+    $app,
+    $app->get('event_service'),
+    $app->get('relay_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\FetchCommand(
+    $app,
+    $app->get('utility_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\DeleteCommand(
+    $app,
+    $app->get('utility_service'),
+    $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\BroadcastCommand(
+    $app,
+    $app->get('utility_service'),
+    $app->get('logger')
+));
+
+// Register the help command last so it has access to all other commands
+$app->registerCommand(new Sybil\Command\HelpCommand(
+    $app,
+    $app->get('logger'),
+    $app->getCommands() // Get all registered commands
+));
+
+// Run the application
+$exitCode = $app->run($argv);
+exit($exitCode);

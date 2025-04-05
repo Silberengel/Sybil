@@ -42,6 +42,6 @@ image::https://i.nostr.build/zHobLiKYjfvsIwTI.png[detailed view, 400]
 
 image::https://i.nostr.build/DC7ROcViizNRzbzV.png[reading view, 400]
 
-## Contact information
+== Contact information
 
-If you have any questions, comments, or zaps, then please feel free to contact me on Nostr, at https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[nostr:npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z], or over the https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqy88wumn8ghj7mn0wvhxcmmv9uqsuamnwvaz7tmwdaejumr0dshsqrr9gfhk7664w35kc6t50ypt5c8t[Sybil repo].
+If you have any questions, comments, or zaps, then please feel free to contact me on Nostr, at https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[nostr:npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z], or over the https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqythwumn8ghj7un9d3shjtnwdaehgu3wvfskuep0qqz4x7tzd9kqftxaxq[Sybil repo].
