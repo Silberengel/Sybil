@@ -8,7 +8,7 @@ tags:
   - ['t', 'software']
   - ['t', 'apps']
   - ['summary', 'Description of the Sybil Test Utility, a CLI that I wrote to publish and manage Nostr articles, books, wiki pages, and research papers.']
-<<YAML>>
+<</YAML>>
 ////
 
 = Sybil Test Utility

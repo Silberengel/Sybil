@@ -7,7 +7,7 @@ tags:
   - ['reading-direction', 'left-to-right, top-to-bottom']
   - ['t', 'testfile']
   - ['summary', 'This article contains lots of different markup/Markdown tags. You can use this to check the rendering on your client.']
-<<YAML>>
+<</YAML>>
 ////
 # Markdown: Syntax
 
