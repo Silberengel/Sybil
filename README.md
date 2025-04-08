@@ -25,7 +25,7 @@ I've since begun to expand it, to keep up with the development of our web GUI.
 ### Curated Publications (30040)
 
 1. Open the file in the *user* folder called *30040_settings_template.yml*, read the descriptions of the event tags at the top, and then copy out the `////<<YAML>>` section.
-2. Paste the section *beneath* the document header (=) of your publication. The publication file should be located at in the top/root folder, be formatted in Asciidoc, and have an `.adoc` ending.
+2. Paste the section *beneath* the document header (=) of your publication. The publication file should be located in the top/root folder, be formatted in Asciidoc, and have an `.adoc` ending.
 3. Edit the information within that yaml section and remove/add any optional tags.
 4. If you like, you can do the same for each 1st-level header (==). That will give the 30041 events more-customized tags. Otherwise, they derive their tags from the 30040 index event.
 5. On the command line, enter the program name, the command, and the name of your publication file.
@@ -37,7 +37,7 @@ I've since begun to expand it, to keep up with the development of our web GUI.
 
 ### Longform Articles (30023)
 1. Open the file in the *user* folder called *30023_settings_template.yml*, read the descriptions of the event tags at the top, and then copy out the `////<<YAML>>` section.
-2. Paste the section *above* the first header (#) in your article file. The article file should be located at in the top/root folder, be formatted in Markdown and have an `.md` ending.
+2. Paste the section *above* the first header (#) in your article file. The article file should be located in the top/root folder, be formatted in Markdown and have an `.md` ending.
 3. Edit the information within that yaml section and remove/add any optional tags.
 5. On the command line, enter the program name, the command, and the name of your article file.
 
@@ -48,7 +48,7 @@ I've since begun to expand it, to keep up with the development of our web GUI.
 
 ### Wiki Pages (30818)
 1. Open the file in the *user* folder called *30818_settings_template.yml*, read the descriptions of the event tags at the top, and then copy out the `////<<YAML>>` section.
-2. Paste the section *above* the first header (=) in your wiki file. The wiki file should be located at in the top/root folder, be formatted in Asciidoc, and have an `.adoc` ending.
+2. Paste the section *above* the first header (=) in your wiki file. The wiki file should be located in the top/root folder, be formatted in Asciidoc, and have an `.adoc` ending.
 3. Edit the information within that yaml section and remove/add any optional tags.
 5. On the command line, enter the program name, the command, and the name of your wiki file.
 
