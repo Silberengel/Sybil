@@ -39,6 +39,21 @@ class PublicationEvent extends BaseEvent
     protected string $tagType = 'a';
     
     /**
+     * @var array Hashtags for the publication
+     */
+    protected array $hashtags = [];
+    
+    /**
+     * @var string Author of the publication
+     */
+    protected string $author = 'unknown';
+    
+    /**
+     * @var string Version of the publication
+     */
+    protected string $version = '1';
+    
+    /**
      * Get the event kind number
      * 
      * @return int The event kind number
@@ -91,65 +106,121 @@ class PublicationEvent extends BaseEvent
      */
     private function splitIntoSections(string $markup): array
     {
-        // Split the markup into sections based on level 1 headers
-        $pattern = '/^=\s+(.*)$/m';
-        $sections = preg_split($pattern, $markup, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        
-        // Check if we have YAML metadata
-        if (strpos($sections[0], '<<YAML>>') !== false && strpos($sections[0], '<</YAML>>') !== false) {
-            // Extract YAML metadata
-            $yamlPattern = '/<<YAML>>(.*?)<\/YAML>>/s';
-            preg_match($yamlPattern, $sections[0], $yamlMatches);
+        // Function to process YAML metadata in a section
+        $processYamlMetadata = function($content) {
+            $yamlPattern = '/\/\/\/\/\s*\n<<YAML>>(.*?)<<\/YAML>>\s*\n\/\/\/\//s';
+            preg_match($yamlPattern, $content, $yamlMatches);
             
-            if (!empty($yamlMatches[1])) {
+            if (!empty($yamlMatches[0])) {
+                // Extract YAML content
                 $yamlContent = $yamlMatches[1];
                 
                 // Parse YAML content
                 $yamlData = yaml_parse($yamlContent);
                 
-                // Set title and other metadata
-                if (isset($yamlData['title'])) {
+                // Set title and other metadata for the document (only from the first section)
+                if (empty($this->title) && isset($yamlData['title'])) {
                     $this->setTitle($yamlData['title']);
                 }
                 
-                // Set tag type
-                if (isset($yamlData['tag-type'])) {
+                // Set author (only from the first section)
+                if (empty($this->author) && isset($yamlData['author'])) {
+                    $this->author = $yamlData['author'];
+                }
+                
+                // Set version (only from the first section)
+                if (empty($this->version) && isset($yamlData['version'])) {
+                    $this->version = $yamlData['version'];
+                }
+                
+                // Set tag type (only from the first section)
+                if (empty($this->tagType) && isset($yamlData['tag-type'])) {
                     $this->tagType = $yamlData['tag-type'];
                 }
                 
-                // Set optional tags
+                // Process tags
                 if (isset($yamlData['tags']) && is_array($yamlData['tags'])) {
-                    $this->setOptionalTags($yamlData['tags']);
+                    echo "Processing " . count($yamlData['tags']) . " YAML tags" . PHP_EOL;
+                    
+                    foreach ($yamlData['tags'] as $tag) {
+                        if (is_array($tag)) {
+                            echo "Processing tag: " . json_encode($tag) . PHP_EOL;
+                            
+                            if (count($tag) >= 2 && $tag[0] === 't') {
+                                $this->hashtags[] = $tag[1];
+                                echo "Added hashtag: " . $tag[1] . PHP_EOL;
+                            } else {
+                                $this->optionalTags[] = $tag;
+                                echo "Added optional tag: " . json_encode($tag) . PHP_EOL;
+                            }
+                        } else {
+                            echo "Skipping non-array tag: " . $tag . PHP_EOL;
+                        }
+                    }
+                    
+                    echo "Processed tags - Hashtags: " . count($this->hashtags) . ", Optional tags: " . count($this->optionalTags) . PHP_EOL;
+                } else {
+                    echo "No tags found in YAML data" . PHP_EOL;
                 }
+                
+                // Remove YAML metadata from the content
+                $content = str_replace($yamlMatches[0], '', $content);
             }
             
-            // Remove YAML metadata from the first section
-            $sections[0] = preg_replace($yamlPattern, '', $sections[0]);
-        }
+            return $content;
+        };
+        
+        // First, split by level 1 header to get the document title
+        $level1Pattern = '/^=\s+(.*)$/m';
+        $level1Parts = preg_split($level1Pattern, $markup, 2, PREG_SPLIT_DELIM_CAPTURE);
         
         // Process sections
         $processedSections = [];
         
-        // If we have an odd number of sections, the first one is content without a header
-        if (count($sections) % 2 !== 0) {
-            $processedSections[] = [
-                'title' => 'Introduction',
-                'content' => trim($sections[0])
-            ];
+        // If we have a level 1 header, use it as the document title
+        if (count($level1Parts) >= 2) {
+            $documentTitle = trim($level1Parts[1]);
+            if (empty($this->title)) {
+                $this->setTitle($documentTitle);
+            }
             
-            // Remove the first section
-            array_shift($sections);
-        }
-        
-        // Process the remaining sections
-        for ($i = 0; $i < count($sections); $i += 2) {
-            $title = trim($sections[$i]);
-            $content = isset($sections[$i + 1]) ? trim($sections[$i + 1]) : '';
+            // The content after the level 1 header is the preamble and sections
+            $contentAfterTitle = isset($level1Parts[2]) ? $level1Parts[2] : '';
             
-            $processedSections[] = [
-                'title' => $title,
-                'content' => $content
-            ];
+            // Process YAML metadata in the preamble
+            $contentAfterTitle = $processYamlMetadata($contentAfterTitle);
+            
+            // Split the content by level 2 headers to get the sections
+            $level2Pattern = '/^==\s+(.*)$/m';
+            $level2Parts = preg_split($level2Pattern, $contentAfterTitle, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+            
+            // If we have content before the first level 2 header, it's the preamble
+            if (!empty($level2Parts[0])) {
+                $preambleContent = trim($level2Parts[0]);
+                if (!empty($preambleContent)) {
+                    $processedSections[] = [
+                        'title' => 'Preamble',
+                        'content' => $preambleContent
+                    ];
+                }
+                
+                // Remove the preamble
+                array_shift($level2Parts);
+            }
+            
+            // Process the level 2 sections
+            for ($i = 0; $i < count($level2Parts); $i += 2) {
+                $title = trim($level2Parts[$i]);
+                $content = isset($level2Parts[$i + 1]) ? $level2Parts[$i + 1] : '';
+                
+                // Process YAML metadata in the section
+                $content = $processYamlMetadata($content);
+                
+                $processedSections[] = [
+                    'title' => $title,
+                    'content' => trim($content)
+                ];
+            }
         }
         
         return $processedSections;
@@ -207,16 +278,33 @@ class PublicationEvent extends BaseEvent
      */
     private function createSectionEvents(): void
     {
+        echo "Creating section events for " . count($this->sections) . " sections" . PHP_EOL;
+        
         // Create a section event for each section
         foreach ($this->sections as $index => $section) {
+            echo "Processing section " . ($index + 1) . ": " . $section['title'] . PHP_EOL;
+            echo "Section content length: " . strlen($section['content']) . PHP_EOL;
+            
             // Create section event
             $sectionEvent = new SectionEvent();
             $sectionEvent->setTitle($section['title']);
             $sectionEvent->setContent($section['content']);
             
+            // Create specific tags for section events
+            $sectionTags = $this->optionalTags;
+            
+            // Add 'm' and 'M' tags for section events
+            $sectionTags[] = ['m', 'text/asciidoc'];
+            $sectionTags[] = ['M', 'article/publication-content/replaceable'];
+            
+            // Pass tags to the section event
+            $sectionEvent->setOptionalTags($sectionTags);
+            
             // Create d-tag for the section
             $sectionDTag = $this->createDTag($section['title']);
             $sectionEvent->setDTag($sectionDTag);
+            
+            echo "Created d-tag for section: " . $sectionDTag . PHP_EOL;
             
             // Store the section event
             $this->sectionEvents[] = $sectionEvent;
@@ -235,8 +323,16 @@ class PublicationEvent extends BaseEvent
             $this->recordSectionResult($index + 1, count($this->sections), $sectionEvent->getKindName(), $event, $success);
             
             // Store the section event ID
-            $this->sectionEventIds[] = $event->getId();
+            $eventId = $event->getId();
+            $this->sectionEventIds[] = $eventId;
+            
+            echo "Added section event ID: " . $eventId . PHP_EOL;
         }
+        
+        echo "Finished creating section events. Total sections: " . count($this->sections) . PHP_EOL;
+        echo "Total section events: " . count($this->sectionEvents) . PHP_EOL;
+        echo "Total section event IDs: " . count($this->sectionEventIds) . PHP_EOL;
+        echo "Total section d-tags: " . count($this->sectionDTags) . PHP_EOL;
     }
     
     /**
@@ -276,22 +372,44 @@ class PublicationEvent extends BaseEvent
      */
     protected function buildEvent(): Event
     {
+        // Debug information
+        echo "Building event with the following data:" . PHP_EOL;
+        echo "Title: " . $this->title . PHP_EOL;
+        echo "D-Tag: " . $this->dTag . PHP_EOL;
+        echo "Tag Type: " . $this->tagType . PHP_EOL;
+        echo "Number of Sections: " . count($this->sections) . PHP_EOL;
+        echo "Number of Section Events: " . count($this->sectionEvents) . PHP_EOL;
+        echo "Number of Section Event IDs: " . count($this->sectionEventIds) . PHP_EOL;
+        echo "Number of Section D-Tags: " . count($this->sectionDTags) . PHP_EOL;
+        echo "Number of Hashtags: " . count($this->hashtags) . PHP_EOL;
+        echo "Number of Optional Tags: " . count($this->optionalTags) . PHP_EOL;
+        echo "Content Length: " . strlen($this->content) . PHP_EOL;
+        
         // Create event
         $event = new Event();
         $event->setKind($this->getEventKind());
-        $event->setContent($this->content);
+        
+        // 30040 events should not contain content, only references to sections
+        $event->setContent("");
+        echo "Setting empty content for 30040 event (table of contents)" . PHP_EOL;
         
         // Add tags
         $tags = [
             ['d', $this->dTag],
-            ['title', $this->title]
+            ['title', $this->title],
+            ['author', $this->author],
+            ['version', $this->version],
+            ['m', 'application/json'],
+            ['M', 'meta-data/index/replaceable']
         ];
         
         // Add section references
         if ($this->tagType === 'e') {
             // Add e-tags
+            echo "Adding e-tags for " . count($this->sectionEventIds) . " sections" . PHP_EOL;
             foreach ($this->sectionEventIds as $sectionEventId) {
                 $tags[] = ['e', $sectionEventId];
+                echo "Added e-tag: " . $sectionEventId . PHP_EOL;
             }
             
             // Add tag type
@@ -299,22 +417,37 @@ class PublicationEvent extends BaseEvent
         } else {
             // Add a-tags
             $publicHex = $this->getPublicHexKey();
+            echo "Adding a-tags for " . count($this->sectionDTags) . " sections with public key: " . $publicHex . PHP_EOL;
             
             foreach ($this->sectionDTags as $index => $sectionDTag) {
-                $tags[] = ['a', $sectionDTag . ':' . $publicHex . ':30041', self::DEFAULT_RELAY, 'wss'];
+                $tags[] = ['a', '30041:' . $publicHex . ':' . $sectionDTag];
+                echo "Added a-tag: " . $sectionDTag . PHP_EOL;
             }
             
             // Add tag type
             $tags[] = ['t', 'a-tags'];
         }
         
+        // Add hashtags
+        echo "Adding " . count($this->hashtags) . " hashtags" . PHP_EOL;
+        foreach ($this->hashtags as $hashtag) {
+            $tags[] = ['t', $hashtag];
+            echo "Added hashtag: " . $hashtag . PHP_EOL;
+        }
+        
         // Add optional tags
+        echo "Adding " . count($this->optionalTags) . " optional tags" . PHP_EOL;
         foreach ($this->optionalTags as $tag) {
             $tags[] = $tag;
+            echo "Added optional tag: " . json_encode($tag) . PHP_EOL;
         }
         
         // Set tags
         $event->setTags($tags);
+        
+        // Debug the final event
+        echo "Final event tags: " . count($tags) . PHP_EOL;
+        echo "Final event content length: " . strlen($this->content) . PHP_EOL;
         
         return $event;
     }

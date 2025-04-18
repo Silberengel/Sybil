@@ -7,6 +7,9 @@ tag-type: 'a'
 auto-update: 'yes'
 tags:
   - ['t', 'testfile']
+  - ['t', 'asciimath']
+  - ['t', 'latexmath']
+  - ['image', 'https://i.nostr.build/5kWwbDR04joIASVx.png']
 <</YAML>>
 ////
 
@@ -74,3 +77,52 @@ The text at the end of this sentence is cross referenced to <<_third_level_headi
 
 This is a link to the https://asciidoctor.org/docs/user-manual/[Asciidoctor User Manual].
 This is an attribute reference {quick-uri}[which links this text to the Asciidoctor Quick Reference Guide].
+
+== AsciiMath Test Document
+
+=== Basic Math Expressions
+
+Here's a simple equation: asciimath:[sqrt(4) = 2]
+
+And an inline expression with asciimath notation: asciimath:[x^2 + y^2 = z^2]
+
+=== Block Math Expressions
+
+Here's a block equation:
+
+[asciimath]
+++++
+sum_(i=1)^n i^3=((n(n+1))/2)^2
+++++
+
+And another one with explicit asciimath notation:
+
+[asciimath]
+++++
+f(x) = int_{-infty}^x~e^{-t^2}dt
+++++
+
+=== Complex Expressions
+
+Here's a more complex expression:
+
+[asciimath]
+++++
+lim_(N->oo) sum_(i=1)^N i = (N(N+1))/2
+++++
+
+And a matrix:
+
+[asciimath]
+++++
+[[a,b],[c,d]]
+++++
+
+=== LaTeX Math
+
+We can also use LaTeX math notation:
+
+[latexmath]
+++++
+\frac{n!}{k!(n-k)!} = \binom{n}{k}
+++++
