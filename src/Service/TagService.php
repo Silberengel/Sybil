@@ -60,7 +60,7 @@ class TagService
      */
     public function constructDTagArticles(string $title): string
     {
-        $publicHex = $this->eventService->getPublicHexKey();
+        $publicHex = get_public_hex_key();
         
         // Replace spaces with dashes
         $normalizedTitle = $this->normalizeTagComponent($title);

@@ -416,7 +416,7 @@ class PublicationEvent extends BaseEvent
             $tags[] = ['t', 'e-tags'];
         } else {
             // Add a-tags
-            $publicHex = $this->getPublicHexKey();
+            $publicHex = get_public_hex_key();
             echo "Adding a-tags for " . count($this->sectionDTags) . " sections with public key: " . $publicHex . PHP_EOL;
             
             foreach ($this->sectionDTags as $index => $sectionDTag) {
@@ -453,22 +453,6 @@ class PublicationEvent extends BaseEvent
     }
     
     /**
-     * Get the public hex key
-     * 
-     * @return string The public hex key
-     */
-    private function getPublicHexKey(): string
-    {
-        // Get private key from environment
-        $privateBech32 = getenv('NOSTR_SECRET_KEY');
-        
-        // Convert to hex and get public key
-        $keys = new \swentel\nostr\Key\Key();
-        $privateHex = $keys->convertToHex(key: $privateBech32);
-        return $keys->getPublicKey(private_hex: $privateHex);
-    }
-    
-    /**
      * Sends an event to relays
      * 
      * @param Event $event The event to send
@@ -489,12 +473,7 @@ class PublicationEvent extends BaseEvent
     private function prepareSectionEvent(Event $note): array
     {
         // Get private key from environment
-        $privateKey = getenv('NOSTR_SECRET_KEY');
-        
-        // Validate private key
-        if (!str_starts_with($privateKey, 'nsec')) {
-            throw new InvalidArgumentException('Please place your nsec in the nostr-private.key file.');
-        }
+        $privateKey = get_nsec();
         
         // Get the event kind
         $kind = 0;

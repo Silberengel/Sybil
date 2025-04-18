@@ -299,12 +299,7 @@ abstract class BaseEvent
     protected function prepareEventData(Event $note): array
     {
         // Get private key from environment
-        $privateKey = getenv('NOSTR_SECRET_KEY');
-        
-        // Validate private key
-        if (!str_starts_with($privateKey, 'nsec')) {
-            throw new InvalidArgumentException('Please place your nsec in the nostr-private.key file.');
-        }
+        $privateKey = get_nsec();
         
         // Get the event kind
         $kind = 0;

@@ -302,12 +302,7 @@ class Utilities
         $eventIDs[] = $this->eventID;
 
         // Get private key from environment
-        $privateKey = getenv('NOSTR_SECRET_KEY');
-            
-        // Validate private key
-        if (!str_starts_with($privateKey, 'nsec')) {
-            throw new InvalidArgumentException('Please place your nsec in the nostr-private.key file.');
-        }
+        $privateKey = get_nsec();
 
         echo "Step 1: Attempting to fetch event {$this->eventID}..." . PHP_EOL;
         

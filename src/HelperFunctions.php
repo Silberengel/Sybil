@@ -64,7 +64,7 @@ function construct_d_tag_publication($title, $author = "unknown", $version = "1"
 function construct_d_tag_articles($title): string
 {
 
-    $publicHex = get_public_hex_key();
+    $publicHex = get_npub();
 
     // Replace spaces with dashes
     $normalizedTitle = normalize_tag_component($title);
@@ -76,13 +76,59 @@ function construct_d_tag_articles($title): string
     return format_d_tag($dTag);
 }
 
+/**
+ * Gets the npub's private key from the environment variable
+ * NOSTR_SECRET_KEY. Converts from hex to nsec, where applicable.
+ *
+ * @return string The nsec
+ */
+function get_nsec(): string
+{
+    // Get private nsec key
+    $keys = new Key();
+    $envKey = getenv('NOSTR_SECRET_KEY');
+
+    // convert hex ID to nsec, if found, then return
+    if(!str_starts_with($envKey, 'nsec')){
+        return $keys->convertPrivateKeyToBech32($envKey);
+    }else{
+        return $envKey;
+    }
+}
+
+/**
+ * Transforms an nsec to an public hex ID.
+ *
+ * @return string The hex ID
+ */
 function get_public_hex_key(): string
 {
-    // Get public hex key
+    // Get nsec
     $keys = new Key();
-    $privateBech32 = getenv('NOSTR_SECRET_KEY');
-    $privateHex = $keys->convertToHex(key: $privateBech32);
+    $nsec = get_nsec();
+
+    // convert nsec to public hex ID and return
+    $privateHex = $keys->convertToHex(key: $nsec);
     return $keys->getPublicKey(private_hex: $privateHex);
+}
+
+/**
+ * Transforms an nsec to an npub.
+ *
+ * @return string The npub
+ */
+function get_npub(): string
+{
+    // Get nsec
+    $keys = new Key();
+    $nsec = get_nsec();
+
+    // convert nsec to private hex ID
+    $privateHex = $keys->convertToHex(key: $nsec);
+
+    // convert private hex to npub and return
+    $publicHex = $keys->getPublicKey($privateHex);
+    return $keys->convertPublicKeyToBech32($publicHex);
 }
 
 /**
@@ -126,12 +172,7 @@ function format_d_tag($dTag)
 function prepare_event_data($note): array
 {
     // Get private key from environment
-    $privateKey = getenv('NOSTR_SECRET_KEY');
-    
-    // Validate private key
-    if (!str_starts_with($privateKey, 'nsec')) {
-        throw new InvalidArgumentException('Please place your nsec in the nostr-private.key file.');
-    }
+    $privateKey = get_nsec();
     
     // Get the event kind
     $kind = 0;

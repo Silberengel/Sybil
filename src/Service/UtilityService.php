@@ -302,12 +302,7 @@ class UtilityService
         $eventIDs[] = $this->eventID;
         
         // Get private key from environment
-        $privateKey = getenv($this->appConfig['nostr_secret_key_env']);
-        
-        // Validate private key
-        if (!str_starts_with($privateKey, 'nsec')) {
-            throw new InvalidArgumentException('Please set your nsec in the ' . $this->appConfig['nostr_secret_key_env'] . ' environment variable.');
-        }
+        $privateKey = get_nsec();
         
         $this->logger->info("Step 1: Attempting to fetch event {$this->eventID}...");
         

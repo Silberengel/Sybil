@@ -58,12 +58,7 @@ class EventService
     public function prepareAndSendEvent(Event $event): array
     {
         // Get private key from environment
-        $privateKey = getenv($this->appConfig['nostr_secret_key_env']);
-        
-        // Validate private key
-        if (!str_starts_with($privateKey, 'nsec')) {
-            throw new InvalidArgumentException('Please set your nsec in the ' . $this->appConfig['nostr_secret_key_env'] . ' environment variable.');
-        }
+        $privateKey = get_nsec();
         
         // Get the event kind
         $kind = 0;
@@ -346,19 +341,4 @@ class EventService
         }
     }
     
-    /**
-     * Get a public hex key from a private key
-     *
-     * @return string Public hex key
-     */
-    public function getPublicHexKey(): string
-    {
-        // Get private key from environment
-        $privateBech32 = getenv($this->appConfig['nostr_secret_key_env']);
-        
-        // Convert to hex and get public key
-        $keys = new Key();
-        $privateHex = $keys->convertToHex(key: $privateBech32);
-        return $keys->getPublicKey(private_hex: $privateHex);
-    }
 }
