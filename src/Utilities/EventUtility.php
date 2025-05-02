@@ -1,6 +1,6 @@
 <?php
 /**
- * Class Utilities
+ * Class EventUtility
  * 
  * This class provides utility functions for working with Nostr events:
  * - Fetching events from relays
@@ -9,20 +9,48 @@
  * 
  * It follows object-oriented principles with encapsulated properties
  * and clear method responsibilities.
+ * 
+ * Example usage:
+ * ```php
+ * use Sybil\Utilities\EventUtility;
+ * 
+ * // Create an event utility with an event ID
+ * $eventUtility = new EventUtility('event-id');
+ * 
+ * // Fetch an event
+ * list($fetchedEvent, $relaysWithEvent) = $eventUtility->fetch_event();
+ * 
+ * // Broadcast an event
+ * $result = $eventUtility->broadcast_event();
+ * 
+ * // Delete an event
+ * $result = $eventUtility->delete_event();
+ * 
+ * // Run a utility function based on a command
+ * $result = $eventUtility->run_utility('fetch');
+ * ```
+ * 
+ * This class is part of the Sybil utilities, which have been organized into smaller,
+ * more focused classes to improve maintainability and readability. Each class has a
+ * specific responsibility and provides methods related to that responsibility.
+ * 
+ * @see RelayUtility For relay-related operations
+ * @see RequestUtility For request-related operations
+ * @see KeyUtility For key-related operations
+ * @see EventPreparationUtility For event preparation operations
  */
+
+namespace Sybil\Utilities;
 
 use Sybil\Exception\RecordNotFoundException;
 use swentel\nostr\Relay\Relay;
-use swentel\nostr\Relay\RelaySet;
 use swentel\nostr\Filter\Filter;
 use swentel\nostr\Subscription\Subscription;
 use swentel\nostr\Message\RequestMessage;
 use swentel\nostr\Message\EventMessage;
-use swentel\nostr\Sign\Sign;
 use swentel\nostr\Event\Event;
-use swentel\nostr\EventInterface;
 
-class Utilities
+class EventUtility
 {
     // Properties
     private string $eventID = '';
@@ -31,7 +59,7 @@ class Utilities
     public const DEFAULT_RELAY = 'wss://freelay.sovbit.host';
 
     /**
-     * Constructor for Utilities
+     * Constructor for EventUtility
      * 
      * @param string $eventID Optional event ID to initialize with
      */
@@ -69,7 +97,7 @@ class Utilities
      * 
      * @param string $command The command to run (fetch, broadcast, delete)
      * @return array The result of the utility function
-     * @throws InvalidArgumentException If the command is invalid
+     * @throws \InvalidArgumentException If the command is invalid
      */
     public function run_utility(string $command): array
     {
@@ -93,7 +121,7 @@ class Utilities
                 return $this->delete_event();
                 
             default:
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     PHP_EOL.'That is not a valid command.'.PHP_EOL.PHP_EOL);
         }
     }
@@ -135,28 +163,25 @@ class Utilities
         // Check all relays to find which ones have the event
         foreach ($relays as $relay) {
             try {
-                $result = request_send_with_retry($relay, $requestMessage);
+                $result = RequestUtility::sendWithRetry($relay, $requestMessage);
                 
                 // Check if this relay has the event
                 $hasEvent = false;
                 
-                // Check if it's a complex structure with the event
-                if (is_array($result)) {
-                    $jsonString = json_encode($result);
-                    if (strpos($jsonString, $this->eventID) !== false) {
-                        // The event ID is in the result
-                        $hasEvent = true;
-                        $relaysWithEvent[] = $relay->getUrl();
-                        
-                        // Save the first result we find
-                        if ($firstResult === null) {
-                            $singleRelayResult = [];
-                            $singleRelayResult[$relay->getUrl()] = $result[$relay->getUrl()];
-                            $firstResult = $singleRelayResult;
-                        }
+                // Check if the response contains the event
+                if (is_array($result) && RequestUtility::responseContainsEvent($result, $this->eventID)) {
+                    // The event ID is in the result
+                    $hasEvent = true;
+                    $relaysWithEvent[] = $relay->getUrl();
+                    
+                    // Save the first result we find
+                    if ($firstResult === null) {
+                        $singleRelayResult = [];
+                        $singleRelayResult[$relay->getUrl()] = $result[$relay->getUrl()];
+                        $firstResult = $singleRelayResult;
                     }
                 }
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 // If one relay fails, continue with the next one
                 echo "Error fetching from relay " . $relay->getUrl() . ": " . $e->getMessage() . PHP_EOL;
             }
@@ -170,11 +195,10 @@ class Utilities
         // If no relay had the event, try the default relay as a last resort
         $defaultRelay = new Relay(self::DEFAULT_RELAY);
         try {
-            $result = request_send_with_retry($defaultRelay, $requestMessage);
+            $result = RequestUtility::sendWithRetry($defaultRelay, $requestMessage);
             
             // Check if the default relay has the event
-            $jsonString = json_encode($result);
-            if (strpos($jsonString, $this->eventID) !== false) {
+            if (RequestUtility::responseContainsEvent($result, $this->eventID)) {
                 $relaysWithEvent[] = $defaultRelay->getUrl();
                 $singleRelayResult = [];
                 $singleRelayResult[$defaultRelay->getUrl()] = $result[$defaultRelay->getUrl()];
@@ -182,7 +206,7 @@ class Utilities
             }
             
             return [$result, $relaysWithEvent];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo "Error fetching from default relay: " . $e->getMessage() . PHP_EOL;
             return [[], $relaysWithEvent]; // Return empty array if all relays failed
         }
@@ -215,46 +239,10 @@ class Utilities
         }
         
         // Extract the event data from the fetched event
-        $eventData = null;
-        $jsonString = json_encode($fetchedEvent);
+        $eventData = RequestUtility::extractEventData($fetchedEvent, $this->eventID);
         
-        // Try to extract the event data from the JSON
-        if (is_array($fetchedEvent)) {
-            // Look for the event in the array structure
-            foreach ($fetchedEvent as $relayUrl => $responses) {
-                if (!is_array($responses)) {
-                    continue;
-                }
-                
-                foreach ($responses as $response) {
-                    if (is_array($response) && isset($response['type']) && $response['type'] === 'EVENT' && isset($response['event'])) {
-                        if (isset($response['event']['id']) && $response['event']['id'] === $this->eventID) {
-                            $eventData = $response['event'];
-                            echo "Found event data in relay response." . PHP_EOL;
-                            break 2;
-                        }
-                    }
-                }
-            }
-            
-            // If we couldn't find the event data, try to parse the JSON string
-            if (!$eventData) {
-                echo "Trying to parse JSON string..." . PHP_EOL;
-                
-                // Print a sample of the JSON string for debugging
-                echo "JSON sample: " . substr($jsonString, 0, 200) . "..." . PHP_EOL;
-                
-                // Try to find the event data in the JSON string
-                if (preg_match('/"event":\s*({[^}]+})/', $jsonString, $matches)) {
-                    $eventJson = $matches[1];
-                    $parsedEvent = json_decode($eventJson, true);
-                    
-                    if (is_array($parsedEvent) && isset($parsedEvent['id']) && $parsedEvent['id'] === $this->eventID) {
-                        $eventData = $parsedEvent;
-                        echo "Found event data in JSON string." . PHP_EOL;
-                    }
-                }
-            }
+        if ($eventData) {
+            echo "Found event data in relay response." . PHP_EOL;
         }
         
         // If we couldn't extract the event data, create a minimal event
@@ -269,19 +257,15 @@ class Utilities
         }
         
         // Create an event object from the event data
-        $eventObj = new Event();
-        $eventObj->setId($eventData['id']);
-        $eventObj->setKind($eventData['kind']);
-        $eventObj->setContent($eventData['content']);
-        $eventObj->setTags($eventData['tags'] ?? []);
+        $eventObj = EventPreparationUtility::createEventFromData($eventData);
         
         echo "Broadcasting event (kind " . $eventData['kind'] . ") to relays..." . PHP_EOL;
         
         // Create an event message from the event object
-        $eventMessage = new EventMessage($eventObj);
+        $eventMessage = EventPreparationUtility::createEventMessage($eventObj);
         
         // Broadcast the event to all relays
-        return send_event_with_retry($eventMessage);
+        return RelayUtility::sendEventWithRetry($eventMessage);
     }
     
     /**
@@ -295,14 +279,11 @@ class Utilities
      * 6. Attempts to fetch the event again and reports whether it's still fetchable
      * 
      * @return array The results of deleting the event with verification status
-     * @throws InvalidArgumentException If the private key is invalid
+     * @throws \InvalidArgumentException If the private key is invalid
      */
     public function delete_event(): array
     {
         $eventIDs[] = $this->eventID;
-
-        // Get private key from environment
-        $privateKey = get_nsec();
 
         echo "Step 1: Attempting to fetch event {$this->eventID}..." . PHP_EOL;
         
@@ -336,7 +317,7 @@ class Utilities
                 ];
             }
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo "Error fetching event: " . $e->getMessage() . PHP_EOL;
             return [
                 'success' => false,
@@ -346,27 +327,19 @@ class Utilities
         
         echo "Step 2: Creating deletion event..." . PHP_EOL;
         
-        // Create deletion event
-        $note = new Event();
-        $note->setKind(5); // 5 is the deletion event kind
-        
         // Use the first relay where the event was found as the reference relay
         $referenceRelay = !empty($relaysWithEvent) ? $relaysWithEvent[0] : self::DEFAULT_RELAY;
         
-        $note->setTags([
-            ['e', $eventIDs[0], $referenceRelay],
-            ['k', $kindNum]
-        ]);
-
-        // Sign the deletion event
-        $signer = new Sign();
-        $signer->signEvent($note, $privateKey);
-        $eventMessage = new EventMessage($note);
+        // Create deletion event
+        $note = EventPreparationUtility::createDeletionEvent($this->eventID, $kindNum, $referenceRelay);
+        
+        // Create an event message from the deletion event
+        $eventMessage = EventPreparationUtility::createEventMessage($note);
         
         echo "Step 3: Broadcasting deletion event to default relay set..." . PHP_EOL;
         
         // Send the deletion event to the default relay set
-        $deleteResult = send_event_with_retry($eventMessage);
+        $deleteResult = RelayUtility::sendEventWithRetry($eventMessage);
         
         // Check if the deletion event was published successfully
         $deletionEventId = 'unknown';
@@ -382,7 +355,7 @@ class Utilities
         // Use the relays where the event was found
         if (!empty($relaysWithEvent)) {
             // Send the deletion event to the relays where the event was found
-            $customDeleteResult = send_event_with_retry($eventMessage, get_relay_list(5, $relaysWithEvent));
+            $customDeleteResult = RelayUtility::sendEventWithRetry($eventMessage, RelayUtility::getRelayList(5, $relaysWithEvent));
             echo "Deletion event broadcast to " . count($relaysWithEvent) . " relays where the event was found." . PHP_EOL;
         } else {
             echo "No relays found with the event." . PHP_EOL;
@@ -419,7 +392,7 @@ class Utilities
                 $verificationResult['success'] = true;
                 $verificationResult['message'] = "The deletion was successful. Event not found on any relay.";
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             echo "Error verifying deletion: " . $e->getMessage() . PHP_EOL;
             $verificationResult['success'] = false;
             $verificationResult['message'] = "Error verifying deletion: " . $e->getMessage();

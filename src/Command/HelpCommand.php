@@ -4,7 +4,6 @@ namespace Sybil\Command;
 
 use Sybil\Application;
 use Sybil\Service\LoggerService;
-use InvalidArgumentException;
 
 /**
  * Command for displaying help information

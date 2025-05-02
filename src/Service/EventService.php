@@ -6,11 +6,10 @@ use swentel\nostr\Event\Event;
 use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Sign\Sign;
 use swentel\nostr\Relay\RelaySet;
-use swentel\nostr\Key\Key;
 use InvalidArgumentException;
 use Exception;
 use TypeError;
-
+use Sybil\Utilities\Utilities;
 /**
  * Service for managing events
  * 
@@ -58,7 +57,8 @@ class EventService
     public function prepareAndSendEvent(Event $event): array
     {
         // Get private key from environment
-        $privateKey = get_nsec();
+        $utility = new Utilities();
+        $privateKey = $utility::getNsec();
         
         // Get the event kind
         $kind = 0;

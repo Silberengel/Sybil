@@ -3,7 +3,6 @@
 namespace Sybil\Service;
 
 use swentel\nostr\Relay\Relay;
-use InvalidArgumentException;
 
 /**
  * Service for managing relays

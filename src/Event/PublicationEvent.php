@@ -4,6 +4,11 @@ namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
 use InvalidArgumentException;
+use Sybil\Utilities\KeyUtility;
+use Sybil\Utilities\TagUtility;
+use Sybil\Utilities\RelayUtility;
+use Sybil\Utilities\ErrorHandlingUtility;
+use Sybil\Utilities\EventPreparationUtility;
 
 /**
  * Class PublicationEvent
@@ -46,7 +51,7 @@ class PublicationEvent extends BaseEvent
     /**
      * @var string Author of the publication
      */
-    protected string $author = 'unknown';
+    protected string $author = '';
     
     /**
      * @var string Version of the publication
@@ -93,6 +98,11 @@ class PublicationEvent extends BaseEvent
         // Check if we have at least one section
         if (empty($sections)) {
             throw new InvalidArgumentException('The file must have at least one section.');
+        }
+        
+        // Set default author if not set from YAML
+        if (empty($this->author)) {
+            $this->author = 'unknown';
         }
         
         return $sections;
@@ -252,9 +262,10 @@ class PublicationEvent extends BaseEvent
      * Create a d-tag from a title
      * 
      * @param string $title The title
+     * @param bool $isSection Whether this is a section d-tag
      * @return string The d-tag
      */
-    private function createDTag(string $title): string
+    private function createDTag(string $title, bool $isSection = false): string
     {
         // Replace spaces with dashes
         $dTag = preg_replace('/\s+/', '-', $title);
@@ -264,6 +275,11 @@ class PublicationEvent extends BaseEvent
         
         // Remove special characters
         $dTag = preg_replace('/[^a-z0-9\-]/', '', $dTag);
+        
+        // If this is a section, prefix with the parent d-tag
+        if ($isSection && !empty($this->dTag)) {
+            $dTag = $this->dTag . '-' . $dTag;
+        }
         
         // Limit to 75 characters
         $dTag = substr($dTag, 0, 75);
@@ -300,8 +316,8 @@ class PublicationEvent extends BaseEvent
             // Pass tags to the section event
             $sectionEvent->setOptionalTags($sectionTags);
             
-            // Create d-tag for the section
-            $sectionDTag = $this->createDTag($section['title']);
+            // Create d-tag for the section, passing true to indicate it's a section
+            $sectionDTag = $this->createDTag($section['title'], true);
             $sectionEvent->setDTag($sectionDTag);
             
             echo "Created d-tag for section: " . $sectionDTag . PHP_EOL;
@@ -416,7 +432,7 @@ class PublicationEvent extends BaseEvent
             $tags[] = ['t', 'e-tags'];
         } else {
             // Add a-tags
-            $publicHex = get_public_hex_key();
+            $publicHex = KeyUtility::getPublicHexKey();
             echo "Adding a-tags for " . count($this->sectionDTags) . " sections with public key: " . $publicHex . PHP_EOL;
             
             foreach ($this->sectionDTags as $index => $sectionDTag) {
@@ -473,7 +489,7 @@ class PublicationEvent extends BaseEvent
     private function prepareSectionEvent(Event $note): array
     {
         // Get private key from environment
-        $privateKey = get_nsec();
+        $privateKey = KeyUtility::getNsec();
         
         // Get the event kind
         $kind = 0;
@@ -779,31 +795,7 @@ class PublicationEvent extends BaseEvent
      */
     private function executeSectionWithErrorHandling(callable $callback, string $filePattern = 'RelaySet.php'): mixed
     {
-        // Set up a custom error handler to catch warnings
-        set_error_handler(function($errno, $errstr, $errfile, $errline) use ($filePattern) {
-            // Only handle warnings from the specified file pattern
-            if (($errno === E_WARNING || $errno === E_NOTICE) && 
-                strpos($errfile, $filePattern) !== false) {
-                // Suppress the warning
-                return true; // Prevent the standard error handler from running
-            }
-            // For other errors, use the standard error handler
-            return false;
-        });
-        
-        try {
-            // Execute the callback function
-            $result = $callback();
-            
-            // Restore the previous error handler
-            restore_error_handler();
-            
-            return $result;
-        } catch (\Exception $e) {
-            // Restore the error handler even if an exception occurs
-            restore_error_handler();
-            throw $e; // Re-throw the exception
-        }
+        return ErrorHandlingUtility::executeWithErrorHandling($callback, $filePattern);
     }
     
     /**

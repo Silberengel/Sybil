@@ -3,7 +3,6 @@
 namespace Sybil\Command;
 
 use Sybil\Application;
-use InvalidArgumentException;
 
 /**
  * Base class for commands

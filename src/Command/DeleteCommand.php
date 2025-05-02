@@ -6,6 +6,7 @@ use Sybil\Application;
 use Sybil\Service\LoggerService;
 use Sybil\Service\UtilityService;
 use InvalidArgumentException;
+use Sybil\Utilities\Utilities;
 
 /**
  * Command for deleting an event
@@ -66,7 +67,8 @@ class DeleteCommand extends BaseCommand
             $this->utilityService->setEventID($eventId);
             
             // Delete the event
-            $result = $this->utilityService->deleteEvent();
+            $utility = new Utilities();
+            $result = $utility->delete_event();
             
             // Display the result message
             if (isset($result['message'])) {

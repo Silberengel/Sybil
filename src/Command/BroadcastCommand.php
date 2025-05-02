@@ -5,6 +5,7 @@ namespace Sybil\Command;
 use Sybil\Application;
 use Sybil\Service\LoggerService;
 use Sybil\Service\UtilityService;
+use Sybil\Utilities\EventUtility;
 use InvalidArgumentException;
 
 /**
@@ -65,7 +66,8 @@ class BroadcastCommand extends BaseCommand
             $this->utilityService->setEventID($eventId);
             
             // Broadcast the event
-            $result = $this->utilityService->broadcastEvent();
+            $utility = new EventUtility();
+            $result = $utility->broadcast_event();
             
             // Display the result
             if (isset($result['success']) && $result['success']) {

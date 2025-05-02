@@ -9,7 +9,7 @@ return [
     // Default relay for most event kinds
     'default' => 'wss://thecitadel.nostr1.com',
     
-    // Default relay for kind 1 (text notes)
+    // Default relay for kind 1 (text notes) and kind 1111 comments
     'kind1_default' => 'wss://freelay.sovbit.host',
     
     // Default relays for most event kinds
@@ -23,8 +23,7 @@ return [
         'wss://relay.lumina.rocks',
         'wss://freelay.sovbit.host',
         'wss://wheat.happytavern.co',
-        'wss://nostr21.com',
-        'wss://theforest.nostr1.com'
+        'wss://nostr21.com'
     ],
     
     // Default relays for kind 1 (text notes)

@@ -68,76 +68,14 @@ User-specific relays can be configured in `user/relays.yml`. This file should co
 Sybil requires a Nostr private key to sign events. Set the `NOSTR_SECRET_KEY` environment variable to your nsec key:
 
 ```bash
-export NOSTR_SECRET_KEY=nsec1...
+export NOSTR_SECRET_KEY=nsec19371...
 ```
 
 ## Usage
 
-### Help
+### Directions
 
 To find out how it works, simply type `sybil` and <ENTER> on the command line, and an extensive help will open.
-
-### Publication
-
-Create and publish a publication event from an AsciiDoc file:
-
-```bash
-sybil publication path/to/file.adoc
-```
-
-### Longform
-
-Create and publish a longform article event from a Markdown file:
-
-```bash
-sybil longform path/to/file.md
-```
-
-### Wiki
-
-Create and publish a wiki page event from an AsciiDoc file:
-
-```bash
-sybil wiki path/to/file.adoc
-```
-
-### Note
-
-Create and publish a text note event:
-
-```bash
-sybil note "Hello, Nostr world!"
-```
-
-You can also specify a relay URL to publish to:
-
-```bash
-sybil note "Hello, Nostr world!" wss://relay.example.com
-```
-
-### Fetch
-
-Fetch an event from relays:
-
-```bash
-sybil fetch <event-id>
-```
-
-### Broadcast
-
-Broadcast an event to relays:
-
-```bash
-sybil broadcast <event-id>
-```
-
-### Delete
-
-Delete an event from relays:
-
-```bash
-sybil delete <event-id>
-```
 
 For detailed results, use the `--verbose` flag:
 

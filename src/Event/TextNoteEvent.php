@@ -5,6 +5,7 @@ namespace Sybil\Event;
 use swentel\nostr\Event\Event;
 use swentel\nostr\Relay\Relay;
 use InvalidArgumentException;
+use Sybil\Utilities\Utilities;
 
 /**
  * Class TextNoteEvent
@@ -148,7 +149,8 @@ class TextNoteEvent extends BaseEvent
         $event = $this->buildEvent();
         
         // Get private key from environment
-        $privateKey = get_nsec();
+        $utility = new Utilities();
+        $privateKey = $utility::getNsec();
         
         // Sign the event
         $signer = new \swentel\nostr\Sign\Sign();

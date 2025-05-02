@@ -6,6 +6,7 @@ use Sybil\Application;
 use Sybil\Service\LoggerService;
 use Sybil\Service\UtilityService;
 use InvalidArgumentException;
+use Sybil\Utilities\Utilities;
 
 /**
  * Command for fetching an event
@@ -65,7 +66,8 @@ class FetchCommand extends BaseCommand
             $this->utilityService->setEventID($eventId);
             
             // Fetch the event
-            list($result, $relaysWithEvent) = $this->utilityService->fetchEvent();
+            $utility = new Utilities();
+            list($result, $relaysWithEvent) = $utility->fetch_event();
             
             // Display the result
             if (!empty($relaysWithEvent)) {
