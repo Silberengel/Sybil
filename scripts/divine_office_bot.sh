@@ -35,6 +35,13 @@ publish_note() {
 
 # Main script
 main() {
+    # Check if we're in test mode
+    local test_mode=false
+    if [ "$1" = "--test" ]; then
+        test_mode=true
+        echo "Running in test mode - will publish Office of Readings"
+    fi
+
     # Get current date
     current_date=$(get_current_date)
     
@@ -46,10 +53,15 @@ main() {
     echo "Publishing AsciiDoc file..."
     php bin/sybil.php publication "src/testdata/Publications/Liturgy/output_modern/${current_date}.adoc"
     
-    # Get current office based on time
-    current_office=$(get_current_office)
+    # Get current office based on time (or force Office of Readings in test mode)
+    if [ "$test_mode" = true ]; then
+        current_office="office-of-readings"
+        echo "Test mode: Publishing Office of Readings..."
+    else
+        current_office=$(get_current_office)
+    fi
     
-    # If we're at one of the scheduled times, publish the note
+    # If we're at one of the scheduled times or in test mode, publish the note
     if [ ! -z "$current_office" ]; then
         echo "Publishing note for ${current_office}..."
         publish_note "$current_office"
@@ -58,5 +70,5 @@ main() {
     fi
 }
 
-# Run the main function
-main 
+# Run the main function with any arguments
+main "$@" 

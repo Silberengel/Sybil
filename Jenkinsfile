@@ -1,6 +1,10 @@
 pipeline {
     agent any
     
+    parameters {
+        booleanParam(name: 'TEST_MODE', defaultValue: false, description: 'Run in test mode to publish Office of Readings')
+    }
+    
     triggers {
         // Run at 6 AM, 12 PM, and 10 PM Berlin time
         cron('0 6,12,22 * * *')
@@ -20,8 +24,14 @@ pipeline {
         
         stage('Run Divine Office Bot') {
             steps {
-                // Run the bot script
-                sh './scripts/divine_office_bot.sh'
+                // Run the bot script with test parameter if enabled
+                script {
+                    if (params.TEST_MODE) {
+                        sh './scripts/divine_office_bot.sh --test'
+                    } else {
+                        sh './scripts/divine_office_bot.sh'
+                    }
+                }
             }
         }
     }
