@@ -42,6 +42,10 @@ main() {
     echo "Running Divine Office scraper for ${current_date}..."
     php src/testdata/Publications/Liturgy/DivineOffice.php
     
+    # Publish the AsciiDoc file
+    echo "Publishing AsciiDoc file..."
+    php bin/sybil.php publication "src/testdata/Publications/Liturgy/output_modern/${current_date}.adoc"
+    
     # Get current office based on time
     current_office=$(get_current_office)
     
