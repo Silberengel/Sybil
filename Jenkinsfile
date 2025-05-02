@@ -25,6 +25,8 @@ pipeline {
                 sh 'pwd'
                 sh 'ls -l'
                 sh 'ls -l scripts'
+                sh 'ls -l src/testdata/Publications/Liturgy || true'
+                sh 'ls -l bin || true'
             }
         }
         stage('Setup') {
