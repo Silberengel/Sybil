@@ -15,6 +15,13 @@ pipeline {
     }
     
     stages {
+        stage('Debug Workspace') {
+            steps {
+                sh 'pwd'
+                sh 'ls -l'
+                sh 'ls -l scripts'
+            }
+        }
         stage('Setup') {
             steps {
                 // Make the script executable
