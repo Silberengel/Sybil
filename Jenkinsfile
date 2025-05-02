@@ -29,6 +29,11 @@ pipeline {
                 sh 'ls -l bin || true'
             }
         }
+        stage('Install Composer Dependencies') {
+            steps {
+                sh 'composer install --no-interaction --prefer-dist'
+            }
+        }
         stage('Setup') {
             steps {
                 // Make the script executable
