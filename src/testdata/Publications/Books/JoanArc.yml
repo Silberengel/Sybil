@@ -1,0 +1,42 @@
+# MANDATORY ITEMS
+# Without these five items, the uploader will throw an error and stop.
+# Please note that the adoc file should not contain any metadata.
+
+# The file that contains the full book data. The book title will be pulled from the first header in the file.
+file: '/home/ohji/Projects/eBookUtility/src/testdata/Publications/Books/JoanArc.adoc'
+
+# Who wrote the original book, contained in the file?
+author: 'Mark Twain'
+
+# What book edition is it? '1' is the default and will not display on the Alexandria index cards.
+version: '1'
+
+# This is flag for having 'e' or 'a' tag types, so permanent or replaceable index items. We recommend using 'a', as that encompasses 'e' and the event ID will still be included.
+tag-type: 'a'
+
+# Determines whether the events contained within the 30040 will be automatically-updated to the new version, if they are changed.
+# Options are <yes|ask|no>.
+auto-update: 'yes'
+
+# OPTIONAL ITEMS
+# You can include as many of these, as you like, and they will simply be appended as tag-value pairs. If you write nonsense, the tags will contain nonsense, and will be ignored. You can remove any you do not wish to use, or add new ones.
+
+tags:
+# URL to the cover image, that Alexandria will use for the index cards and when exporting to ePUB format.
+  - ['image', 'https://i.nostr.build/1nW9COJVw2gNxWbR.jpg']
+# document content-type for the publication
+# choices are: book (default), Bible, illustrated, magazine, documentation, academic, blog, flyer, scroll
+  - ['type', 'book']
+# document instructions for the stylesheet of the viewer. The default is set here.
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+# The genre of the publication, to be added as a hashtag. Add a new 't:' line for each hashtag.
+  - ['t', 'novel']
+  - ['t', 'classical']
+# Human-readable paragraph describing the text. This will be displayed within the index card.
+  - ['summary', "'Personal Recollections of Joan of Arc — Volumes 1 and 2' by Mark Twain is a historical account written during the late 19th century. The narrative presents itself as a first-person account by Louis de Conte, the page and secretary of Joan of Arc, recounting her extraordinary life and pivotal role in the Hundred Years' War. The book explores the unique and heroic character of Joan, highlighting her rise as a military leader in a time of despair for France and her unwavering dedication to her country."]
+# publishing data
+  - ['published_on', '1896-01-01']
+  - ['published_by', 'Harper & Brothers, public domain']
+# source of the data, if the source is a website
+  - ['source', 'https://www.gutenberg.org/cache/epub/2874/pg2874-images.html']

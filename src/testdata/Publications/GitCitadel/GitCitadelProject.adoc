@@ -1,0 +1,651 @@
+= GitCitadel Project Documentation
+
+== GitCitadel Project
+
+image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GitCitadel_Logo.png[GitCitadel logo, 150]
+
+_Because we think about git every day._
+
+Welcome to the project documentation for the GitCitadel project.
+
+*Contact info*
+
+We can be contacted over our https://njump.me/npub1s3ht77dq4zqnya8vjun5jp3p44pr794ru36d0ltxu65chljw8xjqd975wz[project npub].
+
+All issues and bug reports for any product should be submitted to our https://gitcitadel.com/[GitCitadel Homepage]. We will handle first-level support there, within the various repos, listed at the bottom. The https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqy88wumn8ghj7mn0wvhxcmmv9uqq5emfw33kjarpv3jkcs83wav[GitCitadel repo] is for any general questions or problems.
+
+*Project definition*
+
+We are a team of like-minded, but also independent-minded, software developers, analysts, and testers. We are focused on creating products that are freedom-oriented, with a focus on integrating Nostr technology.
+
+_What motivates us_
+
+VISION
+
+We are pursuing
+
+* the freedom of knowledge, so that everyone shall be able to form an upright conscience, 
+* the freedom of association, so that everyone may choose to surround himself or herself with virtuous people, and 
+* the freedom of communication, so that everyone can be free to speak and act in accordance with that well-formed conscience.
+
+MISSION
+
+* Allow everyone to obtain and disseminate knowledge, without fear of censorship.
+* Facilitate free digital association and conversation.
+* Develop tools in support of collaborative efforts to bring about the above.
+* Promote human interaction, online and in real life, so that we can all make true and uplifting intellectual and emotional connections.
+
+_Project Team_
+
+[cols="1a,1a"]
+|====
+|Project Team Member
+|Name and Role
+
+2+e|Company
+
+|image::https://image.nostr.build/9aa5273e18ac177e8b833afa697b145ec0ed203b41014f8cbaa0bc2911f451c0.jpg[MichaelJ profile pic, 100]
+|https://njump.me/npub1wqfzz2p880wq0tumuae9lfwyhs8uz35xd0kr34zrvrwyh3kvrzuskcqsyn[Buttercat / MichaelJ]
+Product Owner, Front-end Developer, SDK Developer 
+
+|image::https://i.imgur.com/u5xw8p4.jpeg[Finrod profile pic, 100]
+|https://njump.me/npub1ecdlntvjzexlyfale2egzvvncc8tgqsaxkl5hw7xlgjv2cxs705s9qs735[Finrod]
+SDK Developer
+
+|image::https://i.nostr.build/k1vuNUKWqrxLaprb.jpg[Silberengel profile pic, 100]
+|https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[Silberengel / Laeserin]
+Business Analyst, Test Developer, Front-end Developer, Documentation and Marketing, Relay Curator
+
+|image::https://www.vaughnnugent.com/public/blogs/personal/content/syz7ipjwji3nrdtlz7phc64bwy.webp[ChipTuner profile pic, 100]
+|https://njump.me/npub1qdjn8j4gwgmkj3k5un775nq6q3q7mguv5tvajstmkdsqdja2havq03fqm7d[ChipTuner]
+Encryption Specialist, SDK Developer, Development Operations
+
+|image::https://i.nostr.build/2jYR.png[Liminal profile pic, 100]
+|https://njump.me/npub1m3xdppkd0njmrqe2ma8a6ys39zvgp5k8u22mev8xsnqp4nh80srqhqa5sf[Liminal]
+Scientific Advisor, Front-end Developer
+
+|image::https://files.sovbit.host/media/0689df5847a8d3376892da29622d7c0fdc1ef1958f4bc4471d90966aa1eca9f2/cfba34d66cd67339aca14389b367c02f36fec87c325ab0415143ed8db45c2c74.webp[Beave profile pic, 100]
+|https://njump.me/npub1q6ya7kz84rfnw6yjmg5kyttuplwpauv43a9ug3cajztx4g0v48eqhtt3sh[Beave]
+Alpha Tester
+
+|image::https://image.nostr.build/nostr.build_63130866bcba964ed5fc2a4ced8305cbcd51ccb79d8dab4b26f2a5cb30373b69.jpg[LibertyGal profile pic, 100]
+|https://njump.me/npub1356t6fpjysx9vdchfg7mryv83w4pcye6a3eeke9zvsje7s2tuv4s4k805u[LibertyGal]
+Alpha Tester
+
+2+e|Additional members and suppliers
+
+|image::https://image.nostr.build/43034361738bf3de5b093883d3a9e384d113bc5573c1b82970df2b382ec1913a.jpg[Daniel profile pic, 100]
+|https://njump.me/npub1w4jkwspqn9svwnlrw0nfg0u2yx4cj6yfmp53ya4xp7r24k7gly4qaq30zp[Daniel]
+SDK Developer
+
+|image::https://image.nostr.build/dc65ca5e0a9ec0beabfc3a63e82bcc82300ae64c47a38a4d3a2c02160d292c26.jpg[Nusa profile pic, 100]
+|https://njump.me/npub1636uujeewag8zv8593lcvdrwlymgqre6uax4anuq3y5qehqey05sl8qpl4[Nusa]
+Frontend Developer and Designer
+
+|image::https://i.nostr.build/VfWXxZYKgsd9AH87.jpg[Cloudfodder profile pic, 100]
+|https://njump.me/npub10npj3gydmv40m70ehemmal6vsdyfl7tewgvz043g54p0x23y0s8qzztl5h[Cloudfodder]
+Relay administrator for https://theforest.nostr1.com[wss://theforest.nostr1.com] and https://thecitadel.nostr1.com[wss://thecitadel.nostr1.com]
+
+|image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GitCitadel_Logo.png[GitCitadel logo, 100]
+|https://njump.me/npub12262qa4uhw7u8gdwlgmntqtv7aye8vdcmvszkqwgs0zchel6mz7s6cgrkj[Semisol]
+Relay administrator for the upcoming wss://theforest.gitcitadel.eu and wss://thecitadel.gitcitadel.eu
+
+|image::https://cdn.nostrcheck.me/aeb41ff35055741909d58a9e0484af282ccfcd86951b47ef00a5a91a76f89dbd.jpeg[Auggie profile pic, 100]
+|https://njump.me/npub16ux4qzg4qjue95vr3q327fzata4n594c9kgh4jmeyn80v8k54nhqg6lra7[Auggie]
+Development Operations
+
+|image::https://images.mleku.dev/9T/elf-spice-man-avatar.jpg[Mleku/Elfspice profile pic, 100]
+|https://njump.me/npub1fjqqy4a93z5zsjwsfxqhc2764kvykfdyttvldkkkdera8dr78vhsmmleku[Mleku / Elfspice]
+Developer of Realy relay
+
+|====
+
+*Funding*
+
+[INFO]
+====
+We are gratefully accepting donations at the https://geyser.fund/project/gitcitadel[Geyser fund]. We have not received any funding, other than your zaps, to date.
+====
+
+== GitCitadel Product Documentation
+
+*Product overview*
+
+[cols="1a,1a"]
+|====
+|Product|Description
+
+|image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GC-Relay_icon.png[GC Relay logo, 50]
+https://thecitadel.nostr1.com[GitCitadel-Relay]
+|A free, public relay for hosting OtherStuff
+
+|image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/Aedile-NDK_icon.jpg[Aedile logo, 50]
+Aedile-NDK (v0.0.2 alpha)
+|Nostr software development kit, featuring the https://www.vaughnnugent.com/resources/software/articles/b00e913d3927dfcb75c6877a1f0d6654e14042ca[NoScrypt] library.
+
+|image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GC-Online_icon.png[GC Online logo, 50]
+https://www.gitcitadel.com/[GitCitadel Online]
+|Webpage hosted by GitCitadel. Includes ngit repos for the project.
+
+|image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GC-Alexandria_icon.png[GC Alexandria logo, 50]
+GC-Alexandria
+|Previously titled "indextr" and first client to utilize specification NIP-62. Nostr Knowledge Base and eReading web app.
+
+|====
+
+== GC Alexandria
+
+image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/GC-Alexandria.png[Roman scrolls, 75, float=left]
+
+Alexandria is a Nostr Knowledge Base (NKB) and a viewer and publisher for curated publications. It is produced by the https://gitworkshop.dev/r/naddr1qq9xw6t5vd5hgctyv4kqzrthwden5te0dehhxtnvdakqyg8ayz8w3j8jsduq492j39hysg7vnhrtl4zzqcugj4m3q62qlkf8cypsgqqqw7vsfd6ccp[GitCitadel] development cooperative.
+
+*History of the project*
+
+Alexandria was originally named "indextr" and was conceived by https://njump.me/npub1m3xdppkd0njmrqe2ma8a6ys39zvgp5k8u22mev8xsnqp4nh80srqhqa5sf[Liminal] to work as a NKB, in particular for scientific or engineering journals and publications.
+
+It was quickly noticed that the same event types (`30040` and `30041`), could be used to produce eBooks and any other collection of individual articles/pages, so the GitCitadel team decided to take on the project and adapt it to create the https://next-alexandria.gitcitadel.eu[Alexandria eReading web app], in order to publish out-of-copyright books, starting with the Bible.
+
+*Web client*
+
+_Elegant Design_
+
+As Alexandria is targeted toward those who are trying to focus on longer, more-complex content, the design has been stripped down of any distracting elements or unnecessary details, so that the user can concentrate on the valuable information stored in the documents that they are viewing. Both light-mode and dark-mode are available.
+
+.The json view of cards
+image::https://i.nostr.build/KG2D2.png[event display, 200, float=left]
+
+.A 30040 index card
+image::https://i.nostr.build/Vwkl0.png[cards, 200, float=left]
+
+.Landing page in dark mode
+image::https://i.nostr.build/iQU7hOLyNi0WubuK.png[landing page dark, 300]
+
+_Data Sources_
+
+As this is a reading app, rather than a microblogging app, we have chosen to move away from the typical chat stream, on the landing page, and instead show a quiet interface of info-cards of publications, that you can peruse.
+
+If you login, the cards are drawn from your relay list, but you can also read anonymously from https://thecitadel.nostr1.com[TheCitadel] relay.
+
+Later versions will, however, be more interactive, and will strengthen our company commitment to facilitating real human interaction, with our curated community relay, https://theforest.nostr1.com[TheForest].
+
+A subscription to theforest relay costs 300 sats per month. Thecitadel relay is currently free of charge, but will eventually be write-limited to subscribers of theforest.
+
+*Inspired by the Zettelkasten*
+
+The specialty of this client is the ability to display curated publications, particularly of the modular variety: event kinds 30040 and 30041.
+
+Modular articles are often referred to as the _Nostr eBook format_ or _curated publications_. 30040 index events contain the metadata and the ordered list of the 30041 zettel events, which contain the plain-text or Asciidoc-formatted content.
+
+*Reading View*
+
+The Reading View uses the indexes to create a table of contents, from which you can navigate the zettels.
+
+Here is an example of a very simple index, with a flat (single-level) hierarchy:
+
+.TOC selected
+image::https://i.nostr.build/WORBNfPr3hXidneF.png[TOC selected, 300]
+
+.Zettel selected
+image::https://i.nostr.build/mEfcvBTarIFRJia6.png[Zettel selected, 300]
+
+Here, you can see how the events are linked together and can then be individually selected:
+
+.30040 event selected
+image::https://i.nostr.build/xHNRJ32FqpzyUz2i.png[30040 selected, 300]
+
+*Editing and Composition*
+
+The Edit View is where you can write or paste in Asciidoc text, to have Alexandria import it for you. The app will break it down into zettels, section by section. Sections are denoted by empty lines, so anything that should appear together on one Zettel should be written together, with no double-returns.
+
+.Here is the Aesop's Fables entry, in the Edit View.
+image::https://i.nostr.build/jddFZmfuCP2UHRFa.png[editing, 300]
+
+By clicking on the arrow (top-right, in the field), you come to the Compose View, where you will be able to edit the sections, individually, or to move them up and down in the index (changing the order that they appear in).
+
+.Here is the Aesop's Fables entry, in the Compose View.
+image::https://i.nostr.build/TrVfUvZ7SG8lBz98.png[30041 selected, 300]
+
+.Compose View in dark mode, with "Edit" button selected
+image::https://i.nostr.build/NW475IicRY8mKNdn.png[30041 selected, 300]
+
+*Write articles*
+
+[INFO]
+====
+This feature is not yet complete!
+====
+
+Alexandria has a publishing facility, for individual documents.
+
+Our https://thecitadel.nostr1.com relay is set as the default, to ensure that you have at least one relay that is sure to work. Later versions will feature more relay management possibilities.
+
+Make sure to structure the article content like so:
+
+[source,asciidoc]
+----
+
+= title (mind the space)
+
+== section1
+
+text that you want displayed as content
+
+== section2
+
+more text
+
+----
+
+If you have more information, available, you can include them in the standard Asciidoc header or in a preamble (that will be saved to a tag in the 30040 and displayed above the sections). Any text below the document header, but before the first section header, will be automatically moved to a preamble.
+
+Example:
+
+*Aesop Example*
+
+.Form for editing the Asciidoc
+image::https://i.nostr.build/jddFZmfuCP2UHRFa.png[Edit form, 300]
+
+.Preview of the entered data
+image::https://i.nostr.build/TrVfUvZ7SG8lBz98.png[Preview of modular article, 300]
+
+*Bible Example*
+
+This example includes a `title-logo-image` tag, in the header, which doesn't display in the Compose or Reading views, but which is useful for other displays and which shall be included in any exported documents. **We are planning on supporting exporting the documents to PDF, ePUB, and LaTeX**, with Asciidoc as our standard format. We shall also eventually be rendering PlantUML diagrams.
+
+[quote]
+We wish to aim our product at everyone creative or well-read, including: academics, authors, musicians, philosophers, designers, copywriters, engineers, and homemakers who love Jane Austin. 
+
+We are very pleased with the parsing and publishing possibilities that Asciidoctor offers us, so we will continue to use Asciidoc as our standard markup language. However, simple Markdown (headers, bold, italics, asterisk-style bullet points, etc.) is also parsed by Asciidoctor, so you can often import markdown documents as-is, or only changing image and table markup.
+
+.Form editing example
+image::https://i.nostr.build/W2IxOdVaz0liO8RN.png[Bible form, 300]
+
+.Compose example
+image::https://i.nostr.build/YaKSaSJHK01IA6Mg.png[Bible compose, 300]
+
+*Uploading Documents*
+
+[INFO]
+====
+Until this feature is completed, you can use the https://github.com/SilberWitch/eBookUtility[associated upload facility], for you to transform your well-formatted Asciidoc text to Nostr events and publish them to your preferred relays. It is currently a CLI.
+====
+
+Do not worry too much about the way that they are formatted, or having precisely perfect tags, as these are replaceable events and can be easily rewritten, after uploading. The most important part, is simply getting your reading material online, with the index and zettel structure spread to the various events.
+
+*Visualization*
+
+We're particularly excited about this module, where we offer a visual map of the events we manage, showing the relationships between the events (including, of course, distance, as per our vector-embeddings specification). You can explore the dataset through the node graph.
+
+*Remixing*
+
+(This is a bit of preview.)
+In a later version, we are planning on supporting remixing of indexes, which will work something like this: 
+
+image::https://image.nostr.build/100063f24c09d7a22ff102446eb419fb61f91446423e88fe8a57e98a4d7b44ed.png[Remixing, 400]
+
+*Project repo*
+
+The Alexandria project repo has been published to Nostr using Ngit and is viewable at https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqy88wumn8ghj7mn0wvhxcmmv9uqq5stvv4uxzmnywf5kz2elajr/issues[our homepage].
+
+== Aedile NDK
+
+image::https://raw.githubusercontent.com/ShadowySupercode/gitcitadel/master/logos/Aedile-NDK.jpg[Aedile logo, 150]
+
+A Nostr System Development Kit written in C++.
+
+*Behind the Name*
+
+In the ancient Roman Republic, the aediles were officials elected from among the plebians and charged with caring for Rome's public infrastructure and ensuring an accurate system of weights and measures.
+
+The aim of the Aedile SDK is in the spirit of that ancient office:
+
+* Provide a fast and efficient service for interacting with Nostr relays via WebSocket connections.
+* Offer stable, well-tested implementations of commonly-used Nostr Implementation Possibilities (https://github.com/nostr-protocol/nips[NIPs])
+* Open up Nostr development by taking care of the basics so developers can focus on solving problems, rather than reimplementing the protocol.
+
+The SDK aims to support Linux, Windows, and macOS build targets.  It currently supplies a CMake preset for Linux.
+
+*Repo*
+
+Repo event, viewable over the https://gitcitadel.com/r/naddr1qvzqqqrhnypzquqjyy5zww7uq7hehemjt7juf0q0c9rgv6lv8r2yxcxuf0rvcx9eqy88wumn8ghj7mn0wvhxcmmv9uqq5ct9v35kcefddejxkhdhx7v[GitCitadel homepage].
+
+== Curated Publications Specification
+
+[[NKBIP-01]]
+
+This NIP defines the minimum specification for curated publication - ordered, optionally-hierarchical assemblies of Nostr events. Publications provide a standard way to organize and present related content, similar to how books organize chapters or journals organize articles.
+
+*Event Kinds*
+
+This NIP defines two primary event kinds:
+
+* `30040`: Publication Index
+* `30041`: Publication Content
+
+KIND 30040: Publication Index
+
+A publication index defines the structure and metadata of a publication. It serves as a table of contents that references the actual content sections.
+
+Requirements:
+
+* The `content` field MUST be empty
+* MUST include a `title` tag containing the full title of the publication
+* MUST be uniquely identifiable by the combination of:
+** `d` tag
+** `pubkey`
+** `kind`
+* MUST include `a` tags listing the events in desired display order.
+** Format: `["a", "<kind:pubkey:dtag>", "<relay hint>", "<event id>"]`
+** Optional event ID field enables version tracking while maintaining updateable references
+** Referenced events SHOULD be kind 30041 sections or nested kind 30040 indices
+** Additional event kinds MAY be supported
+* MUST include an `auto-update` tag specifying update behavior:
+** Format: `["auto-update", "<yes|ask|no>"]`
+** Controls whether clients should automatically update to newer versions
+* For derivative works:
+** MUST include a `p` tag identifying the original author
+** MUST include an `E` tag referencing the original event immediately after the `p` tag
+
+Example Index:
+
+[source, json]
+----
+{
+    "id": "<event_id>",
+    "pubkey": "<event_originator_pubkey>",
+    "created_at": 1725087283,
+    "kind": 30040,
+    "tags": [
+        ["d", "aesop's-fables-by-aesop"],
+        ["title", "Aesop's Fables"],
+        ["author", "Aesop"],
+        ["i", "isbn:9780765382030"],
+        ["t", "fables"],
+        ["t", "classical"],
+        ["t", "literature"],
+        ["published_on", "2003-05-13"],
+        ["published_by", "public domain"],
+        ["image", "https://imageserver.com/piclink.jpg"],
+        ["summary", "Collection of selected fables from the ancient Greek philosopher, known as Aesop."],
+        ["a", "<kind:pubkey:dtag>", "<relay hint>", "<event id>"],
+        ["a", "<kind:pubkey:dtag>", "<relay hint>", "<event id>"],
+        ["auto-update", "<yes|ask|no>"],
+        ["p", "<pubkey_0>"],
+        ["E", "<original_event_id>", "<relay_url>", "<pubkey>"]
+    ],
+    "sig": "<event_signature>"
+}
+----
+
+KIND 30041: Publication Content
+
+Also known as sections, zettels, episodes, or chapters contain the actual content that makes up a publication.
+
+Requirements:
+
+* MUST include a `d` tag
+* MUST include a `title` tag describing the section (e.g., "Introduction", "Chapter 1", etc.)
+* The `content` field:
+** MUST contain text meant for display to the end user
+** MAY contain AsciiDoc markup
+** MAY contain wikilinks (denoted by double brackets)
+
+Example Section:
+
+[source, json]
+----
+{
+    "id": "<event_id>",
+    "pubkey": "8ae74c618a4713f32129...",
+    "created_at": 1708083476,
+    "kind": 30041,
+    "tags": [
+        ["title", "The Farmer and The Snake"],
+        ["d", "aesop's-fables-by-aesop-the-farmer-and-the-snake"],
+        ["wikilink", "fable", "<pubkey>", "wss://thecitadel.nostr1.com", "<event id>"]
+    ],
+    "content": "The Farmer and The Snake\nA [[fable]], by Aesop.\nONE WINTER a Farmer found a Snake stiff and frozen with cold. He had compassion on it, and taking it up, placed it in his bosom. The Snake was quickly revived by the warmth, and resuming its natural instincts, bit its benefactor, inflicting on him a mortal wound. 'Oh,' cried the Farmer with his last breath, 'I am rightly served for pitying a scoundrel.'\nThe greatest kindness will not bind the ungrateful.",
+    "sig": "49cab8c75fb35cec71d07258..."
+}
+----
+
+*Extensions*
+
+Publications are flexible and can be extended for different types of content. Examples include:
+
+- Books
+- Academic journals
+- Course materials
+- Documentation
+
+Additional tags relevant to the specific content type MAY be included in both index and section events.
+
+== Vector-Embedding Specification
+
+[[NKBIP-02]]
+
+image::https://i.nostr.build/ijZF6rJ3MM0wiVjZ.png[Vector embedding graph, 400]
+
+[NOTE]
+====
+This is very much a work in progress. Considering data storage, transfer and otherwise performance of relays, it is recommended to block this event unless you are experimenting with them. Please refer to the article on https://wikistr.com/nkbip-02:-challenges-and-considerations*dc4cd086cd7ce5b1832adf4fdd1211289880d2c7e295bcb0e684c01acee77c06[NKBIP-02 Challenges and Considerations].
+====
+
+*Embedded Content*
+
+Allowing rich content to be embedded within Nostr events opens up new possibilities for applications built on the protocol. This is highly synergistic with NKBIP-01/NIP-62, where we can decompose existing events into their most semantically closed forms as defined either by the author or the analyst for precise semantic embeddings, but this process can be applied to any other event. Embeddings are also typically computationally expensive, which makes it beneficial to compute them once and store them for reuse.
+
+*Motivation*
+
+Hashtags and labels already exist as one way to classify content, embeddings allow for a fine grained resolution of content. Every embedding model has tradeoffs, so if you need something more specific than what is available, use your model.
+
+Nostr events are public, therefore it is to be expected that any event can be analyzed. Given this fact, it only makes sense to formalize and allow anyone to work with it. Embeddings are useful for various applications, including:
+
+1. Semantic search across Nostr events
+2. Content recommendation systems
+3. Clustering similar content
+4. Multimodal AI application
+
+*Specification*
+
+The `1987` event are embedding specific labels for an event.
+
+Required tags:
+
+* `e` - The id of the original event being embedded
+* `model` - The name and version of the model used to create the embedding and if possible, a link to download/source
+* `type` - The type of content being embedded (e.g., "text", "image", "audio", "video")
+* `vector` - The embedding vector, represented as a comma-separated list of floating-point numbers
+
+Optional tags:
+
+* `dims` - The dimensions of the embedding vector (integer)
+* `norm` - Boolean attribute whether the vector is normalized to range [0,1]
+* If there is a download link, use the tags `hash` and `hash_type` to verify the model being used.
+* `source` - Original data source that is being embedded. Mainly suited for text. This allows the original data to be attained without fetching the original event.
+* All other tags and labeling conventions may also apply such as specified in NKBIP-01 and NIP-32
+
+Example event:
+
+[source, json]
+----
+{
+  "id": "<event_id>",
+  "pubkey": "<pubkey>",
+  "created_at": 1234567890,
+  "kind": 1987,
+  "tags": [
+    ["e", "<original_event_id>", "<relay_uri>"],
+    ["model", "openai/text-embedding-ada-002", "<optional download link>"],
+    ["type", "text"],
+    ["vector", [-0.006929,-0.005135,0.003592,...,0.004543]],
+    ["dims", 1536],
+    ["norm", true],
+    ["source", "This is a snippet of the original text content"],
+    ["hash", "<string>"],
+    ["hash_type", "<string>"]
+  ],
+  "content": "",
+  "sig": "<signature>"
+}
+----
+
+*Guidelines*
+
+1. For non-text embeddings (images, audio, video), the `source` tag may contain a URL or identifier for the original content.
+2. The `model` tag should be as specific as possible, including version information and location to download if available. This ensures that clients can properly interpret and compare embeddings. 
+3. Multiple embedding events can reference the same original event, allowing for different embedding models or content types for the same source material.
+
+== Citations Specification
+
+[[NKBIP-03]]
+
+This NIP defines the basic structure of citations required for embedded quotes, footnotes, endnotes, in-line references, appendices, and prompt records.
+
+It covers internal (to Nostr addresses) and external (to the wider web or printed material) citations.
+
+*In-Event References*
+
+The fixed citations MAY be documented in-event, in whichever format the event normally handles, such as plain-text, Markdown, or Asciidoc. In-event references to nostr addresses MUST be formulated with similar information as in `kind:30` (see below), according to the following format:
+
+[source]
+----
+[author]. Nostr: "[title]". [published on].
+nostr:[npub]
+nostr:[event identifier, human-readable]
+----
+
+Example:
+
+----
+John Smith. Nostr: "The Truth About Time". 18 January 2024.
+nostr:npub11038193028767404737...
+nostr:naddr1992p01098091432700...
+----
+
+*Ex-Event References*
+
+Ideally, citations SHOULD be documented ex-event, within the following structure, to ensure completeness, reusability, discoverability, and applicability of the citation.
+
+* `kind:30` internal reference,
+* `kind:31` external web reference,
+* `kind:32` hardcopy reference,
+* `kind:33` prompt reference
+
+*Event Structure*
+
+Internal Nostr reference:
+
+[source, json]
+----
+{
+  "kind": 30,
+  "pubkey": "<citation-writer-pubkey>",
+  "tags": [
+    ["c", "<kind>:<pubkey>:<hex event id>", "<relay hint>"]
+    ["published_on", "<date-time in ISO 8601 format>"],
+    ["title", "<title to display for citation>"],
+    ["author", "<author to display for citation, such as a handle name or proper name of the npub>"],
+    // additional, optional tags
+    ["accessed_on", "<date-time in ISO 8601 format>"],
+    ["location", "<where was it written or published>"],
+    ["g", "<geohash of the precise location>"],
+    ["summary", "<short explanation of which topics the citation covers>"]
+  ],
+  "content": "<text cited>"
+}
+----
+
+External web reference:
+
+[source, json]
+----
+{
+  "kind": 31,
+  "pubkey": "<citation-writer-pubkey>",
+  "tags": [
+    // mandatory tags
+    ["u", "<URL where citation was accessed>"]
+    ["accessed_on", "<date-time in ISO 8601 format>"],
+    ["title", "<title to display for citation>"],
+    ["author", "<author to display for citation>"],
+    // additional, optional tags
+    ["published_on", "<date-time in ISO 8601 format>"],
+    ["published_by", "<who published the citation>"],
+    ["version", "<version or edition of the publication>"],
+    ["location", "<where was it written or published>"],
+    ["g", "<geohash of the precise location>"],
+    ["open_timestamp", "<`e` tag of kind 1040 event>"],
+    ["summary", "<short explanation of which topics the citation covers>"],
+  ],
+  "content": "<text cited>"
+}
+----
+
+Hardcopy reference:
+
+[source, json]
+----
+{
+  "kind": 32,
+  "pubkey": "<citation-writer-pubkey>",
+  "tags": [
+    ["accessed_on", "<date-time in ISO 8601 format>"],
+    ["title", "<title to display for citation>"],
+    ["author", "<author to display for citation>"],
+    // additional, optional tags
+    ["page_range", "<pages the citation is found on>"],
+    ["chapter_title", "<chapter or section the citation is found within>"],
+    ["editor", "who edited the publication"],
+    ["published_on", "<date-time in ISO 8601 format>"],
+    ["published_by", "<who published the citation>"],
+    ["published_in", "<journal name>", "<volume>"],
+    ["doi", "<DOI number>"],
+    ["version", "<version or edition of the publication>"],
+    ["location", "<where was it written or published>"],
+    ["g", "<geohash of the precise location>"],
+    ["summary", "<short explanation of which topics the citation covers>"]
+  ],
+  "content": "<text cited>"
+}
+----
+
+Prompt reference:
+
+[source, json]
+----
+{
+  "kind": 33,
+  "pubkey": "<citation-writer-pubkey>",
+  "tags": [
+    ["llm", "<language model used for the prompt, like ChatGPT>"]
+    ["accessed_on", "<date-time in ISO 8601 format"],
+    ["version", "<version or edition of the model>"],
+    ["summary", "<prompt conversation script>"],
+    // additional, optional tags
+    ["u", "<website llm was accessed from>"]
+  ],
+  "content": "<text cited>"
+}
+----
+
+*Markup Scheme*
+
+Traditional citations:
+
+`[[citation::end::nevent018472...]]`
+Endnotes, placed in full, in the "References" section, at the end of the publication.
+
+`[[citation::foot::nevent018472...]]` Footnotes, placed next to the text they will reference, and replaced by the client with a superscript number or similar, and then listed in full at the bottom of the corresponding section.
+
+`[[citation::foot-end::nevent018472...]]` Footnotes that link to a corresponding endnote. Only a brief reference, at the bottom of the section.
+
+`[[citation::inline::nevent18478...]]` In-line reference, such as "(Jackson, 2005, p. 16)", placed within a paragraph, with the complete data listed under "References".
+
+`[[citation::quote::nevent018472...]]` Content quoted, with associated quote-header and corresponding endnote.
+
+AI citations:
+
+`[[citation::prompt-end::nevent018472...]]` AI citation, appearing in the "References" section, with full data listed.
+
+`[[citation::prompt-inline::nevent018472...]]` AI citation, appearing next to the text they reference, with full data listed under "References". E.g. "(OpenAI, 2023)".

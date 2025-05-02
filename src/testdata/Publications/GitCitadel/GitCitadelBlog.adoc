@@ -1,0 +1,456 @@
+= The GitCitadel Blog
+
+== The Great Repo Migration
+
+_This entry originally appeared in this blog._
+
+image::https://i.pinimg.com/originals/3c/61/cc/3c61ccb4e98d862630ef4cd482635d09.jpg[The Germanic migration, 400, align="center"]
+
+*A Society of Loners*
+
+I'm becoming more certain that #GitRepublic will be more attractive to development teams currently outside of Nostr, than within it, because Nostr has largely defined itself as a _GitHub-based community of FOSS Lone Wolves_. This is part of its founding mystique and the current "vibe-coding" fad is merely doubling-down on that. Developers are now to stay completely and utterly isolated, and just talk to a machine all day.
+
+We have been sent back to the basement.
+
+image::https://i.nostr.build/IqgGTmkxfMYM0q7F.png[Grandma coder, 400, align="center"]
+
+Rather than putting in the effort to form cohesive teams and build truly enterprising solutions, with wide market appeal, we devs are actively encouraged (by the leading devs and financers) to keep everything we build tiny and inconsequental. Their own pet products are large and sprawling, of course, but let's move on. We are to go on the search for The Ultimate MicroApp, with the idea that this is the niche Nostr is meant to fill: _A knock-off WhatsApp, for voyeurs._
+
+*Tired of Marketing to the Wrong Audience*
+
+image::https://i.nostr.build/lqmkyriMSqaCUJuu.png[frustration, 400, align="center"]
+
+There's little will to truly decentralize the repos, themselves, and even the current issues and patches _gitstuff_ capability (which we use) gets little play. It's much more effective to simply @ most developers in a kind 01 note, than to write an issue, because they don't look at their issues and don't use clients that supply issue notifications.
+
+This is partly because they onboarded to Nostr with kind 01 clients, and _kind inertia is real_. But, it's also due to the fact that they usually don't have much professional experience (including, for example, with tech support), and their projects are so small and have so few users, that they aren't used to anyone giving them an issue to solve or suggesting a patch. Why look, if it's usually empty?
+
+image::https://cdn.britannica.com/97/205497-050-971997D4/African-American-family-car-Shawboro-North-Carolina-1940.jpg[The Great Migration, 400, align="center"]
+
+And this all got me thinking about migrations. Migrations typically happen in large waves. We can see that on Nostr, in fact. Individuals occasionally trickle in, but usually it's entire groups shifting in a sudden transplantation. Both on the way in, and on the way out. The same way that humans tend to move from one region to the other, in the physical realm, they move from one platform to the other, in the digital realm.
+
+Here is the thing: _One dev on Nostr isn't a wave, it's a person_.
+
+Furthermore, he's already on Nostr, so the marginal utility of moving to a different kind simply isn't great enough to motivate him to detach himself from his current active sphere of communication and transplant himself to a place with less communication. The communication would have to move with him, but then the move would have to be coordinated, and it's not practical to coordinate that tightly on an open protocol.
+
+A protocol is not a development team. It's a set of rules for development teams. And we don't even know who is following those rules.
+
+*The Odd Project Out*
+
+image::https://www.domesticpreparedness.com/wp-content/uploads/2023/08/iStock-157282180.jpg[isolated person, 400, align="center"]
+
+#GitCitadel is really the exception to prove the rule, as we've all used different gitservers (and other change management systems, before git was invented and popularized), professionally, and host our own systems. I have GitLab, at home and at work, for instance, and I've used Gitea and Bitbucket, and now OpenDev, and SVN, and etc.
+
+Since most of us, at #GitCitadel, are IT professionals, we aren't emotionally-attached to a specific gitserver or website because we relate more to our project teams, than to the app used to communicate with them. We've found teams are easier to move to a new platform, than individual developers, because they communicate _largely within themselves_. Also, the software that teams produce is large and prominent enough, that they don't depend upon contribution heat maps (those all-important green blocks), to market their skills. They can simply show someone the product or reference the product's web page. They therefore have less need to _work in public_, rather than merely _publishing their code_.
+
+So, long story short: 
+
+GitRepublic will need to focus on supplying teams (including the few on Nostr), and _people who use Nostr to build something_ is a demographic, but not a team.
+
+== The Life of a GitCitadel Work Ticket
+
+_This originally appeared as an https://next-alexandria.gitcitadel.eu/publication?d=the-life-of-a-gitcitadel-work-ticket-by-michael-j-v-1[article] on March 19, 2025._
+
+image::https://www.ajoure.de/wp-content/uploads/2024/03/kanban-methode.jpg[Kanban, 400, align="center"]
+
+*The Inception*
+
+ALEX-188 sprang, like Pallas Athene, from the minds of the GitCitadel development team. https://njump.me/npub1m3xdppkd0njmrqe2ma8a6ys39zvgp5k8u22mev8xsnqp4nh80srqhqa5sf[Liminal] was busy cooking up an LLM chat feature, and https://njump.me/npub1wqfzz2p880wq0tumuae9lfwyhs8uz35xd0kr34zrvrwyh3kvrzuskcqsyn[Michael J] realized in code review that something was wrong. The feature simply wouldn’t work with the build and deployment system Alexandria ran on at the time.
+
+Heated discussion ensued, and the team realized a new build system was needed.
+
+*The User Story*
+
+Ideas are like clouds—they are liable to change shape and drift away. Writing a user story is like lassoing that cloud and dragging it to earth.
+
+Thus, once the team identified their bright idea, they wrote it down in OneDev. There, this idea received a name—or rather a number: #188. Since it was part of the Alexandria project, the team could refer to it simply as ALEX-188.
+
+A user story briefly and precisely defines a set of requirements that must be met to address a specific problem. It is called such because these requirements are framed as a story: a user is on this page, does that action, and this other thing happens. For project Alexandria, the team uses a method called Gherkin (like the pickle). Gherkin scenarios define user stories as a series of GIVEN – WHEN – THEN statements. GIVEN a user on this page, WHEN the user does that action, THEN this other thing happens. A set of these form the story’s acceptance criteria.
+
+The advantage of Gherkin is twofold: On the one hand, Gherkin scenarios are easy to read. They consist of statements. Simple. Short. Declarative. On the other hand, requirements written in this style are easy to define in code. The programmer just needs to find the expected starting state (GIVEN), identify the action that triggers a change (WHEN), and tell the computer what to do to reach the expected ending state (THEN). This style of defining requirements and writing code is called Behavior-Driven Development (BDD).
+
+*The Story Board*
+
+Once ALEX-188 was saved and her Gherkin scenarios defined, she found herself living on the Alexandria project board, with dozens of her fellows. The project board, visualized in OneDev, displays stories in "swimlanes", i.e., a series of columns in which stories are stacked one atop the other. When a story changes state, it moves to the next lane.
+
+Thus, when Alex’s requirements were fully written out, and the team agreed upon them, she moved to the "Defined" swimlane, waiting for assignment.
+
+A developer with free time (a rare thing indeed) looked at the board, saw ALEX-188 sitting in the "Defined" column, and chose to "pick up" the work ticket. That developer assigned ALEX-188 to himself by putting his name on it, opened a git branch for the work, and moved the story into the the next swimlane: "In Development."
+Development
+
+Over the next few days, code was written and git commits pushed, and our user story gradually became reality on its branch in the git repo. Along the way, the team encountered roadblocks, and had to briefly return to the drawing board to update ALEX-188’s Gherkin scenarios. This is a common enough occurrence. After all, to paraphrase a 19th-century Prussian military strategist: "No plan survives first contact with the enemy."
+
+In time, the code for this user story was complete, and it was ready for review. Michael J, who had been working on the ticket, handed it off to https://njump.me/npub1qdjn8j4gwgmkj3k5un775nq6q3q7mguv5tvajstmkdsqdja2havq03fqm7[ChipTuner] for this next stage.
+
+There are two phases to the review process: code review and acceptance testing. During code review, other developers on the team examine the code that was written for the ticket and ask questions or make suggestions. Often, bugs are caught in review even before the code is run. When the team is satisfied with the quality of the code, one of the developers pulls a copy of the code and runs it. During testing, the tester walks through the scenarios outlined in the story’s acceptance criteria to verify whether the program behaves as expected in those cases. If anything is amiss, the story fails testing. Should this occur, the story developer will have to debug his code, make any necessary changes, and re-submit those changes for further review.
+
+In the case of ALEX-188, ChipTuner provided some valuable feedback in code review. Some of this feedback resulted in code changes. Other comments were discussed by the team, who decided to defer some further changes to a future user story.
+
+https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[Silberengel] and ChipTuner both ran the code for ALEX-188, and signed the ticket off as accepted.
+
+*Done*
+
+Once accepted, ALEX-188 was complete! Her changes were merged into the code repository’s master branch, and the user story ticket was moved to the "Done" column on the project board. The changes went live about a week later with a release to project https://next-alexandria.gitcitadel.eu/[Alexandria’s `next` environment], and you, dear reader, can see them now.
+
+Dwight D. Eisenhower referenced an old Army aphorism when he said "Plans are worthless, but planning is everything." Those are words we live by on the GitCitadel team. The story of ALEX-188 is just a snapshot, but this cycle of idea generation, requirement definition, development, testing, and release is constantly occurring on dozens of different work tickets at once on Alexandria’s project planning board.
+
+The name for this development methodology is Agile. Its goal is to continually deliver small, discrete improvements to the software’s users.
+
+The GitCitadel team embraces Agile methodology. That is why we have been able to showcase early versions of the Alexandria software on the project’s next environment. It is also what keeps us flexible and ready to respond rapidly to user-submitted bug reports of feature suggestions.
+
+Nostr is a fast-moving software ecosystem, and Agile lets us stay on the bleeding edge.
+
+== Our Inspiration
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqqxnzdenxumrgv35xq6rjdej7jt0az[article] on January 23, 2025._
+
+*Planning Alexandria*
+
+People keep asking what features GitCitadel has planned for #Alexandria, but they're not set in stone because we're an agile project.
+
+What we do have, is lots of tickets on our Kanban boards and a naming scheme, where we use a famous person's last name, to signify the release goals.
+
+image::https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Gutenberg.jpg/640px-Gutenberg.jpg[Gutenberg, 400, align="center"]
+
+[%hardbreaks]
+*Gutenberg v 0.1.0*
+_after the inventor of the printing press_
+will contain the features needed to read and write https://github.com/nostr-protocol/nips/pull/1600[NIP-62 Curated Publications], as well as encompassing the complex infrastructure, architecture, documentation, and personnel we require to make this all run smoothly and look easy.
+
+image::https://upload.wikimedia.org/wikipedia/commons/f/f9/Leonhard_Euler_-_Jakob_Emanuel_Handmann_%28Kunstmuseum_Basel%29.jpg[Euler, 400, align="center"]
+
+[%hardbreaks]
+*Euler v 0.2.0*
+_after a mathematician credited with establishing graph theory_
+will contain the features for deep-searching, visually exploring, and smartly navigating the data set, wiki page display, annotating and citing the publications, exporting to other formats (like PDF, ePUB, and LaTeX), and commenting/reviewing. To help with the heavy lifting, we will be swapping out the core with our own Nostr SDK called _Aedile_.
+
+image::https://upload.wikimedia.org/wikipedia/commons/7/78/Daniel_Defoe_1706.jpg[Defoe, 400, align="center"]
+
+[%hardbreaks]
+*Defoe v 0.3.0*
+_after an author who perfected the novel format_
+will be all about our favorite writers. We will be focusing upon profile data, payment systems, book clubs and communities, and stylesheets.
+
+That is everything we have planned, for the v1.0 edition, and we consider that version to be a true product.
+
+As for after that, a teaser...
+
+image::https://media04.meinekirchenzeitung.at/article/2011/11/27/2/30892_L.jpg[Hildegard, 400, align="center"]
+
+== Project Alexandria
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzphtxf40yq9jr82xdd8cqtts5szqyx5tcndvaukhsvfmduetr85ceqqxnzde38yerqdpexsmnyvekwpld9e[article] on June 24, 2024._
+
+*The new Great Library*
+
+We have all heard tales of Amazon or other booksellers banning customers from their bookstores or censoring/editing purchased books. The famous https://www.gutenberg.org/[Project Gutenberg], and similar organizations, are performing a good work, to help protect many of our precious books from this fate, but it is merely a centralized website and therefore not censorship resistant. Also, it mostly posts books in English or German.
+
+So, we at GitCitadel have decided to move Project Gutenberg to Nostr and house it in the most distributed way possible: on relays. Specifically, our new, public https://thecitadel.nostr1.com/[Citadel relay] for out-of-print books (and other documents), but also on any relay, anywhere.
+
+And, because we are a very humble group, we're naming the effort "Alexandria". And the first book to be printed on Nostr is the Bible because _obviously_.
+
+*Why on relays?*
+
+Well, why not on relays? Relays are one of the few widely-distributed databases for documentation in existence. The relay database spans the entire globe and anyone can maintain their own relay on their personal computer or mobile phone. 
+
+That means that anyone can house _their own_ books.
+Which books are their own? Any books they have in their own possession. Any books someone would have to physically pry out of their cold, dead, computer.
+
+*Notes are perfect for publishing*
+
+Once we begin generating eBooks from notes with an associated header (which will be quite easy to do, so long as they are written in markdown or similar), they will also be readable, downloadable, and storable in ePUB format (see https://pandoc.org/epub.html[Pandoc]). And it is, after all, only a matter of time until someone enterprising makes an ePaper Nostr client for calmer reading of notes, and then you can download and read them, without having to bother converting beforehand, which maintains their Nostr-navigation.
+
+The new event kind https://github.com/nostr-protocol/nips/pull/1600[400, align="center"40] allows us to take any sort of note containing any sort of characters and create a type of "note collection" or "book of notes", "journal of notes", "magazine of notes". And it can be nested or embedded in other notes, creating any sort of note-combination and note-hierarchy you can think of, only limited in size by the ability of your computer to processes the relationships.
+
+*Save the Zettels*
+
+The associated kind 400, align="center"41 adds the prospect of breaking longer texts or articles up into sections or snippets (called "Zettel" in German). We can then collect or refer to particular bits of a longer text (like a chart, elegant paragraph or definition, data table), directly. Anyone can create such snippets, even of texts they didn't write, as they can add a reference to the original publication in the tags of the new event.
+
+This means we no longer have to "copy-paste" or quote other people's works, we can simply tie them in. If we worry about them being deleted, we can fork them to create our own, digitally-linked version, and then tie that in. This means that source material can be tied to the new material, and you can trace back to the source easily (using Nostr IDs and tags, which are signed identifiers) and see who else is branching out from that source or discussing that source.
+
+*It's gonna be HUGE!*
+
+We are making a big, beautiful library... and you are going to build it for us. Anyone, anywhere can therefore publish or republish any document they wish, with Nostr, and store it wherever they have a relay, and view it on any client willing to display it.
+
+You will own something and be happy.
+
+== The Establishment
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqqxnzdej8y6rzdfkxyenzdejghmx9f[article] on October 20, 2024._
+
+[NOTE]
+====
+GitCitadel project was begun in December 2024. The company was formed, later.
+
+(Please note that this is not official financial or business advice, but rather a description of something we have done, on an informal basis.)
+
+====
+
+*A long, long time ago*
+
+It's been nearly a year, since GitCitadel came into being, mostly as a lark, involving a couple of members of our private chat group. Our initial plan was to work toward bounties, but Nostr bounties are a bit of a biased, uncertain thing, and our enthusiasm for that quickly waned.
+
+So, what to do? Here we are, we three (https://njump.me/npub1ecdlntvjzexlyfale2egzvvncc8tgqsaxkl5hw7xlgjv2cxs705s9qs735[finrod], https://njump.me/npub1wqfzz2p880wq0tumuae9lfwyhs8uz35xd0kr34zrvrwyh3kvrzuskcqsyn[MichaelJ], and https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z[I]). IT professionals with little time, but plenty of intellectual energy, a Slack chat, a https://github.com/ShadowySupercode[GitHub repo], and lots of frustration with the Nostr status quo.
+
+We were, you see, Nostr end-users. We loved the idea of the protocol, but we were being regularly stymied by the poor quality of many implementations.
+
+* Why can I not login? Oh, they fixed the login! Nope, still can't login.
+* If I press this button, it says it sent, but it didn't send. Where note?
+* They announced a new feature, but I tried it and it didn't work. Oh well.
+* I noticed a bug in the client, reported it, and the issue is just rotting away in the project repo. Ignored.
+* The website/relay/repo was here... yesterday. Today it has disappeared, and taken my zaps with it.
+
+It was enough to make us want to tear our hair out. We decided that what Nostr needed... what it _really_ needed... was a _Nostr Stable Version_. Nothing glamorous. Nothing exotic. Nothing busy or excitable. Just something that stayed where you initially found it, ran, and actually worked. Something where you could report a bug and receive a prompt response. Maybe even something, where you could pay a reasonable fee and be _allowed to have expectations_ of some particular service being returned. And who better to build such a version, than people who want to use it, themselves?
+
+*Things working is an underrated concept*
+
+I know that the very idea of software _running as expected_ and websites not appearing and disappearing suddenly, based upon what some particular developer had for lunch, tends to be met with little but scorn, from hardened, seasoned Nostriches (who are convinced that bugs are _all_ features), but I think the majority of potential users would see it differently.
+
+I'm with the majority, on this one.
+
+I like to click "save" buttons and have them save. If I publish something, I want it to appear under my list of published somethings. I like to type in the website address I always type in, and have it magically appear on my screen, as if there were a little man sitting at controls in my laptop, just waiting for me to write H-T-T-P-S... and then jump to attention.
+
+My unreasonable expectations have no bounds, it is true. But unreasonable people are also people, so we would also like to have our own unreasonable things to play with. Scorn away. My save button will save, and my published something will publish, and my website will load _every damn time_, just to spite you.
+
+In the larger scheme of things, you see, we win even if we fail, if we at least increase the competition enough, that _things working_ becomes the new standard. We can simply prove, definitively, that it is possible for Nostr things to work, if they are built by people who care if they work. If we also have fun together, learn something new, and come up with some cool, novel use cases, then that's pure profit.
+
+We can only win, at this endeavor.
+
+*Where to start?*
+
+_Name that brand_
+
+So, we had a team, we had a business idea, and we had a heck of a lot of motivation. What we didn't have, is a name. (Never underestimate the importance of naming things.)
+
+We decided to name ourselves "GitCitadel" because "git" sounds techy, hints at our GitRepublic project, and is reminiscent of open-source development, and "citadel" reminds us of Bitcoin. The republic is at home in the citadel, naturally. All other products also live in the same citadel, hence the naming-convention of prefacing everything with "GC" (i.e. "GC Alexandria", "GC Sybil", "GC Aedile", etc.).
+
+_Brand yourself_
+
+The next thing we did, was rent a domain and run a webserver on it. This is an important step because it gives you an Internet presence, allows you to have company NIP-05 and email addresses (a form of promotion), and it's simply exciting to have one. Feels so much more "official" and it helps increase the name-recognition of your company.
+
+_Define yourself_
+
+We then sat down, together, over the Internet, and figured out who we are. Not who we individually are, but who we are, as a company. A company, after all, (according to the Cambridge Dictionary) is "an organization that produces or sells goods or services in order to make a profit". Now, a company's profits don't have to be monetary, but they should be something tangible. A company, in other words, is a team of people working toward some defined goal.
+
+What is our goal? Well, we decided to think it over, sat down with the newer additions to the company (you can see who they are, on our https://wikistr.com/gitcitadel-project[project wiki page], and came up with a Vision and a Mission:
+
+image::https://i.nostr.build/ZEKjKfm6LeJAIlnD.png[Vision Statement, 400, align="center"]
+
+The _vision_ is what the overall goals of the company are, whereas the _mission_ describes how those goals shall be achieved. Now, this is a sort of lofty, abstract statement, so it was important that we posted it someplace publicly (to keep ourselves accountable) and look at it regularly, so that we can ponder it and realign whatever we are currently working on, with this statement. We know the statement is well-designed, if considering it helps us make decisions about what to do next.
+
+_Pay yourselves_
+
+(I'm going to switch from "we" to "you", here, as it's easier to write this part, but let's just pretend I didn't.)
+
+image::https://i.nostr.build/Fn0eOJzesCXKNAWR.jpg[Shakespeare, 400, align="center"]
+
+The next thing on the list, is to arrange the finances, usually by setting up a Geyserfund, with an associated wallet, and then deciding how the funds from the wallet will be dispersed or stored. (I won't tell you how we are handling that, as that's internal company business, but I'm sure you'll think of something clever, yourselves. Or just google it.)
+
+I would encourage you to arrange to pay yourselves profits. Not merely because your idea is going to make you all fabulously wealthy and internationally famous (although, that is obviously true), but because _profits are the most pure form of communication that consumers in the market have_ with its producers, and one of the best ways to make decisions and measure increases in efficiency (increasing profits and/or output, while keeping prices steady or falling).
+
+Cutting off this signal, in order to look pious to outsiders, is to shoot yourself in your free-market foot. Nobody says that you have to spend your profits on the proverbial _lambo and a bimbo_. You could donate them to charity, reinvest them, or store them for your nephews to inherit, but _pay them out, you should_. You don't have to love money, to value it as a tool and use it shrewdly. Money is a measure, and companies should regularly measure themselves: against their previous state, against their potential state, and against their competition.
+
+(Also, you can use money to buy a lambo and a bimbo, but you didn't hear that from me.)
+
+_Organize yourselves_
+
+Once you've been working together, for a while, you'll find that you need to figure out how to organize yourselves. The first step is to...
+
+_Form a board of directors_
+
+Stop laughing. I'm serious.
+
+Any company has at least two roles (President and Secretary), ideally held by two different people, so any single-proprietor company is a man down. Find a different person, to be your Second, even if they're just your confident, who lets you cry on your shoulder on The Bad Days, when your code refuses to compile, and can tell people that you've become a Bitcoin millionaire and have gone on a sabbatical to hike the Himalayas and will be back in 3 months on The Very Good Days.
+
+[quote]
+Because business man was not meant to be alone.
+
+If, like us, you're a small herd of people and have already been working together for a while, then this step is actually really, really fun. Just think about what people are already doing, and put a label on it. That role is now defined and it is clear who is in charge of what. 
+
+Scientists become "Chief Science Officer" or "Scientific Advisor". The person who always writes the _okay, so this is what we've decided_ comment in the thread becomes the Secretary, the one managing the Lightning wallet and worrying over paying for the servers is the CFO, the person running the remote server becomes the CTO, and so on and etc.
+And everyone knows who the CEO is. Everyone always knows. They do. Just write it down.
+
+_Agree how to disagree_
+
+Now, have the secretary write up a Member's Agreement. It's a contract between the members, about whatever the group thinks is important concerning the way the company will operate. According to https://www.investopedia.com/terms/l/llc-operating-agreement.asp[Investopedia], common topics are:
+
+image::https://i.nostr.build/F05SyoHJgd6mhVCB.png[LLC Operating Agreement topics, 400, align="center"]
+
+Is this legally binding? Probably not. Maybe. I don't know and wouldn't tell you, even if I did. But it's _emotionally binding_, which is arguably more important.
+
+Writing things down is an advanced form of _naming things_ and it provides clarity, helps to manage expectations, and allows you to define a working agreement before Real Money shows up and taints your interaction. You're just accepting tips, at the moment. Everyone is calm and cheerful, so now is your best time to negotiate.
+
+Keep it very simple and only address the most basic things. If you wish to incorporate, at a later date, then you just take this to a registered agent, or other experienced person, and have them tidy up any loose ends and add the fine print.
+
+_Go forth, together_
+
+This has probably taken you weeks, or even months, but you're now a company. Get a logo and a company npub, start dropping the company name into your notes, and get on with the business of being in business.
+
+== Introducing Community Clients
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqqxnzdenxycnxwf5xyunsdpcnkjccw[article] on November 11, 2024._
+
+*Drumroll, please....*
+
+In a https://njump.me/naddr1qvzqqqr4gupzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqydhwumn8ghj7argv4nx7un9wd6zumn0wd68yvfwvdhk6tcpr3mhxue69uhhg6r9vd5hgctyv4kzumn0wd68yvfwvdhk6tcqp5cnwvesxcunjwpcxymrsvgwmj66e[previous article], I introduced the concept of relay communities.
+
+The ink had barely dried, on that set of instructions, before one of my favorite Nostr devs, https://njump.me/nprofile1qythwumn8ghj7enjv4h8xtnwdaehgu339e3k7mf0qy88wumn8ghj7mn0wvhxcmmv9uqzqla9dawkjc4trc7dgf88trpsq2uxvhmmpkxua607nc5g6a634sv598gk68[ثعبان], rolled out the alpha version of a relay-community client.
+
+image::https://i.nostr.build/iwVwUUXfiAj7pSMa.png[chachi for nos.lol, 400, align="center"]
+
+Obviously, it's still a bit of a construction site, but you can check out how it'd work, for your community, by test-driving the functionality on your own relay. Simply type https://chachi.chat/ followed by the name of your relay. For instance, one gigantic relay community, where nearly everyone can try out the functionality, is https://chachi.chat/nos.lol[nos.lol].
+
+If your relay community does not require AUTH to read, anyone can pull your chatter into their own relay and respond to it there. That is because every chat entry is simply a kind 09 event, and unprotected events are not private data.
+
+For instance, I moderate one community https://chachi.chat/theforest.nostr1.com[theforest.nostr1.com], that is openly readable, and that's probably where most of the chatter on https://chachi.chat/relay.nostr.band[nostr.band] is coming from, as that relay is an aggregator of the content of many other relays. However, I have another community, https://chachi.chat/gitcitadel.nostr1.com[gitcitadel.nostr1.com] that is AUTH-protected, whose content stays private to those allowed on that relay. Communities are where write-protected and AUTH relays are going to really shine, as they create an environment similar to Telegram, but where you control the dataset, you decide which types of events to support, and you design the client, the algos, the moderation, the visibility, etc.
+
+With communities, *the onboarding experience is seamless*: just get a browser extension and a nsec, login, start writing and posting, and _start receiving responses_. Active, chatty, well-moderated communities will be more attractive to onboard to, than chaotic, spammy, or empty communities. This means that you don't have to have the killer entry under "Posts" (where kind 11 and eventually kind 01 posts appear), just to get some interaction. Chat is the Great Equalizer.
+
+So, we're testing both setups, with https://njump.me/nprofile1qyghwumn8ghj7mn0wd68ytnhd9hx2tcpzfmhxue69uhkummnw3eryvfwvdhk6tcqyp7vx29q3hdj4l0elxl800hlfjp538le09epsf7k9zj59ue2y37qu84upun[cloudfodder] adjusting the relay faucet code and ثعبان is fiddling with the community client settings, to make the most-comfortable situation for both kinds.
+
+image::https://quotefancy.com/media/wallpaper/3840x2160/361833-Winston-Churchill-Quote-Now-this-is-not-the-end-It-is-not-even-the.jpg[The beginning has ended, 400, align="center"]
+
+*This is the signal*
+
+This #Chachi client, of course, is merely the first horse out of the gate. There are already other devs hacking away at variants of the same concept, such as https://flotilla.coracle.social/[#Flotilla], I'm sure CloudFodder is also cooking, later versions of #Alexandria will integrate theforest community, and etc. etc. etc.
+
+It remains to be seen, how many new use cases can be dreamt up, with this new architecture, but I am quite certain, that this is the beginning of the end of Nostr 1.0. We are moving up and out, and away from the stultifying and limiting concept of Twitter 2.0, toward 
+
+image::https://i.nostr.build/nToghxbBIzNLx27t.jpg[The OtherStuff, 400, align="center"]
+
+Soon, we will enter Nostr 2.0. See you on the other side.
+
+== Nostr Feed
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqqxnzdenxqmrjwfc8qcnvwp3rwjqv5[article] on Novermber 7, 2024._
+
+*Unsucking the feed is real*
+
+As a Nostrich with an interesting, thought-provoking, and informative feed... a feed so good, that we're creating clients just to look at that feed... a feed that puts a lie to the idea that Nostr is nothing, but people reposting from Twitter or rehashing worn-out Bitcoin memes... a feed that I personally and increasingly enjoy perusing... I am here to tell you that the feed is real.
+
+image::https://i.nostr.build/eXAINZP6UjWTDnCA.jpg[Yes it's real, 400, align="center"]
+
+It's taken me over a year, to produce this feed. I literally spent hours and hours, day in and day out, scouring the Nostrverse for people worth introducing other people to. It was brutally difficult, as I was fighting the inherent nature of the Nostr clients and relays, in their current, most-popular form.
+
+*It goes like so...*
+
+Here are the steps I took, that sometimes weren't possible to take, until I tried to take them, and that still will sometimes break your client because the clients are often _intentionally_ designed to steer you into having one particular feed:
+
+1. _Make a screenshot_ of your current relay list and copy your follows list.
+2. _Unsubscribe from all the relays_, that you are currently subscribed to. Your feed should disappear. If it doesn't, or it doesn't allow for this, switch to a different client app because yours is corrupted.
+3. _Unfollow everyone._ Delete the whole list. You are taking your follows private, which will invariably result in only following npubs whose stuff you actually want to see, since there's no longer any virtue-signaling going on. Also, it's easier to explain having no list, than a very short one. If your client doesn't allow for this, or starts throwing error messages and freezing up, then switch to a different client app because yours is corrupted.
+4. _Curate your copied follows list._ Go line by line and look at the feed produced by the npub on that list.
+    * Do you want to see that in your feed, going forward?
+    * Do they produce original content and/or are they interesting conversationalists, in the replies?
+    * Have they been active, within the past three months?
+    * Are they simply good friends or real-life acquaintances, that you want to keep tabs on?
+    * If not, cross out their name.
+    * If you have been following someone because they repost or quote interesting things, look at who they've been reposting and follow them, instead.
+5. Of the npubs remaining on your list, go through and select the 10 most interesting ones, and _look at the reposts and quotes_ in their feed, and their topical lists like "Favorites", "Devs", "Recipes", etc. (Not their follows list, unless it's quite short, as follows tend to be full of people they follow for social-signaling or client-functional reasons, that they don't actively look at.) Find some new follows, there.
+6. Now, set up a personal relay and add all the follows, that made the cut, to _your allowed-npubs list_. Do not add people to the list, just to make them feel better, or because you feel guilty, as they follow you, or to keep them from yelling at you. Remember, they can't see the list!
+7. Think about the topics you find interesting, and add an _allowed-keywords list_ (this is better than hashtags, as it searches the entire content of the notes), with the OR operator (these allowed npubs OR these allowed topics).
+8. Make sure that you choose words likely to find the content you are most-interested in, and not people just ranting about it or spamming (those are great additions to your relay's block-list). If you are Muslim, for instance, instead of "Islam" or "shariah", choose "hadith" or "riba", as those are words more-likely to be used by people who know what they are talking about. If you are into bread baking, add "sourdough", "rye", "yeast", or "whisk", but don't add "bread" or "carbs". Once a note from those people shows up in your feed, and their feed looks like someone interesting, you can add their npub to your allow list. Remember: _The topics are there to find people to add to the allow list_, not merely for their own sake, as this is not a topical relay, but a personal one.
+9. Open up a faucet (or relay syncing) with some of the big relays you previously unsubscribed from, some WoT relays, and some of the paid relays (nostr.land, nostr.wine, nostr21.com, and sovbit.host, for example). _Your relay will filter that feed_ and only accept the events from the people and topics on your list. As your relay becomes more popular, npubs will begin writing directly to it, and the connections to other relays will sink in significance.
+10. Go to your client of choice and _subscribe to your new relay_. Also subscribe to some topical relays, or curated neighborhood relays, you find interesting or your frens are running. This is an easy way to find new, interesting npubs, to add to your own relay.
+
+image::https://i.pinimg.com/564x/e4/32/fc/e432fc1ce1fc8a5077e33290ec15e0ce.jpg[The end, 400, align="center"]
+
+That's a lot of work, you say? Yes, but the result is great, and you are now fully in-charge of your own feed. You also -- here's the cool part -- have a feed good enough, that other people can add your feed to theirs and enjoy your manual curation. As you refine and expand your feed, theirs will also be refined, in parallel. You are now an official Nostr Community Curator. My sincere congratulations.
+
+image::https://i.nostr.build/FDtR0Z5VAJTxCGHL.png[Certificate, 400, align="center"]
+
+*Why is this so hard?*
+
+This is only a lot of work because the clients aren't designed to interact with relays, to this extent, as they were created to service mega-relays, download all their crap to your local cache, and adjust the feed over the follows/mutes lists. This was an idea borne of the axiom that Relays Are Hard, so there will only ever be a handful of them, where we'd all clump together and the relay operators would never judge the quality of someone's content. Then, some unusually clever people made relays increasingly easy, and the mailbox communication model was invented, and here we are.
+
+What we have now, and that is slowly growing in popularity, among the #NostrIntelligentsia, are Nostr clients aimed at curating and viewing individual relays or personalized sets of smaller or more-specialized relays. The reigning client devs refused to give us those clients, and most of us aren't up to developing our own clients, so the relay devs took matters into their own hands and made the clients themselves. The free market remains undefeated.
+
+This is a total game-changer. Last one to board this train is a rotten egg.
+
+Originally, relays were supposed to be completely stupid and clients were supposed to be completely smart, but it's now actually the other way around, because most relay devs have a market-born incentive to make their content highly customizable and appealing to individuals (so that more people run relays).
+
+*But what about algos?*
+
+Can't you just slap an algo on top of Damus, Lol, or Primal relays, and get the same result? I would argue... no. No, you can't. Or, rather, only in the short to medium term.
+
+Running your own relay, is running your own server. You are now _intellectually independent_, at a machine-level, and therefore a fully sovereign consumer. If you then use algos to control your own server, or in a client that subscribes to your own server, then you can further-refine a feed that is already in a high-to-you-signal state, rather than risking an algo inching you toward the Consensus Feed.
+
+I have noticed that my own feed is slowly drifting away from the ReplyGuy-Cryptobot-Porny-Bitcoin-Meme Dumpster Fire, that almost everyone else is looking at, and it's due to running my own relay. If I use DVMs, those algos sometimes refer to relays I intentionally avoid, so they return results according to those relays. The results are as underwhelming, as you would expect, and often are simply 31 flavors of the Trending List.
+
+But, that isn't your problem, anymore.
+From here, you can actively expand and refine your feed, over your whitelist, the topics, and your personally-managed algos.
+
+Happy Nostr-ing!
+
+== Test-Driven Protocol Design
+
+_This originally appeared as an https://njump.me/naddr1qvzqqqr4gupzphtxf40yq9jr82xdd8cqtts5szqyx5tcndvaukhsvfmduetr85ceqqyrsdnzvv6kzctxj90l2k[article] on July 21, 2024._
+
+My suggestion for scaling up and staying humble
+
+*The original protocol design was "good enough for now".*
+
+When Nostr was invented and got started with developing implementations, the Original Devs (ODs) were convinced this was going to be big... maybe... someday... hopefully.
+
+But, whatever they did at the moment should definitely scale up a bit and be a bit flexible, to attract innovators and keep up the momentum. So, they designed the protocol to be open and left the specifications a bit vague and very high-level, so that nobody was forced into a particular implementation, in order to adhere to the spec. And they put the specs into a GitHub repository and managed them by a committee of collaborators, who were generally open to changes to the specs, including breaking changes.
+
+That was smart. And it was "good enough for now"... back then. After all, Nostr (and the associated wiki and modular article specs) hadn't been invented, yet, so they couldn't write the protocol in the protocol before the protocol existed. They're good, but not _that_ good.
+
+What they specifically https://github.com/nostr-protocol/nips[wrote] was:
+
+[quote, Nostr Protocol]
+To promote interoperability, we standards (sic) that everybody can follow, and we need them to define a single way of doing each thing without ever hurting backwards-compatibility, and for that purpose there is no way around getting everybody to agree on the same thing and keep a centralized index of these standards...
+Standards may emerge in two ways: the first way is that someone starts doing something, then others copy it; the second way is that someone has an idea of a new standard that could benefit multiple clients and the protocol in general without breaking backwards-compatibility and the principle of having a single way of doing things, then they write that idea and submit it to this repository, other interested parties read it and give their feedback, then once most people reasonably agree we codify that in a NIP which client and relay developers that are interested in the feature can proceed to implement.
+
+*I disagree with this statement.*
+
+I don't disagree with what they _meant_, or what they _wanted_, I disagree with what they specifically wrote.
+
+Standards (defined as prose specifications) are not the only -- or even best -- way to ensure interoperability or to check for backwards-compatibility. And, as they later note, basing a protocol off of implementations is arguably worse (but faster) than using specifications, as implementations have a life of their own and are sometimes simply shoddy or buggy, their content eventually differs from what ends up in the final standard, or there are soon multiple implementations covering the same spec "in theory", but not in practice, so that their events are incompatible.
+
+And then the inevitable, heated discussion begins:
+
+* Which implementation is the Real Standard™?
+* Who controls the Real Standard™?
+* How is the Real Standard™ spec supposed to be written?
+* Does everything have to be in the same file type or markup language? If not, how can we ensure compatibility?
+* What is realistic content for the data files?
+* Is the Real Standard™ including all of the information needed to ensure interoperability, but not anything more, without reducing innovation and artificially forcing consensus by encouraging copy-paste or forking of product code?
+
+*There is a third way: write the test first*
+
+We actually do not need standards to define a single way of doing each thing. A *test* is another way, and I think it is the best (i.e. the most-efficient and most-effective) way.
+
+Specifically, I think we can borrow the simple behavior-driven design (BDD) language called Gherkin (or something similar), which is used to write dynamic specifications:  i.e. implementations that test adherence to a set of rules, rather than an implementation that uses the rules to perform some task for an end user.
+
+Gherkin simply allows you to create standard scenarios and test data and write the tests up in a way that can be performed manually or through automation. For example (https://www.pragmaticapi.com/blog/2013/01/21/bdd-atdd-for-your-agile-rest-api-part-2/[source]):
+
+image::https://res.cloudinary.com/jhrmn/image/upload/v1362658828/groovy_cucumber_twitter_lpg6yj.png[Gherkin example, 400, align="center"]
+
+(For a concrete example of such a TDD Protocol for Nostr, please see the https://github.com/schmijos/nostr-voliere/tree/main/features[nostr-voliere repo] from https://njump.me/npub1axy65mspxl2j5sgweky6uk0h4klmp00vj7rtjxquxure2j6vlf5smh6ukq[schmijos].)
+
+*This really is better.*
+
+This TDD Protocol design would have some downsides and some upsides, of course, like any change.
+
+_Downsides_
+
+* You can't write a TDD spec by yourself unless you understand basic software functionality, how to define an acceptance test, and can formulate a use case or user story.
+* The specs will be more informative and agnostic, but also longer and more detailed.
+* Someone will have to propose concrete test data (i.e. a complete json event) and spec interlinking will be explicit, rather than writing "...", "etc.", or "sorta like in that other section/doc, but not really" all over the place.
+* The specs will tend to focus on positive cases, and leave off error-handling or most edge-cases, so developers can't use them to replace unit tests or other verification of their product.
+
+_Upsides_
+
+* The specs will be concrete and clear, in a type of pseudocode, while leaving the actual implementation of any feature up to the individual developer, who uses the spec.
+* The specs will be orderly and uniquely-identifiable, and can have hierarchy and granularity (major and minor tests, optional tests, tests only under certain conditions, etc.)
+* Deciding whether changes to the spec are breaking changes to the protocol would be simple to determine: Does the previous test still pass?
+* Specs will always be final, they will simply be versioned and become more or less defined over time, as the tests are adjusted.
+* Product developers will feel less like they "own" particular specs, since their implementation is actually what they own and the two remain permanently separate.
+* Developers can create an implementation list, defining specific tests in specific versions, that they adhere to. This makes it more transparent, what their product actually does, and lowers their own documentation burden.
+* Rather than stalking the NIPs for changes, or worrying about what some other implementation someplace has built, developers can just pull the repo and try running the relevant tests.
+* Each product developer can test the spec by trying to perform or automate/run it, and request changes to ensure testability, raising the quality of the spec review process.
+
+This is already a lot to think about, so I'm just going to end this here.
+Thank you for reading.
+
+END OF BLOG ENTRIES

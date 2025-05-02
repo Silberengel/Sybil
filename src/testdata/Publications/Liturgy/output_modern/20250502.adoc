@@ -1,0 +1,1042 @@
+= Liturgy of the Hours for Friday, May 2, 2025
+
+////
+<<YAML>>
+author: 'The Roman Catholic Church'
+version: 'New American Bible'
+tag-type: 'a'
+auto-update: 'ask'
+tags:
+  - ['image', 'https://i.nostr.build/H4fGbUV2asYX1TGl.png']
+  - ['type', 'book']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'religion']
+  - ['t', 'liturgy']
+  - ['summary', 'Excerpts from today''s Divine Office, also known as The Liturgy of the Hours. The full text, read-alouds, and all hours are available on the DivineOffice.org website.']
+  - ['published_by', 'DivineOffice.org']
+  - ['source', 'https://divineoffice.org/']
+<</YAML>>
+////
+
+== Office of Readings
+
+[%hardbreaks]
+
+
+
+=== Invitatory
+
+[%hardbreaks]
+
+[%hardbreaks]
+Lord, open my lips.
+— And my mouth will proclaim your praise.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 95
+
+[%hardbreaks]
+
+Come, let us sing to the Lord
+and shout with joy to the Rock who saves us.
+Let us approach him with praise and thanksgiving
+and sing joyful songs to the Lord.
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+The Lord is God, the mighty God,
+the great king over all the gods.
+He holds in his hands the depths of the earth
+and the highest mountains as well
+He made the sea; it belongs to him,
+the dry land, too, for it was formed by his hands.
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+Come, then, let us bow down and worship,
+bending the knee before the Lord, our maker,
+For he is our God and we are his people,
+the flock he shepherds.
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+Today, listen to the voice of the Lord:
+Do not grow stubborn, as your fathers did in the wilderness,
+when at Meriba and Massah they challenged me and provoked me,
+Although they had seen all of my works.
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+Forty years I endured that generation.
+I said, "They are a people whose hearts go astray
+and they do not know my ways."
+So I swore in my anger,
+"They shall not enter into my rest."
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ Come, let us worship the Lord, fount of all wisdom, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ribbon Placement:_
+Liturgy of the Hours Vol. II:
+Ordinary: 1045
+Psalter: Friday, Week II, 1321
+Proper of Seasons: 675 (first reading)
+Proper of Saints: 1808 (second reading, concluding prayer)
+[.text-center]
+[%hardbreaks]
+*Office of Readings for Friday in Easter, the Memorial of Saint Athanasius, Bishop and Doctor*
+[%hardbreaks]
+God, come to my assistance.
+— Lord, make haste to help me.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen. Alleluia.
+[%hardbreaks]
+
+
+=== HYMN
+
+[%hardbreaks]
+
+O God, our help in ages past,
+Our hope for years to come,
+Our shelter from the stormy blast,
+And our eternal home.
+Beneath the shadow of Your throne
+Your saints have dwelt secure;
+Sufficient is your arm alone,
+And our defense is sure.
+Before the hills in order stood,
+Or earth received her frame,
+From everlasting you are God,
+To endless years the same.
+A thousand ages in your sight
+Are like an evening gone;
+Short as the watch that ends the night
+Before the rising sun.
+Time, like an ever rolling stream,
+Bears all our lives away;
+They fly, forgotten, as a dream
+Dies at the opening day.
+O God, our help in ages past,
+Our hope for years to come,
+Be now our guard while troubles last,
+And our eternal home.
+
+
+=== PSALMODY
+
+[%hardbreaks]
+
+[%hardbreaks]
+_Ant._ 1  Lord, in your anger, do not punish me, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 38
+
+[%hardbreaks]
+
+A sinner in extreme danger prays earnestly to God
+All his friends were standing at a distance (Luke 23:49).
+[.text-center]
+[%hardbreaks]
+I
+O Lord, do not rebuke me in your anger;
+do not punish me, Lord, in your rage.
+Your arrows have sunk deep in me;
+your hand has come down upon me.
+Through your anger all my body is sick:
+through my sin, there is no health in my limbs.
+My guilt towers higher than my head;
+it is a weight too heavy to bear.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ Lord, in your anger, do not punish me, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 2  Lord, you know all my longings, alleluia.
+[%hardbreaks]
+[.text-center]
+[%hardbreaks]
+II
+My wounds are foul and festering,
+the result of my own folly.
+I am bowed and brought to my knees.
+I go mourning all the day long.
+All my frame burns with fever;
+all my body is sick.
+Spent and utterly crushed,
+I cry aloud in anguish of heart.
+O Lord, you know all my longing:
+my groans are not hidden from you.
+My heart throbs, my strength is spent;
+the very light has gone from my eyes.
+My friends avoid me like a leper;
+those closest to me stand afar off.
+Those who plot against my life lay snares;
+those who seek my ruin speak of harm,
+planning treachery all the day long.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ Lord, you know all my longings, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 3  I confess my guilt to you, Lord; do not abandon me, for you are my savior, alleluia.
+[%hardbreaks]
+[.text-center]
+[%hardbreaks]
+III
+But I am like the deaf who cannot hear,
+like the dumb unable to speak.
+I am like a man who hears nothing,
+in whose mouth is no defense.
+I count on you, O Lord:
+it is you, Lord God, who will answer.
+I pray: "Do not let them mock me,
+those who triumph if my foot should slip."
+For I am on the point of falling
+and my pain is always before me.
+I confess that I am guilty
+and my sin fills me with dismay.
+My wanton enemies are numberless
+and my lying foes are many.
+They repay me evil for good
+and attack me for seeking what is right.
+O Lord, do not forsake me!
+My God, do not stay afar off!
+Make haste and come to my help,
+O Lord, my God, my savior!
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+
+
+=== Psalm-prayer
+
+[%hardbreaks]
+
+Do not abandon us, Lord our God; you did not forget the broken body of your Christ, nor the mockery his love received. We, your children, are weighed down with sin; give us the fullness of your mercy.
+[%hardbreaks]
+_Ant._ I confess my guilt to you, Lord; do not abandon me, for you are my savior, alleluia.
+[%hardbreaks]
+Sacred Silence (indicated by a bell) A moment to reflect and receive in our hearts the full resonance of the voice of the Holy Spirit and to unite our personal prayer more closely with the word of God and public voice of the Church.
+[%hardbreaks]
+You will hear the word from my mouth.
+— You will tell others what I have said.
+[%hardbreaks]
+
+
+=== READINGS
+
+[%hardbreaks]
+
+[.text-center]
+First reading
+_From the book of Revelation_
+[%hardbreaks]
+_4:1-11_
+[%hardbreaks]
+The vision of God
+I, John, had another vision: above me there was an open door to heaven, and I heard the trumpetlike voice which had spoken to me before. It said, "Come up here and I will show you what must take place in time to come."
+At once I was caught up in ecstasy. A throne was standing there in heaven, and on the throne was seated One whose appearance had a gemlike sparkle as of jasper and carnelian. Around the throne was a rainbow as brilliant as emerald. Surrounding this throne were twenty-four other thrones upon which were seated twenty-four elders; they were clothed in white garments and had crowns of gold on their heads. From the throne came flashes of lightning and peals of thunder; before it burned seven flaming torches, the seven spirits of God.
+The floor around the throne was like a sea of glass that was crystal-clear.
+At the very center, around the throne itself, stood four living creatures covered with eyes front and back. The first creature resembled a lion, the second an ox; the third had the face of a man, while the fourth looked like an eagle in flight. Each of the four living creatures had six wings and eyes all over, inside and out.
+Day and night, without pause, they sing:
+"Holy, holy, holy, is the Lord God Almighty,
+He who was, and who is, and who is to come!"
+Whenever these creatures give glory and honor and praise to the One seated on the throne, who lives forever and ever, the twenty-four elders fall down before the One seated on the throne, and worship him who lives forever and ever. They throw down their crowns before the throne and sing:
+"O Lord our God, you are worthy
+to receive glory and honor and power!"
+For you have created all things;
+by your will they came to be and were made!
+
+
+=== RESPONSORY
+
+[%hardbreaks]
+
+_Revelation 4:8; Isaiah 6:3_
+[%hardbreaks]
+Holy, holy, holy is the Lord God Almighty, he who was, and who is, and who is to come;
+— all the earth is full of his glory, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+The seraphim cried out to one another: Holy, holy, holy is the Lord of hosts.
+— All the earth is full of his glory, alleluia.
+[%hardbreaks]
+[.text-center]
+Second reading
+_From a discourse by Saint Athanasius, bishop_
+[%hardbreaks]
+_On the incarnation of the Word_
+[%hardbreaks]
+The Word of God, incorporeal, incorruptible and immaterial, entered our world. Yet it was not as if he had been remote from it up to that time. For there is no part of the world that was ever without his presence; together with his Father, he continually filled all things and places.
+Out of his loving-kindness for us he came to us, and we see this in the way he revealed himself openly to us. Taking pity on mankind's weakness, and moved by our corruption, he could not stand aside and see death have the mastery over us; he did not want creation to perish and his Father's work in fashioning man to be in vain. He therefore took to himself a body, no different from our own, for he did not wish simply to be in a body or only to be seen.
+If he had wanted simply to be seen, he could indeed have taken another, and nobler, body. Instead, he took our body in its reality.
+Within the Virgin he built himself a temple, that is, a body; he made it his own instrument in which to dwell and to reveal himself. In this way he received from mankind a body like our own, and, since all were subject to the corruption of death, he delivered this body over to death for all, and with supreme love offered it to the Father. He did so to destroy the law of corruption passed against all men, since all died in him. The law, which had spent its force on the body of the Lord, could no longer have any power over his fellowmen. Moreover, this was the way in which the Word was to restore mankind to immortality, after it had fallen into corruption, and summon it back from death to life. He utterly destroyed the power death had against mankind—as fire consumes chaff—by means of the body he had taken and the grace of the resurrection.
+This is the reason why the Word assumed a body that could die, so that this body, sharing in the Word who is above all, might satisfy death's requirement in place of all. Because of the Word dwelling in that body, it would remain incorruptible, and all would be freed for ever from corruption by the grace of the resurrection.
+In death the Word made a spotless sacrifice and oblation of the body he had taken. By dying for others, he immediately banished death for all mankind.
+In this way the Word of God, who is above all, dedicated and offered his temple, the instrument that was his body, for us all, as he said, and so paid by his own death the debt that was owed. The immortal Son of God, united with all men by likeness of nature, thus fulfilled all justice in restoring mankind to immortality by the promise of the resurrection.
+The corruption of death no longer holds any power over mankind, thanks to the Word, who has come to dwell among them through his one body.
+
+
+=== RESPONSORY
+
+[%hardbreaks]
+
+_Jeremiah 15:19, 20; 2 Peter 2:1_
+[%hardbreaks]
+You will be my spokesman. I will make you a solid wall of brass to these people.
+— They will fight against you, but they shall not prevail, for I am with you, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+False teachers will arise. They will secretly bring in destructive heresies and deny the Master who saved them.
+— They will fight against you, but they shall not prevail, for I am with you, alleluia.
+[%hardbreaks]
+
+
+=== CONCLUDING PRAYER
+
+[%hardbreaks]
+
+Almighty ever-living God,
+who raised up the Bishop Saint Athanasius
+as an outstanding champion of your Son's divinity,
+mercifully grant, that, rejoicing in his teaching
+and his protection, we may never cease
+to grow in knowledge and love of you.
+Through our Lord Jesus Christ, your Son,
+who lives and reigns with you in the unity of the Holy Spirit,
+[%hardbreaks]
+God, for ever and ever.
+— Amen.
+[%hardbreaks]
+
+
+=== ACCLAMATION
+
+[%hardbreaks]
+
+_(at least in the communal celebration)_
+[%hardbreaks]
+Let us praise the Lord.
+— And give him thanks.
+[%hardbreaks]
+
+
+== Morning Prayer
+
+
+[%hardbreaks]
+
+
+
+=== About 
+
+[%hardbreaks]
+
+[.text-center]
+*May 2*
+
+image::https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/S.Athanasius_by_M.Damaskenos_%28late_16th_c.%29.jpg/512px-S.Athanasius_by_M.Damaskenos_%28late_16th_c.%29.jpg[About image, 200]
+Saint Athanasius, Bishop and Doctor of the Church
+Memorial
+"For God has not only made us out of nothing; but He gave us freely, by the Grace of the Word, a life in correspondence with God." [1]
+Today we honor Saint Athanasius, Bishop of Alexandria in 4th century. Athanasius was incredibly bright, becoming a theological advisor at the Council of Nicea when he was still in his late twenties. He was ardent in opposing Arianism and defending the divinity of the Son of Man.  Athanasius wrote many
+
+
+https://divineoffice.org/0502-about-athanasius/?date=20250502[...Read the entire excerpt.]
+[%hardbreaks]
+_Ribbon Placement:_
+Liturgy of the Hours Vol. II:
+Ordinary: 1049
+Psalter: Friday, Week II, 1324
+Common of Doctors: 2095 (reading, canticle antiphon)
+Common of Pastors: 2073 (intercessions)
+Proper of Saints: 1810 (concluding prayer)
+Christian Prayer:
+Ordinary: 689
+Psalter: Friday, Week II, 835
+Common of Doctors: 1435 (reading, responsory)
+Common of Pastors: 1426 (intercessions)
+Proper of Saints: 1142 (concluding prayer)
+[.text-center]
+[%hardbreaks]
+*Morning Prayer for Friday in Easter, for the Memorial of St. Athanasius, Bishop and Doctor*
+[%hardbreaks]
+God, come to my assistance.
+— Lord, make haste to help me.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen. Alleluia.
+[%hardbreaks]
+
+
+=== HYMN
+
+[%hardbreaks]
+
+Jesus, our Teacher, loving Lord and Master,
+In adoration we acclaim your precepts,
+You alone offer words of life eternal,
+Laws of salvation.
+Humbly we thank you, Shepherd through the ages,
+For the protection to your Church extended,
+Constantly guiding, that all souls may find there
+Light in the darkness.
+Masters of learning were your eager servants,
+Stars of great splendor with but one ambition,
+Deeper to fathom and explain the wonders
+Of revelation.
+All tongues should praise you, Jesus, divine Master,
+Who lavish treasures from your Holy Spirit,
+Through words and writings of the Church's doctors,
+Flame ever fruitful.
+May this day's patron, whom we gladly honor,
+Ever be near us, leading on your people,
+Till we all praise you, faith and hope rewarded,
+In light eternal. Amen.
+
+
+=== PSALMODY
+
+[%hardbreaks]
+
+[%hardbreaks]
+_Ant._ 1  Have courage, my son; your sins are forgiven, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 51
+
+[%hardbreaks]
+
+O God, have mercy on me
+Your inmost being must be renewed, and you must put on the new man (Ephesians 4:23-24).
+Have mercy on me, God, in your kindness.
+In your compassion blot out my offense.
+O wash me more and more from my guilt
+and cleanse me from my sin.
+My offenses truly I know them;
+my sin is always before me
+Against you, you alone, have I sinned;
+what is evil in your sight I have done.
+That you may be justified when you give sentence
+and be without reproach when you judge,
+O see, in guilt I was born,
+a sinner was I conceived.
+Indeed you love truth in the heart;
+then in the secret of my heart teach me wisdom.
+O purify me, then I shall be clean;
+O wash me, I shall be whiter than snow.
+Make me hear rejoicing and gladness,
+that the bones you have crushed may revive.
+From my sins turn away your face
+and blot out all my guilt.
+A pure heart create for me, O God,
+put a steadfast spirit within me.
+Do not cast me away from your presence,
+nor deprive me of your holy spirit.
+Give me again the joy of your help;
+with a spirit of fervor sustain me,
+that I may teach transgressors your ways
+and sinners may return to you.
+O rescue me, God, my helper,
+and my tongue shall ring out your goodness.
+O Lord, open my lips
+and my mouth shall declare your praise.
+For in sacrifice you take no delight,
+burnt offering from me you would refuse,
+my sacrifice, a contrite spirit,
+a humbled, contrite heart you will not spurn.
+In your goodness, show favor to Zion:
+rebuild the walls of Jerusalem.
+Then you will be pleased with lawful sacrifice,
+holocausts offered on your altar.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+
+
+=== Psalm-prayer
+
+[%hardbreaks]
+
+Father, he who knew no sin was made sin for us, to save us and restore us to your friendship. Look upon our contrite heart and afflicted spirit and heal our troubled conscience, so that in the joy and strength of the Holy Spirit we may proclaim your praise and glory before all the nations.
+[%hardbreaks]
+_Ant._ Have courage, my son; your sins are forgiven, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 2  You go forth to save your people, to save your anointed one, alleluia.
+[%hardbreaks]
+
+
+=== Canticle
+
+[%hardbreaks]
+
+_– Habakkuk 3:2-4, 13a, 15-19_
+God comes to judge
+Lift up your heads for your redemption is at hand (Luke 21:28).
+O Lord, I have heard your renown,
+and feared, O Lord, your work.
+In the course of the years revive it,
+in the course of the years make it known;
+in your wrath remember compassion!
+God comes from Teman,
+the Holy One from Mount Paran.
+Covered are the heavens with his glory,
+and with his praise the earth is filled.
+His splendor spreads like the light;
+rays shine forth from beside him,
+where his power is concealed.
+You come forth to save your people,
+to save your anointed one.
+You tread the sea with your steeds
+amid the churning of the deep waters.
+I hear, and my body trembles;
+at the sound, my lips quiver.
+Decay invades my bones,
+my legs tremble beneath me.
+I await the day of distress
+that will come upon the people who attack us.
+For though the fig tree blossom not
+nor fruit be on the vines,
+though the yield of the olive fail
+and the terraces produce no nourishment,
+though the flocks disappear from the fold
+and there be no herd in the stalls,
+yet will I rejoice in the Lord
+and exult in my saving God.
+God, my Lord, is my strength;
+he makes my feet swift as those of hinds
+and enables me to go upon the heights.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ You go forth to save your people, to save your anointed one, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 3  Zion, give praise to your God; he has brought peace to your borders, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 147:12-20
+
+[%hardbreaks]
+
+The restoration of Jerusalem
+Come, I will show you the bride of the Lamb (Revelation 21:9).
+O praise the Lord, Jerusalem!
+Zion praise your God!
+He has strengthened the bars of your gates
+he has blessed the children within you.
+He established peace on your borders,
+he feeds you with finest wheat.
+He sends out his word to the earth
+and swiftly runs his command.
+He showers down snow white as wool,
+he scatters hoar-frost like ashes.
+He hurls down hailstones like crumbs.
+The waters are frozen at his touch;
+he sends forth his word and it melts them:
+at the breath of his mouth the waters flow.
+He makes his word known to Jacob,
+to Israel his laws and decrees.
+He has not dealt thus with other nations;
+he has not taught them his decrees.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+
+
+=== Psalm-prayer
+
+[%hardbreaks]
+
+Lord, you established peace within the borders of Jerusalem. Give the fullness of peace now to your faithful people. May peace rule us in this life and possess us in eternal life. You are about to fill us with the best of wheat: grant that what we see dimly now as in a mirror, we may come to perceive clearly in the brightness of your truth.
+[%hardbreaks]
+_Ant._ Zion, give praise to your God; he has brought peace to your borders, alleluia.
+[%hardbreaks]
+
+
+=== READING
+
+[%hardbreaks]
+
+_Wisdom 7:13-14_
+Simply I learned about Wisdom, and ungrudgingly do I share –
+her riches I do not hide away;
+For to men she is an unfailing treasure;
+those who gain this treasure win the friendship of God,
+to whom the gifts they have from discipline commend them.
+Sacred Silence (indicated by a bell) – a moment to reflect and receive in our hearts the full resonance of the voice of the Holy Spirit and to unite our personal prayer more closely with the word of God and public voice of the Church.
+
+
+=== RESPONSORY
+
+[%hardbreaks]
+
+[%hardbreaks]
+Let the peoples proclaim the wisdom of the saints, alleluia, alleluia.
+— Let the peoples proclaim the wisdom of the saints, alleluia, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+With joyful praise let the Church tell forth
+— alleluia, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit,
+— Let the peoples proclaim the wisdom of the saints, alleluia, alleluia.
+[%hardbreaks]
+
+
+=== CANTICLE
+
+[%hardbreaks]
+
+_OF ZECHARIAH_
+[%hardbreaks]
+_Ant._ Those who are learned will be as radiant as the sky in all its beauty; those who instruct the people in goodness will shine like the stars for all eternity, alleluia.
+[%hardbreaks]
+Luke 1:68 – 79
+The Messiah and his forerunner
+Blessed be the Lord, the God of Israel;
+he has come to his people and set them free.
+He has raised up for us a mighty savior,
+born of the house of his servant David.
+Through his holy prophets he promised of old
+that he would save us from our enemies,
+from the hands of all who hate us.
+He promised to show mercy to our fathers
+and to remember his holy covenant.
+This was the oath he swore to our father Abraham:
+to set us free from the hands of our enemies,
+free to worship him without fear,
+holy and righteous in his sight all the days of our life.
+You, my child, shall be called the prophet of the Most High;
+for you will go before the Lord to prepare his way,
+to give his people knowledge of salvation
+by the forgiveness of their sins.
+In the tender compassion of our God
+the dawn from on high shall break upon us,
+to shine on those who dwell in darkness and the shadow of death,
+and to guide our feet into the way of peace.
+Glory to the Father, and to the Son,
+and to the Holy Spirit:
+as it was in the beginning, is now,
+and will be for ever. Amen.
+[%hardbreaks]
+_Ant._ Those who are learned will be as radiant as the sky in all its beauty; those who instruct the people in goodness will shine like the stars for all eternity, alleluia.
+[%hardbreaks]
+
+
+=== INTERCESSIONS
+
+[%hardbreaks]
+
+Christ is the Good Shepherd who laid down his life for his sheep. Let us praise and thank him as we pray:
+Nourish your people, Lord.
+[%hardbreaks]
+Christ, you decided to show your merciful love through your holy shepherds,
+— let your mercy always reach us through them.
+[%hardbreaks]
+Nourish your people, Lord.
+[%hardbreaks]
+Through your vicars you continue to perform the ministry of shepherd of souls,
+— direct us always through our leaders.
+[%hardbreaks]
+Nourish your people, Lord.
+[%hardbreaks]
+Through your holy ones, the leaders of your people, you served as physician of our bodies and our spirits,
+— continue to fulfill your ministry of life and holiness in us.
+[%hardbreaks]
+Nourish your people, Lord.
+[%hardbreaks]
+You taught your flock through the prudence and love of your saints,
+— grant us continual growth in holiness under the direction of our pastors.
+[%hardbreaks]
+Nourish your people, Lord.
+Our Father who art in heaven,
+hallowed be thy name.
+Thy kingdom come.
+Thy will be done on earth, as it is in heaven.
+Give us this day our daily bread,
+and forgive us our trespasses,
+as we forgive those who trespass against us,
+and lead us not into temptation,
+but deliver us from evil.
+
+
+=== Concluding Prayer
+
+[%hardbreaks]
+
+Almighty ever-living God,
+who raised up the Bishop Saint Athanasius
+as an outstanding champion of your Son's divinity,
+mercifully grant, that, rejoicing in his teaching
+and his protection, we may never cease
+to grow in knowledge and love of you.
+Through our Lord Jesus Christ, your Son,
+who lives and reigns with you in the unity of the Holy Spirit,
+[%hardbreaks]
+God, for ever and ever.
+— Amen.
+[%hardbreaks]
+
+
+=== DISMISSAL
+
+[%hardbreaks]
+
+May the Lord bless us,
+[%hardbreaks]
+protect us from all evil and bring us to everlasting life.
+— Amen.
+[%hardbreaks]
+
+
+== Evening Prayer
+
+
+[%hardbreaks]
+
+[%hardbreaks]
+_Ribbon Placement:_
+Liturgy of the Hours Vol. II:
+Ordinary: 1064
+Psalter: Friday, Week II, 1334
+Common of Doctors: 2097 (reading, canticle antiphon)
+Common of Pastors: 2081 (intercessions)
+Proper of Saints: 1810 (concluding prayer)
+Christian Prayer:
+Ordinary: 694
+Psalter: Friday, Week II, 840
+Common of Doctors: 1436 (reading, canticle antiphon)
+Common of Pastors: 1430 (intercessions)
+Proper of Saints: 1142 (concluding prayer)
+[.text-center]
+[%hardbreaks]
+*Evening Prayer for Friday in Easter, the Memorial of Saint Athanasius, Bishop and Doctor*
+[%hardbreaks]
+God, come to my assistance.
+— Lord, make haste to help me.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen. Alleluia.
+[%hardbreaks]
+
+
+=== HYMN
+
+[%hardbreaks]
+
+Eternal Sun, true Light Divine,
+Whose wisdom fills creation's plan,
+We sing to you with joy this day,
+The Light supreme of ev'ry soul.
+Your Holy Spirit's ardent fire
+Inspired some chosen master minds,
+To shed bright rays upon the world
+And open up salvation's way.
+Both inspiration from on high,
+And efforts of deep human thought,
+Have worked in harmony of grace
+Developing our holy Faith.
+This saint and doctor whom we praise,
+Shines out with luster all his own,
+A jewel in the favored crown
+Of those who spread true doctrine's light.
+May his assistance help us too,
+Unswerving path of truth to read,
+That we at last may gaze on you,
+Our God, for all eternity.
+Most tender Father, hear our prayer,
+Whom we adore, with Christ the Lord,
+And Holy Spirit of them both,
+Bless us who praise your Trinity. Amen.
+
+
+=== PSALMODY
+
+[%hardbreaks]
+
+[%hardbreaks]
+_Ant._ 1  The Lord has rescued my life from the grasp of hell, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 116:1-9
+
+[%hardbreaks]
+
+Thanksgiving
+We must endure many trials before entering God's kingdom  (Acts 14:21).
+I love the Lord for he has heard
+the cry of my appeal;
+for he turned his ear to me
+in the day when I called him.
+They surrounded me, the snares of death,
+with the anguish of the tomb;
+they caught me, sorrow and distress.
+I called on the Lord's name.
+O Lord, my God, deliver me!
+How gracious is the Lord, and just;
+our God has compassion.
+The Lord protects the simple hearts;
+I was helpless so he saved me.
+Turn back, my soul, to your rest
+for the Lord has been good;
+he has kept my soul from death,
+my eyes from tears
+and my feet from stumbling.
+I will walk in the presence of the Lord
+in the land of the living.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+
+
+=== Psalm-prayer
+
+[%hardbreaks]
+
+God of power and mercy, through your Son's passion and resurrection you have freed us from the bonds of death and the anguish of separation from you. Be ever with us on our pilgrimage; then we shall sing rather than weep. Keep our feet from stumbling, so that we may be able to follow you until we come to eternal rest.
+[%hardbreaks]
+_Ant._ The Lord has rescued my life from the grasp of hell, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 2  The Lord watches over his people, and protects them as the apple of his eye, alleluia.
+[%hardbreaks]
+
+
+=== Psalm 121
+
+[%hardbreaks]
+
+Guardian of his people
+Never again will they hunger and thirst, never again know scorching heat (Revelation 7:16).
+I lift up my eyes to the mountains;
+from where shall come my help?
+My help shall come from the Lord
+who made heaven and earth.
+May he never allow you to stumble!
+Let him sleep not, your guard.
+No, he sleeps not nor slumbers,
+Israel's guard.
+The Lord is your guard and your shade;
+at your right side he stands.
+By day the sun shall not smite you
+nor the moon in the night.
+The Lord will guard you from evil,
+he will guard your soul.
+The Lord will guard your going and coming
+both now and for ever.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+
+
+=== Psalm-prayer
+
+[%hardbreaks]
+
+Lord Jesus Christ, you have prepared a quiet place for us in your Father's eternal home. Watch over our welfare on this perilous journey, shade us from the burning heat of day, and keep our lives free of evil until the end.
+[%hardbreaks]
+_Ant._ The Lord watches over his people, and protects them as the apple of his eye, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ 3  The Lord is my strength, I shall always praise him, for he has become my Savior, alleluia.
+[%hardbreaks]
+
+
+=== Canticle
+
+[%hardbreaks]
+
+_– Revelation 15:3-4_
+Hymn of adoration
+Mighty and wonderful are your works,
+Lord God Almighty!
+Righteous and true are your ways,
+O King of the nations!
+Who would dare refuse you honor,
+or the glory due your name, O Lord?
+Since you alone are holy,
+all nations shall come
+and worship in your presence.
+Your mighty deeds are clearly seen.
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit:
+— as it was in the beginning, is now, and will be for ever. Amen.
+[%hardbreaks]
+[%hardbreaks]
+_Ant._ The Lord is my strength, I shall always praise him, for he has become my Savior, alleluia.
+[%hardbreaks]
+
+
+=== READING
+
+[%hardbreaks]
+
+_James 3:17-18_
+Wisdom from above is first of all innocent. It is also peaceable, lenient, docile, rich in sympathy and the kindly deeds that are its fruits, impartial and sincere. The harvest of justice is sown in peace for those who cultivate peace.
+Sacred Silence (indicated by a bell) – a moment to reflect and receive in our hearts the full resonance of the voice of the Holy Spirit and to unite our personal prayer more closely with the word of God and public voice of the Church.
+
+
+=== RESPONSORY
+
+[%hardbreaks]
+
+[%hardbreaks]
+In the midst of the Church he spoke with eloquence, alleluia, alleluia.
+— In the midst of the Church he spoke with eloquence, alleluia, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+The Lord filled him with the spirit of wisdom and understanding.
+— alleluia, alleluia.
+[%hardbreaks]
+[%hardbreaks]
+Glory to the Father, and to the Son, and to the Holy Spirit,
+— In the midst of the Church he spoke with eloquence, alleluia, alleluia.
+[%hardbreaks]
+
+
+=== CANTICLE OF MARY
+
+[%hardbreaks]
+
+[%hardbreaks]
+_Ant._ O blessed doctor, Saint Athanasius, light of holy Church and lover of God's law, pray to the Son of God for us.
+[%hardbreaks]
+Luke 1:46-55
+The soul rejoices in the Lord
+My soul proclaims the greatness of the Lord,
+my spirit rejoices in God my Savior
+for he has looked with favor on his lowly servant.
+From this day all generations will call me blessed:
+the Almighty has done great things for me,
+and holy is his Name.
+He has mercy on those who fear him
+in every generation.
+He has shown the strength of his arm,
+he has scattered the proud in their conceit.
+He has cast down the mighty from their thrones,
+and has lifted up the lowly.
+He has filled the hungry with good things,
+and the rich he has sent away empty.
+He has come to the help of his servant Israel
+for he has remembered his promise of mercy,
+the promise he made to our fathers,
+to Abraham and his children for ever.
+Glory to the Father, and to the Son,
+and to the Holy Spirit:
+as it was in the beginning, is now,
+and will be for ever. Amen.
+[%hardbreaks]
+_Ant._ O blessed doctor, Saint Athanasius, light of holy Church and lover of God's law, pray to the Son of God for us.
+[%hardbreaks]
+
+
+=== INTERCESSIONS
+
+[%hardbreaks]
+
+Jesus Christ is worthy of all praise, for he was appointed high priest among men and their representative before God. We honor him and in our weakness we pray:
+Bring salvation to your people, Lord.
+[%hardbreaks]
+You marvelously illuminated your Church through distinguished leaders and holy men and women,
+— let Christians rejoice always in such splendor.
+[%hardbreaks]
+Bring salvation to your people, Lord.
+[%hardbreaks]
+You forgave the sins of your people when their holy leaders like Moses sought your compassion,
+— through their intercession continue to purify and sanctify your holy people.
+[%hardbreaks]
+Bring salvation to your people, Lord.
+[%hardbreaks]
+In the midst of their brothers and sisters you anointed your holy ones and filled them with the Holy Spirit,
+— fill all the leaders of your people with the same Spirit.
+[%hardbreaks]
+Bring salvation to your people, Lord.
+[%hardbreaks]
+You yourself are the only visible possession of our holy pastors,
+— let none of them, won at the price of your blood, remain far from you.
+[%hardbreaks]
+Bring salvation to your people, Lord.
+[%hardbreaks]
+The shepherds of your Church keep your flock from being snatched out of your hand. Through them you give your flock eternal life,
+— save those who have died, those for whom you gave up your life.
+[%hardbreaks]
+Bring salvation to your people, Lord.
+Our Father who art in heaven,
+hallowed be thy name.
+Thy kingdom come.
+Thy will be done on earth,
+as it is in heaven.
+Give us this day our daily bread,
+and forgive us our trespasses,
+as we forgive those who trespass against us,
+and lead us not into temptation,
+but deliver us from evil.
+
+
+=== Concluding Prayer
+
+[%hardbreaks]
+
+Almighty ever-living God,
+who raised up the Bishop Saint Athanasius
+as an outstanding champion of your Son's divinity,
+mercifully grant, that, rejoicing in his teaching
+and his protection, we may never cease
+to grow in knowledge and love of you.
+Through our Lord Jesus Christ, your Son,
+who lives and reigns with you in the unity of the Holy Spirit,
+[%hardbreaks]
+God, for ever and ever.
+— Amen.
+[%hardbreaks]
+
+
+=== DISMISSAL
+
+[%hardbreaks]
+
+May the Lord bless us,
+[%hardbreaks]
+protect us from all evil and bring us to everlasting life.
+— Amen.
+[%hardbreaks]
+https://divineoffice.org/?date=20250502[View on DivineOffice.org]
+
