@@ -30,7 +30,7 @@ publish_note() {
     local content="Today's ${office//-/ } is now available at ${url}"
     
     # Publish using Sybil
-    php bin/sybil.php note "${content}"
+    php bin/sybil note "${content}"
 }
 
 # Main script
@@ -51,7 +51,7 @@ main() {
     
     # Publish the AsciiDoc file
     echo "Publishing AsciiDoc file..."
-    php bin/sybil.php publication "src/testdata/Publications/Liturgy/output_modern/${current_date}.adoc"
+    php bin/sybil publication "src/testdata/Publications/Liturgy/output_modern/${current_date}.adoc"
     
     # Get current office based on time (or force Office of Readings in test mode)
     if [ "$test_mode" = true ]; then
