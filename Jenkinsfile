@@ -15,6 +15,11 @@ pipeline {
     }
     
     stages {
+        stage('Sanity Check') {
+            steps {
+                echo 'Jenkinsfile is being executed!'
+            }
+        }
         stage('Debug Workspace') {
             steps {
                 sh 'pwd'
