@@ -3,6 +3,7 @@
 namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
+use swentel\nostr\Relay\Relay;
 use InvalidArgumentException;
 use Sybil\Utilities\KeyUtility;
 use Sybil\Utilities\TagUtility;
@@ -173,7 +174,7 @@ class TextNoteEvent extends BaseEvent
         $eventMessage = new \swentel\nostr\Message\EventMessage($event);
         
         // Create relay
-        $relay = new RelayUtility($relayUrl);
+        $relay = new Relay($relayUrl);
         
         // Send the event with retry on failure, passing the custom relay list
         $result = $this->sendEventWithRetry($eventMessage, [$relay]);
