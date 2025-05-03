@@ -54,6 +54,20 @@ main() {
         echo "Running in test mode - will publish Office of Readings"
     fi
 
+    # Get current office based on time (or force Office of Readings in test mode)
+    if [ "$test_mode" = true ]; then
+        current_office="office-of-readings"
+        echo "Test mode: Publishing Office of Readings..."
+    else
+        current_office=$(get_current_office)
+    fi
+
+    # If we're not at a scheduled time and not in test mode, exit
+    if [ -z "$current_office" ] && [ "$test_mode" = false ]; then
+        echo "Not a scheduled publishing time."
+        exit 0
+    fi
+
     # Get current date
     current_date=$(get_current_date)
     output_file="src/testdata/Publications/Liturgy/output_modern/${current_date}.adoc"
@@ -79,25 +93,13 @@ main() {
     fi
     echo "Publication successful"
 
-    # Get current office based on time (or force Office of Readings in test mode)
-    if [ "$test_mode" = true ]; then
-        current_office="office-of-readings"
-        echo "Test mode: Publishing Office of Readings..."
-    else
-        current_office=$(get_current_office)
+    # Publish the note
+    echo "Publishing note for ${current_office}..."
+    if ! publish_note "$current_office"; then
+        echo "Error: Note publishing failed"
+        exit 1
     fi
-
-    # If we're at one of the scheduled times or in test mode, publish the note
-    if [ ! -z "$current_office" ]; then
-        echo "Publishing note for ${current_office}..."
-        if ! publish_note "$current_office"; then
-            echo "Error: Note publishing failed"
-            exit 1
-        fi
-        echo "Note publishing successful"
-    else
-        echo "Not a scheduled publishing time."
-    fi
+    echo "Note publishing successful"
 }
 
 # Run the main function with any arguments
