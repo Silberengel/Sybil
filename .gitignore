@@ -8,3 +8,4 @@ test*.php
 eventsCreated.yml
 events.json
 /user/test.yml
+src/testdata/Publications/Liturgy/output_modern/
