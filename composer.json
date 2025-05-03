@@ -16,7 +16,7 @@
     "require": {
         "php": ">=8.0",
         "ext-yaml": "*",
-        "swentel/nostr-php": "^1.0",
+        "swentel/nostr-php": "^1.7.1",
         "textalk/websocket": "^1.5"
     },
     "require-dev": {

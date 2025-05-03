@@ -6,4 +6,5 @@ composer.lock
 test*.php
 /.vscode
 eventsCreated.yml
+events.json
 /user/test.yml
