@@ -3,9 +3,12 @@
 namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
-use swentel\nostr\Relay\Relay;
 use InvalidArgumentException;
-use Sybil\Utilities\Utilities;
+use Sybil\Utilities\KeyUtility;
+use Sybil\Utilities\TagUtility;
+use Sybil\Utilities\RelayUtility;
+use Sybil\Utilities\ErrorHandlingUtility;
+use Sybil\Utilities\EventPreparationUtility;
 
 /**
  * Class TextNoteEvent
@@ -25,7 +28,11 @@ class TextNoteEvent extends BaseEvent
         parent::__construct();
         
         if (!empty($content)) {
-            $this->setContent($content);
+            if (is_file($content)) {
+                $this->setContent(file_get_contents($content));
+            } else {
+                $this->setContent($content);
+            }
         }
     }
     
@@ -61,7 +68,7 @@ class TextNoteEvent extends BaseEvent
         // For text notes, we don't need to preprocess the markup
         return [
             [
-                'title' => 'Text Note',
+                'title' => '',
                 'content' => $markup
             ]
         ];
@@ -149,7 +156,7 @@ class TextNoteEvent extends BaseEvent
         $event = $this->buildEvent();
         
         // Get private key from environment
-        $utility = new Utilities();
+        $utility = new KeyUtility();
         $privateKey = $utility::getNsec();
         
         // Sign the event
@@ -166,7 +173,7 @@ class TextNoteEvent extends BaseEvent
         $eventMessage = new \swentel\nostr\Message\EventMessage($event);
         
         // Create relay
-        $relay = new Relay(websocket: $relayUrl);
+        $relay = new RelayUtility($relayUrl);
         
         // Send the event with retry on failure, passing the custom relay list
         $result = $this->sendEventWithRetry($eventMessage, [$relay]);

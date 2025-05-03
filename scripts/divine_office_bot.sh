@@ -30,7 +30,7 @@ publish_note() {
     local content="Today's ${office//-/ } is now available at ${url}"
     
     # Publish using Sybil
-    php bin/sybil note "${content}"
+    php bin/sybil note "${content}" wss://christpill.nostr1.com
 }
 
 # Main script
