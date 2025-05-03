@@ -47,7 +47,7 @@ main() {
     
     # Run the Divine Office scraper
     echo "Running Divine Office scraper for ${current_date}..."
-    php src/testdata/Publications/Liturgy/DivineOffice.php
+    php src/testdata/Publications/Liturgy/ScrapeDO.php $current_date
     
     # Publish the AsciiDoc file
     echo "Publishing AsciiDoc file..."
