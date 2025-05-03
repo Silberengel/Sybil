@@ -8,15 +8,19 @@ use Sybil\Service\TagService;
 use Sybil\Service\LoggerService;
 use Sybil\Event\LongformEvent;
 use InvalidArgumentException;
+use Sybil\Command\Traits\RelayOptionTrait;
 
 /**
  * Command for publishing a longform article
  * 
  * This command handles the 'longform' command, which creates and publishes
  * a longform article event from a Markdown file.
+ * Usage: sybil longform <file_path> [--relay <relay_url>]
  */
 class LongformCommand extends BaseCommand
 {
+    use RelayOptionTrait;
+    
     /**
      * @var EventService Event service
      */
@@ -26,11 +30,6 @@ class LongformCommand extends BaseCommand
      * @var TagService Tag service
      */
     private TagService $tagService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    private LoggerService $logger;
     
     /**
      * Constructor
@@ -49,11 +48,10 @@ class LongformCommand extends BaseCommand
         parent::__construct($app);
         
         $this->name = 'longform';
-        $this->description = 'Create and publish a longform article event from a Markdown file';
+        $this->description = 'Create and publish a longform article from a Markdown file';
         
         $this->eventService = $eventService;
         $this->tagService = $tagService;
-        $this->logger = $logger;
     }
     
     /**
@@ -64,33 +62,35 @@ class LongformCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // Validate arguments
-        if (!$this->validateArgs($args, 1, 'The source file argument is missing.')) {
-            return 1;
-        }
-        
-        $filePath = $args[0];
-        
-        try {
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Parse arguments
+            list($filePath, $relayUrl) = $this->parseRelayArgs($args);
+            
+            // Validate file path
+            if (!$this->validateRequiredArgs([$filePath], 1, "The source file argument is missing.")) {
+                return 1;
+            }
+            
             // Create longform event
             $longform = new LongformEvent();
             $longform->setFile($filePath);
             
+            // Log operation start
+            $this->logOperationStart("Publishing longform article", $relayUrl);
+            
             // Publish the longform article
-            $success = $longform->publish();
+            $result = !empty($relayUrl)
+                ? $longform->publishToRelay($relayUrl)
+                : $longform->publish();
             
-            // Success message only if the event was published successfully
-            if ($success) {
-                $this->logger->info("The longform article has been written.");
-            }
+            // Handle the result
+            $success = $this->handleResult(
+                $result,
+                "The longform article has been written.",
+                "The longform article was created but could not be published to any relay."
+            );
             
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
-        } catch (\Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
-            return 1;
-        }
+            return $success ? 0 : 1;
+        }, $args);
     }
 }

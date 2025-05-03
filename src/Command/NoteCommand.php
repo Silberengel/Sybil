@@ -8,15 +8,20 @@ use Sybil\Service\RelayService;
 use Sybil\Service\LoggerService;
 use Sybil\Event\TextNoteEvent;
 use InvalidArgumentException;
+use Exception;
+use Sybil\Command\Traits\RelayOptionTrait;
 
 /**
  * Command for publishing a text note
  * 
  * This command handles the 'note' command, which creates and publishes
  * a text note event.
+ * Usage: sybil note <content> [--relay <relay_url>]
  */
 class NoteCommand extends BaseCommand
 {
+    use RelayOptionTrait;
+    
     /**
      * @var EventService Event service
      */
@@ -26,11 +31,6 @@ class NoteCommand extends BaseCommand
      * @var RelayService Relay service
      */
     private RelayService $relayService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    private LoggerService $logger;
     
     /**
      * Constructor
@@ -49,11 +49,10 @@ class NoteCommand extends BaseCommand
         parent::__construct($app);
         
         $this->name = 'note';
-        $this->description = 'Create and publish a text note event';
+        $this->description = 'Create and publish a text note';
         
         $this->eventService = $eventService;
         $this->relayService = $relayService;
-        $this->logger = $logger;
     }
     
     /**
@@ -64,52 +63,34 @@ class NoteCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // Validate arguments
-        if (!$this->validateArgs($args, 1, 'The note content is missing.')) {
-            return 1;
-        }
-        
-        $content = $args[0];
-        $relayUrl = $args[1] ?? '';
-        
-        try {
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Parse arguments
+            list($content, $relayUrl, $keyEnvVar) = $this->parseRelayAndKeyArgs($args);
+            
+            // Validate content
+            if (!$this->validateRequiredArgs([$content], 1, "The note content is missing.")) {
+                return 1;
+            }
+            
             // Create text note event
             $textNote = new TextNoteEvent($content);
             
-            // Publish the text note
-            if (!empty($relayUrl)) {
-                // Publish to a specific relay
-                $result = $textNote->publishToRelay($relayUrl);
-                
-                // Check if the note was published successfully
-                if (isset($result['success']) && $result['success']) {
-                    // Success message
-                    $this->logger->info("The text note has been written.");
-                } else {
-                    // Error message
-                    $this->logger->warning("The text note was created but could not be published to any relay.");
-                }
-            } else {
-                // Publish to all relays in relays.yml
-                $result = $textNote->publish();
-                
-                // Check if the note was published successfully
-                if ($result) {
-                    // Success message
-                    $this->logger->info("The text note has been written.");
-                } else {
-                    // Error message
-                    $this->logger->warning("The text note was created but could not be published to any relay.");
-                }
-            }
+            // Log operation start
+            $this->logOperationStart("Publishing note", $relayUrl);
             
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
-        } catch (\Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
-            return 1;
-        }
+            // Publish the text note
+            $result = !empty($relayUrl) 
+                ? $textNote->publishToRelay($relayUrl, $keyEnvVar)
+                : $textNote->publish($keyEnvVar);
+            
+            // Handle the result
+            $success = $this->handleResult(
+                $result,
+                "The text note has been written.",
+                "The text note was created but could not be published to any relay."
+            );
+            
+            return $success ? 0 : 1;
+        }, $args);
     }
 }

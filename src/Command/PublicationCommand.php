@@ -8,12 +8,14 @@ use Sybil\Service\TagService;
 use Sybil\Service\LoggerService;
 use Sybil\Event\PublicationEvent;
 use InvalidArgumentException;
+use Exception;
 
 /**
  * Command for publishing a publication
  * 
  * This command handles the 'publication' command, which creates and publishes
  * a publication event from an AsciiDoc file.
+ * Usage: sybil publication <file_path> [--relay <relay_url>]
  */
 class PublicationCommand extends BaseCommand
 {
@@ -26,11 +28,6 @@ class PublicationCommand extends BaseCommand
      * @var TagService Tag service
      */
     private TagService $tagService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    private LoggerService $logger;
     
     /**
      * Constructor
@@ -53,7 +50,6 @@ class PublicationCommand extends BaseCommand
         
         $this->eventService = $eventService;
         $this->tagService = $tagService;
-        $this->logger = $logger;
     }
     
     /**
@@ -64,33 +60,35 @@ class PublicationCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // Validate arguments
-        if (!$this->validateArgs($args, 1, 'The source file argument is missing.')) {
-            return 1;
-        }
-        
-        $filePath = $args[0];
-        
-        try {
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Parse arguments
+            list($filePath, $relayUrl) = $this->parseRelayArgs($args);
+            
+            // Validate file path
+            if (!$this->validateRequiredArgs([$filePath], 1, "The source file argument is missing.")) {
+                return 1;
+            }
+            
             // Create publication event
             $publication = new PublicationEvent();
             $publication->setFile($filePath);
             
+            // Log operation start
+            $this->logOperationStart("Publishing publication", $relayUrl);
+            
             // Publish the publication
-            $success = $publication->publish();
+            $result = !empty($relayUrl)
+                ? $publication->publishToRelay($relayUrl)
+                : $publication->publish();
             
-            // Success message only if the event was published successfully
-            if ($success) {
-                $this->logger->info("The publication has been written.");
-            }
+            // Handle the result
+            $success = $this->handleResult(
+                $result,
+                "The publication has been written.",
+                "The publication was created but could not be published to any relay."
+            );
             
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
-        } catch (\Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
-            return 1;
-        }
+            return $success ? 0 : 1;
+        }, $args);
     }
 }

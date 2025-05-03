@@ -8,6 +8,9 @@ use Sybil\Utilities\RelayUtility;
 use Sybil\Utilities\ErrorHandlingUtility;
 use Sybil\Utilities\LogUtility;
 use Sybil\Utilities\EventPreparationUtility;
+use Sybil\Utilities\Logger;
+use Sybil\Service\LoggerService;
+use Sybil\Utilities\KeyUtility;
 
 /**
  * Base class for all Nostr event types in the Sybil system.
@@ -48,12 +51,19 @@ abstract class BaseEvent
     public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
     
     /**
+     * @var Logger The logger instance
+     */
+    protected Logger $logger;
+    
+    /**
      * Constructor
      *
      * @param array $data Optional initial data for the event
      */
     public function __construct(array $data = [])
     {
+        $this->logger = new LoggerService();
+        
         if (!empty($data)) {
             if (isset($data['title'])) {
                 $this->setTitle($data['title']);
@@ -182,10 +192,11 @@ abstract class BaseEvent
     /**
      * Create and publish the event
      *
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return bool True if the event was published successfully, false otherwise
      * @throws InvalidArgumentException If the file is invalid or has formatting issues
      */
-    public function publish(): bool
+    public function publish(?string $keyEnvVar = null): bool
     {
         // Load and validate the markup file
         $markup = $this->loadMarkupFile();
@@ -201,7 +212,7 @@ abstract class BaseEvent
         $event = $this->buildEvent();
         
         // Prepare and send the event
-        $result = $this->prepareEventData($event);
+        $result = $this->prepareEventData($event, $keyEnvVar);
         
         // Check if the event was published successfully
         $success = isset($result['success']) && $result['success'];
@@ -244,10 +255,12 @@ abstract class BaseEvent
         
         // Log the event
         if ($success) {
-            echo "Published " . $kind . " event with ID " . $eventID . PHP_EOL . PHP_EOL;
+            $this->logger->output("Published " . $kind . " event with ID " . $eventID);
+            $this->logger->output("");
         } else {
-            echo "Created " . $kind . " event with ID " . $eventID . " but no relay accepted it." . PHP_EOL;
-            echo "The event was not published to any relay." . PHP_EOL . PHP_EOL;
+            $this->logger->warning("Created " . $kind . " event with ID " . $eventID . " but no relay accepted it.");
+            $this->logger->warning("The event was not published to any relay.");
+            $this->logger->output("");
         }
         
         $this->printEventData(
@@ -258,7 +271,21 @@ abstract class BaseEvent
         
         // Print a njump hyperlink only if the event was published successfully
         if ($success) {
-            echo "https://njump.me/" . $eventID . PHP_EOL;
+            $eventKind = $this->getEventKind();
+            $publicKey = KeyUtility::getPublicKey();
+            
+            // For text notes (kind 1), use nevent
+            if ($eventKind === 1) {
+                $this->logger->output("https://njump.me/nevent:" . $eventID);
+            }
+            // For longform (kind 30023), wiki (kind 30818), and publication (kind 30040), use naddr
+            else if (in_array($eventKind, [30023, 30818, 30040, 30041])) {
+                $this->logger->output("https://njump.me/naddr:" . $publicKey . ":" . $eventKind . ":" . $this->dTag);
+            }
+            // For other kinds, use nevent
+            else {
+                $this->logger->output("https://njump.me/nevent:" . $eventID);
+            }
         }
     }
     
@@ -297,12 +324,13 @@ abstract class BaseEvent
      * Prepares and sends an event
      *
      * @param Event $note The event to prepare and send
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return array The result of sending the event
      * @throws InvalidArgumentException If the private key is missing or invalid
      */
-    protected function prepareEventData(Event $note): array
+    protected function prepareEventData(Event $note, ?string $keyEnvVar = null): array
     {
-        return EventPreparationUtility::prepareEventData($note);
+        return EventPreparationUtility::prepareEventData($note, $keyEnvVar);
     }
     
     /**

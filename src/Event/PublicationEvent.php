@@ -92,148 +92,77 @@ class PublicationEvent extends BaseEvent
             throw new InvalidArgumentException('The file must be an AsciiDoc file (.adoc).');
         }
         
-        // Split the markup into sections
-        $sections = $this->splitIntoSections($markup);
-        
-        // Check if we have at least one section
-        if (empty($sections)) {
-            throw new InvalidArgumentException('The file must have at least one section.');
-        }
-        
-        // Set default author if not set from YAML
-        if (empty($this->author)) {
-            $this->author = 'unknown';
-        }
-        
-        return $sections;
-    }
-    
-    /**
-     * Split the markup into sections
-     * 
-     * @param string $markup The raw markup content
-     * @return array The sections
-     */
-    private function splitIntoSections(string $markup): array
-    {
-        // Function to process YAML metadata in a section
-        $processYamlMetadata = function($content) {
-            $yamlPattern = '/\/\/\/\/\s*\n<<YAML>>(.*?)<<\/YAML>>\s*\n\/\/\/\//s';
-            preg_match($yamlPattern, $content, $yamlMatches);
+        // Extract YAML metadata
+        if (strpos($markup, '<<YAML>>') !== false) {
+            // Extract YAML metadata - handle both with and without comment markers
+            $yamlPattern = '/(?:\/\/\/\/\s*)?<<YAML>>(.*?)<<\/YAML>>(?:\s*\/\/\/\/)?/s';
+            preg_match($yamlPattern, $markup, $yamlMatches);
             
-            if (!empty($yamlMatches[0])) {
-                // Extract YAML content
+            if (!empty($yamlMatches[1])) {
                 $yamlContent = $yamlMatches[1];
                 
                 // Parse YAML content
                 $yamlData = yaml_parse($yamlContent);
                 
-                // Set title and other metadata for the document (only from the first section)
-                if (empty($this->title) && isset($yamlData['title'])) {
+                // Set title and other metadata
+                if (isset($yamlData['title'])) {
                     $this->setTitle($yamlData['title']);
                 }
                 
-                // Set author (only from the first section)
-                if (empty($this->author) && isset($yamlData['author'])) {
+                if (isset($yamlData['author'])) {
                     $this->author = $yamlData['author'];
                 }
                 
-                // Set version (only from the first section)
-                if (empty($this->version) && isset($yamlData['version'])) {
+                if (isset($yamlData['version'])) {
                     $this->version = $yamlData['version'];
                 }
                 
-                // Set tag type (only from the first section)
-                if (empty($this->tagType) && isset($yamlData['tag-type'])) {
+                if (isset($yamlData['tag-type'])) {
                     $this->tagType = $yamlData['tag-type'];
                 }
                 
                 // Process tags
                 if (isset($yamlData['tags']) && is_array($yamlData['tags'])) {
-                    echo "Processing " . count($yamlData['tags']) . " YAML tags" . PHP_EOL;
-                    
                     foreach ($yamlData['tags'] as $tag) {
-                        if (is_array($tag)) {
-                            echo "Processing tag: " . json_encode($tag) . PHP_EOL;
-                            
-                            if (count($tag) >= 2 && $tag[0] === 't') {
+                        if (is_array($tag) && count($tag) >= 2) {
+                            if ($tag[0] === 't') {
                                 $this->hashtags[] = $tag[1];
-                                echo "Added hashtag: " . $tag[1] . PHP_EOL;
                             } else {
                                 $this->optionalTags[] = $tag;
-                                echo "Added optional tag: " . json_encode($tag) . PHP_EOL;
                             }
-                        } else {
-                            echo "Skipping non-array tag: " . $tag . PHP_EOL;
                         }
                     }
-                    
-                    echo "Processed tags - Hashtags: " . count($this->hashtags) . ", Optional tags: " . count($this->optionalTags) . PHP_EOL;
-                } else {
-                    echo "No tags found in YAML data" . PHP_EOL;
                 }
-                
-                // Remove YAML metadata from the content
-                $content = str_replace($yamlMatches[0], '', $content);
-            }
-            
-            return $content;
-        };
-        
-        // First, split by level 1 header to get the document title
-        $level1Pattern = '/^=\s+(.*)$/m';
-        $level1Parts = preg_split($level1Pattern, $markup, 2, PREG_SPLIT_DELIM_CAPTURE);
-        
-        // Process sections
-        $processedSections = [];
-        
-        // If we have a level 1 header, use it as the document title
-        if (count($level1Parts) >= 2) {
-            $documentTitle = trim($level1Parts[1]);
-            if (empty($this->title)) {
-                $this->setTitle($documentTitle);
-            }
-            
-            // The content after the level 1 header is the preamble and sections
-            $contentAfterTitle = isset($level1Parts[2]) ? $level1Parts[2] : '';
-            
-            // Process YAML metadata in the preamble
-            $contentAfterTitle = $processYamlMetadata($contentAfterTitle);
-            
-            // Split the content by level 2 headers to get the sections
-            $level2Pattern = '/^==\s+(.*)$/m';
-            $level2Parts = preg_split($level2Pattern, $contentAfterTitle, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-            
-            // If we have content before the first level 2 header, it's the preamble
-            if (!empty($level2Parts[0])) {
-                $preambleContent = trim($level2Parts[0]);
-                if (!empty($preambleContent)) {
-                    $processedSections[] = [
-                        'title' => 'Preamble',
-                        'content' => $preambleContent
-                    ];
-                }
-                
-                // Remove the preamble
-                array_shift($level2Parts);
-            }
-            
-            // Process the level 2 sections
-            for ($i = 0; $i < count($level2Parts); $i += 2) {
-                $title = trim($level2Parts[$i]);
-                $content = isset($level2Parts[$i + 1]) ? $level2Parts[$i + 1] : '';
-                
-                // Process YAML metadata in the section
-                $content = $processYamlMetadata($content);
-                
-                $processedSections[] = [
-                    'title' => $title,
-                    'content' => trim($content)
-                ];
             }
         }
         
-        return $processedSections;
+        // Remove YAML frontmatter by removing lines between //// markers
+        $lines = explode("\n", $markup);
+        $cleanedLines = [];
+        $inYamlBlock = false;
+        
+        foreach ($lines as $line) {
+            if (strpos($line, '////') !== false) {
+                $inYamlBlock = !$inYamlBlock;
+                continue;
+            }
+            
+            if (!$inYamlBlock) {
+                $cleanedLines[] = $line;
+            }
+        }
+        
+        $markup = implode("\n", $cleanedLines);
+        
+        // Set content
+        $this->content = $markup;
+        
+        return [
+            [
+                'title' => $this->title,
+                'content' => $markup
+            ]
+        ];
     }
     
     /**

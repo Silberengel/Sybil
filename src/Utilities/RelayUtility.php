@@ -131,204 +131,139 @@ class RelayUtility
      * @param array $customRelays Optional array of Relay objects to use instead of the default list
      * @return array The result from sending the event
      */
-    public static function sendEventWithRetry(EventMessage $eventMessage, array $customRelays = []): array
+    public static function sendEventWithRetry(\swentel\nostr\Message\EventMessage $eventMessage, array $customRelays = []): array
     {
-        // Get the event kind and ID for better error reporting
-        $eventKind = 0;
-        $eventId = 'unknown-event-id';
-        $eventObj = null;
+        $eventId = $eventMessage->getEvent()->getId();
+        $eventKind = $eventMessage->getEvent()->getKind();
         
-        // Use reflection to access the protected event property
-        try {
-            $reflection = new \ReflectionClass($eventMessage);
-            $properties = $reflection->getProperties();
-            
-            foreach ($properties as $property) {
-                $property->setAccessible(true);
-                $value = $property->getValue($eventMessage);
-                
-                // Check if this property contains the Event object
-                if (is_object($value)) {
-                    $eventObj = $value;
-                    if (method_exists($value, 'getKind')) {
-                        $eventKind = $value->getKind();
-                    }
-                    if (method_exists($value, 'getId')) {
-                        $eventId = $value->getId();
-                    }
-                    break;
-                }
-            }
-        } catch (\Exception $e) {
-            // If reflection fails, continue with default values
-        }
+        $logger = self::getLogger();
+        $logger->debug("Debug - Initial Event ID: " . $eventId);
         
-        // Debug output
-        echo "Debug - Initial Event ID: " . $eventId . PHP_EOL;
+        // Get the list of relays to use
+        $relays = !empty($customRelays) ? $customRelays : self::getRelayList($eventKind);
         
-        // Use custom relays if provided, otherwise use a default list
-        $relays = $customRelays;
+        $logger->info("Sending event kind " . $eventKind . " to " . count($relays) . " relays...");
         
-        // If no custom relays were provided, use a default list
-        if (empty($relays)) {
-            $relays = self::getDefaultRelays($eventKind);
-        }
-
-        // Log the event kind for better debugging
-        echo "Sending event kind " . $eventKind . " to " . count($relays) . " relays..." . PHP_EOL;
-        
-        // For deletion events (kind 5), provide additional information
+        // Add a note about deletion events
         if ($eventKind === 5) {
-            echo "Note: Deletion events (kind 5) may be rejected by some relays due to relay policies." . PHP_EOL;
-            echo "      Ensure you're using the same private key that created the original event." . PHP_EOL;
+            $logger->info("Note: Deletion events (kind 5) may be rejected by some relays due to relay policies.");
+            $logger->info("      Ensure you're using the same private key that created the original event.");
         }
-
-        $relaySet = new RelaySet();
-        $relaySet->setRelays($relays);
-        $relaySet->setMessage($eventMessage);
-
-        $maxRetries = 3;
-        $retryCount = 0;
-        $successfulRelays = [];
-        $failedRelays = [];
-
-        while ($retryCount < $maxRetries) {
+        
+        // Send the event to all relays
+        $result = RequestUtility::sendToMultipleRelays($relays, $eventMessage);
+        
+        // Check if any relays accepted the event
+        if (!empty($result['successful_relays'])) {
+            $logger->info("Event successfully sent to " . count($result['successful_relays']) . " relays:");
+            $logger->info("  Accepted by: " . implode(", ", $result['successful_relays']));
+            if (!empty($result['failed_relays'])) {
+                $logger->warning("  Rejected by: " . implode(", ", $result['failed_relays']));
+            }
+            return [
+                'success' => true,
+                'message' => 'Event published successfully',
+                'event_id' => $eventId,
+                'successful_relays' => $result['successful_relays'],
+                'failed_relays' => $result['failed_relays']
+            ];
+        }
+        
+        // If no relays accepted the event, try again
+        if (empty($result['successful_relays'])) {
+            $logger->warning("No relays accepted the event. Retrying...");
+            if (!empty($result['failed_relays'])) {
+                $logger->warning("  Rejected by: " . implode(", ", $result['failed_relays']));
+            }
+            
             try {
-                // Use our helper function to handle errors
-                $result = \Sybil\Utilities\ErrorHandlingUtility::executeWithErrorHandling(function() use ($relaySet) {
-                    return $relaySet->send();
-                }, 'RelaySet.php');
+                // Wait a moment before retrying
+                sleep(5);
                 
-                // Check if any relays accepted the event
-                $anySuccess = false;
-                foreach ($result as $relayUrl => $response) {
-                    if (is_object($response) && method_exists($response, 'isSuccess')) {
-                        $isSuccess = $response->isSuccess();
-                        if ($isSuccess) {
-                            $anySuccess = true;
-                            $successfulRelays[] = $relayUrl;
-                        } else {
-                            $failedRelays[] = $relayUrl;
-                        }
-                    }
-                }
+                // Try again with the same relays
+                $result = RequestUtility::sendToMultipleRelays($relays, $eventMessage);
                 
-                if ($anySuccess) {
-                    echo "Event successfully sent to " . count($successfulRelays) . " relays:" . PHP_EOL;
-                    echo "  Accepted by: " . implode(", ", $successfulRelays) . PHP_EOL;
-                    if (!empty($failedRelays)) {
-                        echo "  Rejected by: " . implode(", ", $failedRelays) . PHP_EOL;
+                // Check if any relays accepted the event this time
+                if (!empty($result['successful_relays'])) {
+                    $logger->info("Event successfully sent to " . count($result['successful_relays']) . " relays on retry:");
+                    $logger->info("  Accepted by: " . implode(", ", $result['successful_relays']));
+                    if (!empty($result['failed_relays'])) {
+                        $logger->warning("  Rejected by: " . implode(", ", $result['failed_relays']));
                     }
                     return [
                         'success' => true,
-                        'message' => 'Event sent successfully to ' . count($successfulRelays) . ' relays',
+                        'message' => 'Event published successfully on retry',
                         'event_id' => $eventId,
-                        'successful_relays' => $successfulRelays,
-                        'failed_relays' => $failedRelays
+                        'successful_relays' => $result['successful_relays'],
+                        'failed_relays' => $result['failed_relays']
                     ];
-                } else {
-                    echo "No relays accepted the event. Retrying..." . PHP_EOL;
-                    if (!empty($failedRelays)) {
-                        echo "  Rejected by: " . implode(", ", $failedRelays) . PHP_EOL;
-                    }
-                    $retryCount++;
-                    sleep(5);
                 }
             } catch (\TypeError $e) {
-                echo "Sending to relays did not work. Will be retried." . PHP_EOL;
-                $retryCount++;
-                sleep(5);
+                $logger->warning("Sending to relays did not work. Will be retried.");
             } catch (\Exception $e) {
-                // Handle other exceptions, including invalid status code
-                echo "Error sending to relays: " . $e->getMessage() . ". Will be retried." . PHP_EOL;
-                $retryCount++;
-                sleep(5);
-            }
-        }
-
-        // If we've exhausted all retries, try with just the default relay
-        try {
-            // Use sovbit relay as the default for kind 1 notes
-            $defaultRelay = ($eventKind === 1) ? self::DEFAULT_RELAY_KIND1 : self::DEFAULT_RELAY_OTHER;
-            
-            echo "Trying with default relay: " . $defaultRelay . PHP_EOL;
-            
-            $singleRelaySet = new RelaySet();
-            $singleRelaySet->setRelays([new Relay($defaultRelay)]);
-            $singleRelaySet->setMessage($eventMessage);
-            
-            // Use our helper function to handle errors
-            $result = \Sybil\Utilities\ErrorHandlingUtility::executeWithErrorHandling(function() use ($singleRelaySet) {
-                return $singleRelaySet->send();
-            }, 'RelaySet.php');
-            
-            // Check if the default relay accepted the event
-            $defaultSuccess = false;
-            foreach ($result as $relayUrl => $response) {
-                if (is_object($response) && method_exists($response, 'isSuccess')) {
-                    $isSuccess = $response->isSuccess();
-                    if ($isSuccess) {
-                        $defaultSuccess = true;
-                        $successfulRelays[] = $relayUrl;
-                    } else {
-                        $failedRelays[] = $relayUrl;
-                    }
-                }
+                $logger->warning("Error sending to relays: " . $e->getMessage() . ". Will be retried.");
             }
             
-            if ($defaultSuccess) {
-                echo "Event successfully sent to default relay:" . PHP_EOL;
-                echo "  Accepted by: " . implode(", ", $successfulRelays) . PHP_EOL;
-                if (!empty($failedRelays)) {
-                    echo "  Rejected by: " . implode(", ", $failedRelays) . PHP_EOL;
-                }
-                return [
-                    'success' => true,
-                    'message' => 'Event sent successfully to default relay',
-                    'event_id' => $eventId,
-                    'successful_relays' => $successfulRelays,
-                    'failed_relays' => $failedRelays
-                ];
-            } else {
-                echo "Default relay did not accept the event." . PHP_EOL;
-                echo "  Rejected by: " . $defaultRelay . PHP_EOL;
+            // If we still have no success, try the default relay
+            $defaultRelay = self::DEFAULT_RELAY_OTHER;
+            $logger->info("Trying with default relay: " . $defaultRelay);
+            
+            try {
+                // Create a single relay instance
+                $relay = new Relay($defaultRelay);
                 
-                // Provide specific feedback for deletion events
-                if ($eventKind === 5) {
-                    echo "Deletion event was rejected by all relays. This could be because:" . PHP_EOL;
-                    echo "1. The relays don't accept deletion events (kind 5)" . PHP_EOL;
-                    echo "2. The private key used doesn't match the original event creator" . PHP_EOL;
-                    echo "3. The event ID might not exist on these relays" . PHP_EOL;
-                }
+                // Send the event to the default relay
+                $result = RequestUtility::sendWithRetry($relay, $eventMessage);
                 
-                return [
-                    'success' => false,
-                    'message' => 'Event was rejected by all relays including default relay',
-                    'event_id' => $eventId,
-                    'event_kind' => $eventKind,
-                    'failed_relays' => array_merge($failedRelays, [$defaultRelay])
-                ];
+                // Check if the default relay accepted the event
+                if (isset($result['success']) && $result['success']) {
+                    $logger->info("Event successfully sent to default relay:");
+                    $logger->info("  Accepted by: " . $defaultRelay);
+                    return [
+                        'success' => true,
+                        'message' => 'Event published successfully to default relay',
+                        'event_id' => $eventId,
+                        'successful_relays' => [$defaultRelay],
+                        'failed_relays' => []
+                    ];
+                } else {
+                    $logger->warning("Default relay did not accept the event.");
+                    $logger->warning("  Rejected by: " . $defaultRelay);
+                }
+            } catch (\Exception $e) {
+                $logger->error("All relays including default relay failed with error: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            // If even the default relay fails, return a detailed error response
-            echo "All relays including default relay failed with error: " . $e->getMessage() . PHP_EOL;
             
-            // Provide specific feedback for deletion events
+            // If we get here, all attempts failed
             if ($eventKind === 5) {
-                echo "Deletion event could not be sent to any relay. This could be because:" . PHP_EOL;
-                echo "1. The relays don't accept deletion events (kind 5)" . PHP_EOL;
-                echo "2. The private key used doesn't match the original event creator" . PHP_EOL;
-                echo "3. The event ID might not exist on these relays" . PHP_EOL;
-                echo "4. Network or connection issues with the relays" . PHP_EOL;
+                $logger->error("Deletion event was rejected by all relays. This could be because:");
+                $logger->error("1. The relays don't accept deletion events (kind 5)");
+                $logger->error("2. The private key used doesn't match the original event creator");
+                $logger->error("3. The event ID might not exist on these relays");
             }
             
             return [
                 'success' => false,
-                'message' => 'Failed to send event to any relay: ' . $e->getMessage(),
+                'message' => 'Event could not be published to any relay',
                 'event_id' => $eventId,
-                'event_kind' => $eventKind,
-                'error' => $e->getMessage()
+                'successful_relays' => [],
+                'failed_relays' => array_merge($result['failed_relays'] ?? [], [$defaultRelay])
             ];
         }
+        
+        // If we get here, something unexpected happened
+        $logger->error("Deletion event could not be sent to any relay. This could be because:");
+        $logger->error("1. The relays don't accept deletion events (kind 5)");
+        $logger->error("2. The private key used doesn't match the original event creator");
+        $logger->error("3. The event ID might not exist on these relays");
+        $logger->error("4. Network or connection issues with the relays");
+        
+        return [
+            'success' => false,
+            'message' => 'Event could not be published to any relay',
+            'event_id' => $eventId,
+            'successful_relays' => [],
+            'failed_relays' => $result['failed_relays'] ?? []
+        ];
     }
 }

@@ -8,15 +8,19 @@ use Sybil\Service\TagService;
 use Sybil\Service\LoggerService;
 use Sybil\Event\WikiEvent;
 use InvalidArgumentException;
+use Sybil\Command\Traits\RelayOptionTrait;
 
 /**
- * Command for publishing a wiki page
+ * Command for publishing a wiki article
  * 
  * This command handles the 'wiki' command, which creates and publishes
- * a wiki page event from an AsciiDoc file.
+ * a wiki article event from an AsciiDoc file.
+ * Usage: sybil wiki <file_path> [--relay <relay_url>]
  */
 class WikiCommand extends BaseCommand
 {
+    use RelayOptionTrait;
+    
     /**
      * @var EventService Event service
      */
@@ -26,11 +30,6 @@ class WikiCommand extends BaseCommand
      * @var TagService Tag service
      */
     private TagService $tagService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    private LoggerService $logger;
     
     /**
      * Constructor
@@ -49,11 +48,10 @@ class WikiCommand extends BaseCommand
         parent::__construct($app);
         
         $this->name = 'wiki';
-        $this->description = 'Create and publish a wiki page event from an AsciiDoc file';
+        $this->description = 'Create and publish a wiki page from an AsciiDoc file';
         
         $this->eventService = $eventService;
         $this->tagService = $tagService;
-        $this->logger = $logger;
     }
     
     /**
@@ -64,33 +62,35 @@ class WikiCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // Validate arguments
-        if (!$this->validateArgs($args, 1, 'The source file argument is missing.')) {
-            return 1;
-        }
-        
-        $filePath = $args[0];
-        
-        try {
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Parse arguments
+            list($filePath, $relayUrl) = $this->parseRelayArgs($args);
+            
+            // Validate file path
+            if (!$this->validateRequiredArgs([$filePath], 1, "The source file argument is missing.")) {
+                return 1;
+            }
+            
             // Create wiki event
             $wiki = new WikiEvent();
             $wiki->setFile($filePath);
             
-            // Publish the wiki page
-            $success = $wiki->publish();
+            // Log operation start
+            $this->logOperationStart("Publishing wiki article", $relayUrl);
             
-            // Success message only if the event was published successfully
-            if ($success) {
-                $this->logger->info("The wiki page has been written.");
-            }
+            // Publish the wiki article
+            $result = !empty($relayUrl)
+                ? $wiki->publishToRelay($relayUrl)
+                : $wiki->publish();
             
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
-        } catch (\Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
-            return 1;
-        }
+            // Handle the result
+            $success = $this->handleResult(
+                $result,
+                "The wiki article has been written.",
+                "The wiki article was created but could not be published to any relay."
+            );
+            
+            return $success ? 0 : 1;
+        }, $args);
     }
 }

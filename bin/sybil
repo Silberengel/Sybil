@@ -14,6 +14,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 require_once __DIR__ . '/../src/Application.php';
 require_once __DIR__ . '/../src/Command/CommandInterface.php';
 require_once __DIR__ . '/../src/Command/BaseCommand.php';
+require_once __DIR__ . '/../src/Command/Traits/RelayOptionTrait.php';
 require_once __DIR__ . '/../src/Command/PublicationCommand.php';
 require_once __DIR__ . '/../src/Command/LongformCommand.php';
 require_once __DIR__ . '/../src/Command/WikiCommand.php';
@@ -22,6 +23,7 @@ require_once __DIR__ . '/../src/Command/FetchCommand.php';
 require_once __DIR__ . '/../src/Command/DeleteCommand.php';
 require_once __DIR__ . '/../src/Command/BroadcastCommand.php';
 require_once __DIR__ . '/../src/Command/HelpCommand.php';
+require_once __DIR__ . '/../src/Command/RepublishCommand.php';
 require_once __DIR__ . '/../src/Service/LoggerService.php';
 require_once __DIR__ . '/../src/Service/RelayService.php';
 require_once __DIR__ . '/../src/Service/EventService.php';
@@ -104,27 +106,33 @@ $app->registerCommand(new Sybil\Command\NoteCommand(
 
 $app->registerCommand(new Sybil\Command\FetchCommand(
     $app,
+    $app->get('event_service'),
     $app->get('utility_service'),
     $app->get('logger')
 ));
 
 $app->registerCommand(new Sybil\Command\DeleteCommand(
     $app,
+    $app->get('event_service'),
     $app->get('utility_service'),
     $app->get('logger')
 ));
 
 $app->registerCommand(new Sybil\Command\BroadcastCommand(
     $app,
+    $app->get('event_service'),
     $app->get('utility_service'),
     $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\RepublishCommand(
+    $app
 ));
 
 // Register the help command last so it has access to all other commands
 $app->registerCommand(new Sybil\Command\HelpCommand(
     $app,
-    $app->get('logger'),
-    $app->getCommands() // Get all registered commands
+    $app->get('logger')
 ));
 
 // Run the application

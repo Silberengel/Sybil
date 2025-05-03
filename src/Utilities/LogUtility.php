@@ -35,6 +35,8 @@
 
 namespace Sybil\Utilities;
 
+use Sybil\Service\LoggerService;
+
 class LogUtility
 {
     // Constants for log levels
@@ -42,6 +44,24 @@ class LogUtility
     public const LOG_LEVEL_INFO = 1;
     public const LOG_LEVEL_WARNING = 2;
     public const LOG_LEVEL_ERROR = 3;
+    
+    /**
+     * @var LoggerService The logger instance
+     */
+    private static ?LoggerService $logger = null;
+    
+    /**
+     * Get the logger instance
+     *
+     * @return LoggerService The logger instance
+     */
+    private static function getLogger(): LoggerService
+    {
+        if (self::$logger === null) {
+            self::$logger = new LoggerService();
+        }
+        return self::$logger;
+    }
     
     /**
      * Logs event data to a file.
@@ -58,15 +78,36 @@ class LogUtility
         try {
             $fp = fopen($fullpath, "a");
             if (!$fp) {
-                error_log("Failed to open event log file: $fullpath");
+                self::getLogger()->error("Failed to open event log file: $fullpath");
                 return false;
             }
             
+            // Get the public key for naddr format
+            $publicKey = \Sybil\Utilities\KeyUtility::getPublicKey();
+            
+            // Determine the appropriate njump link format
+            $kindNum = (int)$eventKind;
+            $njumpLink = '';
+            
+            // For text notes (kind 1), use nevent
+            if ($kindNum === 1) {
+                $njumpLink = "https://njump.me/nevent:" . $eventID;
+            }
+            // For longform (kind 30023), wiki (kind 30818), and publication (kind 30040), use naddr
+            else if (in_array($kindNum, [30023, 30818, 30040, 30041])) {
+                $njumpLink = "https://njump.me/naddr:" . $publicKey . ":" . $kindNum . ":" . $dTag;
+            }
+            // For other kinds, use nevent
+            else {
+                $njumpLink = "https://njump.me/nevent:" . $eventID;
+            }
+            
             $data = sprintf(
-                "event ID: %s%s  event kind: %s%s  d Tag: %s%s",
+                "event ID: %s%s  event kind: %s%s  d Tag: %s%s  njump link: %s%s",
                 $eventID, PHP_EOL,
                 $eventKind, PHP_EOL,
-                $dTag, PHP_EOL
+                $dTag, PHP_EOL,
+                $njumpLink, PHP_EOL
             );
             
             $result = fwrite($fp, $data);
@@ -74,7 +115,7 @@ class LogUtility
             
             return $result !== false;
         } catch (\Exception $e) {
-            error_log("Error writing to event log: " . $e->getMessage());
+            self::getLogger()->error("Error writing to event log: " . $e->getMessage());
             return false;
         }
     }
@@ -88,37 +129,27 @@ class LogUtility
      */
     public static function log(string $message, int $level = self::LOG_LEVEL_INFO): bool
     {
-        $levelPrefix = '';
+        $logger = self::getLogger();
         
         switch ($level) {
             case self::LOG_LEVEL_DEBUG:
-                $levelPrefix = '[DEBUG] ';
+                $logger->debug($message);
                 break;
             case self::LOG_LEVEL_INFO:
-                $levelPrefix = '[INFO] ';
+                $logger->info($message);
                 break;
             case self::LOG_LEVEL_WARNING:
-                $levelPrefix = '[WARNING] ';
+                $logger->warning($message);
                 break;
             case self::LOG_LEVEL_ERROR:
-                $levelPrefix = '[ERROR] ';
+                $logger->error($message);
                 break;
             default:
-                $levelPrefix = '[INFO] ';
+                $logger->info($message);
                 break;
         }
         
-        $logMessage = $levelPrefix . $message;
-        
-        // Log to error_log
-        $result = error_log($logMessage);
-        
-        // Also output to console if it's not a debug message
-        if ($level > self::LOG_LEVEL_DEBUG) {
-            echo $logMessage . PHP_EOL;
-        }
-        
-        return $result;
+        return true;
     }
     
     /**

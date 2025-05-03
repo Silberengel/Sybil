@@ -4,6 +4,7 @@ namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
 use InvalidArgumentException;
+use Sybil\Service\LoggerService;
 
 /**
  * Class LongformEvent
@@ -32,6 +33,14 @@ class LongformEvent extends BaseEvent
      * @var array The hashtags for the longform article
      */
     protected array $hashtags = [];
+    
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
     
     /**
      * Get the event kind number
@@ -195,7 +204,7 @@ class LongformEvent extends BaseEvent
         // Then check for YAML metadata with <<YAML>> tags
         if (strpos($markup, '<<YAML>>') !== false) {
             // Debug output
-            echo "Original content length: " . strlen($markup) . PHP_EOL;
+            $this->logger->debug("Original content length: " . strlen($markup));
             
             // Try a simpler approach - just remove the first 10 lines if they contain YAML
             $lines = explode("\n", $markup);
@@ -219,11 +228,11 @@ class LongformEvent extends BaseEvent
                     // Remove the lines between yamlStartLine and yamlEndLine (inclusive)
                     array_splice($lines, $yamlStartLine, $yamlEndLine - $yamlStartLine + 1);
                     $markup = implode("\n", $lines);
-                    echo "Removed YAML frontmatter: " . $yamlStartLine . " to " . $yamlEndLine . PHP_EOL;
+                    $this->logger->debug("Removed YAML frontmatter: " . $yamlStartLine . " to " . $yamlEndLine);
                 }
             }
             
-            echo "New content length: " . strlen($markup) . PHP_EOL;
+            $this->logger->debug("New content length: " . strlen($markup));
         }
         
         return $markup;

@@ -57,14 +57,15 @@ class EventPreparationUtility
      * Signs the note, reads the relays from relays.yml and sends the event.
      *
      * @param Event $note The event to sign and send
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return array The result from sending the event
      * @throws \InvalidArgumentException If the private key is missing or invalid
      * @throws \TypeError If there's an issue sending to the relay
      */
-    public static function prepareEventData(Event $note): array
+    public static function prepareEventData(Event $note, ?string $keyEnvVar = null): array
     {
         // Get private key from environment
-        $privateKey = KeyUtility::getNsec();
+        $privateKey = KeyUtility::getNsec($keyEnvVar);
         
         // Get the event kind
         $kind = 0;
@@ -92,12 +93,13 @@ class EventPreparationUtility
      * @param int $kind The event kind
      * @param string $content The event content
      * @param array $tags The event tags
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return Event The created and signed event
      */
-    public static function createAndSignEvent(int $kind, string $content, array $tags = []): Event
+    public static function createAndSignEvent(int $kind, string $content, array $tags = [], ?string $keyEnvVar = null): Event
     {
         // Get private key from environment
-        $privateKey = KeyUtility::getNsec();
+        $privateKey = KeyUtility::getNsec($keyEnvVar);
         
         // Create the event
         $event = new Event();
@@ -129,9 +131,10 @@ class EventPreparationUtility
      * @param string $eventId The ID of the event to delete
      * @param int $eventKind The kind of the event to delete
      * @param string $referenceRelay The relay where the event was found
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return Event The created deletion event
      */
-    public static function createDeletionEvent(string $eventId, int $eventKind, string $referenceRelay): Event
+    public static function createDeletionEvent(string $eventId, int $eventKind, string $referenceRelay, ?string $keyEnvVar = null): Event
     {
         // Create deletion event
         $note = new Event();
@@ -143,7 +146,7 @@ class EventPreparationUtility
         ]);
         
         // Sign the deletion event
-        $privateKey = KeyUtility::getNsec();
+        $privateKey = KeyUtility::getNsec($keyEnvVar);
         $signer = new Sign();
         $signer->signEvent($note, $privateKey);
         

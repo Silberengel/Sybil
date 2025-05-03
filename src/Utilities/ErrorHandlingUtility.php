@@ -41,8 +41,28 @@
 
 namespace Sybil\Utilities;
 
+use Sybil\Service\LoggerService;
+
 class ErrorHandlingUtility
 {
+    /**
+     * @var LoggerService The logger instance
+     */
+    private static ?LoggerService $logger = null;
+    
+    /**
+     * Get the logger instance
+     *
+     * @return LoggerService The logger instance
+     */
+    private static function getLogger(): LoggerService
+    {
+        if (self::$logger === null) {
+            self::$logger = new LoggerService();
+        }
+        return self::$logger;
+    }
+    
     /**
      * Executes a callback function with error handling for vendor library warnings.
      * 
@@ -88,7 +108,31 @@ class ErrorHandlingUtility
      */
     public static function logError(string $message, int $level = E_ERROR): bool
     {
-        return error_log($message);
+        $logger = self::getLogger();
+        
+        switch ($level) {
+            case E_ERROR:
+            case E_CORE_ERROR:
+            case E_COMPILE_ERROR:
+            case E_USER_ERROR:
+                $logger->error($message);
+                break;
+            case E_WARNING:
+            case E_CORE_WARNING:
+            case E_COMPILE_WARNING:
+            case E_USER_WARNING:
+                $logger->warning($message);
+                break;
+            case E_NOTICE:
+            case E_USER_NOTICE:
+                $logger->info($message);
+                break;
+            default:
+                $logger->debug($message);
+                break;
+        }
+        
+        return true;
     }
     
     /**
@@ -107,7 +151,7 @@ class ErrorHandlingUtility
         
         // Display a user-friendly message if requested
         if ($displayMessage) {
-            echo "An error occurred: " . $exception->getMessage() . PHP_EOL;
+            self::getLogger()->error("An error occurred: " . $exception->getMessage());
         }
         
         return $message;

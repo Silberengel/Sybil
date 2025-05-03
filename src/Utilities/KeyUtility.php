@@ -48,15 +48,22 @@ class KeyUtility
 {
     /**
      * Gets the npub's private key from the environment variable
-     * NOSTR_SECRET_KEY. Converts from hex to nsec, where applicable.
+     * NOSTR_SECRET_KEY or a custom environment variable if specified.
+     * Converts from hex to nsec, where applicable.
      *
+     * @param string $envVar Optional custom environment variable name
      * @return string The nsec
      */
-    public static function getNsec(): string
+    public static function getNsec(string $envVar = 'NOSTR_SECRET_KEY'): string
     {
         // Get private nsec key
         $keys = new Key();
-        $envKey = getenv('NOSTR_SECRET_KEY');
+        $envKey = getenv($envVar);
+
+        // If custom env var is not set, try default
+        if ($envVar !== 'NOSTR_SECRET_KEY' && empty($envKey)) {
+            $envKey = getenv('NOSTR_SECRET_KEY');
+        }
 
         // convert hex ID to nsec, if found, then return
         if(!str_starts_with($envKey, 'nsec')){

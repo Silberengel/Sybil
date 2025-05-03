@@ -10,6 +10,7 @@ use Sybil\Utilities\TagUtility;
 use Sybil\Utilities\RelayUtility;
 use Sybil\Utilities\ErrorHandlingUtility;
 use Sybil\Utilities\EventPreparationUtility;
+use Sybil\Utilities\LoggerUtility;
 
 /**
  * Class TextNoteEvent
@@ -22,19 +23,12 @@ class TextNoteEvent extends BaseEvent
     /**
      * Constructor
      *
-     * @param string $content Optional content for the text note
+     * @param string $content Content for the text note
      */
-    public function __construct(string $content = '')
+    public function __construct(string $content)
     {
         parent::__construct();
-        
-        if (!empty($content)) {
-            if (is_file($content)) {
-                $this->setContent(file_get_contents($content));
-            } else {
-                $this->setContent($content);
-            }
-        }
+        $this->setContent($content);
     }
     
     /**
@@ -66,6 +60,14 @@ class TextNoteEvent extends BaseEvent
      */
     protected function preprocessMarkup(string $markup): array
     {
+        // Check if the file is a text or markdown file
+        if (!empty($this->file)) {
+            $extension = strtolower(pathinfo($this->file, PATHINFO_EXTENSION));
+            if (!in_array($extension, ['txt', 'md'])) {
+                throw new InvalidArgumentException('The file must be a text file (.txt) or markdown file (.md).');
+            }
+        }
+        
         // For text notes, we don't need to preprocess the markup
         return [
             [
@@ -149,16 +151,17 @@ class TextNoteEvent extends BaseEvent
      * Publish the text note to a specific relay
      * 
      * @param string $relayUrl The relay URL
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
      * @return array The result of sending the event
      */
-    public function publishToRelay(string $relayUrl): array
+    public function publishToRelay(string $relayUrl, ?string $keyEnvVar = null): array
     {
         // Build the event
         $event = $this->buildEvent();
         
         // Get private key from environment
         $utility = new KeyUtility();
-        $privateKey = $utility::getNsec();
+        $privateKey = $utility::getNsec($keyEnvVar);
         
         // Sign the event
         $signer = new \swentel\nostr\Sign\Sign();
@@ -183,5 +186,65 @@ class TextNoteEvent extends BaseEvent
         $result['event_id'] = $eventId;
         
         return $result;
+    }
+
+    /**
+     * Publish the text note
+     * 
+     * @param string|null $keyEnvVar Optional custom environment variable name for the secret key
+     * @return bool True if the event was published successfully, false otherwise
+     */
+    public function publish(?string $keyEnvVar = null): bool
+    {
+        // Load and validate the markup file
+        $markup = $this->loadMarkupFile();
+        
+        // Process the markup content
+        $markupFormatted = $this->preprocessMarkup($markup);
+        unset($markup);
+        
+        // Extract title and create d-tag
+        $this->extractTitleAndCreateDTag($markupFormatted);
+        
+        // Build and publish the event
+        $event = $this->buildEvent();
+        
+        // Prepare and send the event
+        $result = $this->prepareEventData($event, $keyEnvVar);
+        
+        // Check if the event was published successfully
+        $success = isset($result['success']) && $result['success'];
+        
+        // Record the result
+        $this->recordResult($this->getEventKindName(), $event, $success);
+        
+        return $success;
+    }
+
+    protected function recordResult(string $kind, Event $note, bool $success = true): void
+    {
+        // Get event ID with retry
+        $eventID = $this->getEventIdWithRetry($note);
+        
+        // Log the event
+        if ($success) {
+            $this->logger->output("Published " . $kind . " event with ID " . $eventID);
+            $this->logger->output("");
+        } else {
+            $this->logger->warning("Created " . $kind . " event with ID " . $eventID . " but no relay accepted it.");
+            $this->logger->warning("The event was not published to any relay.");
+            $this->logger->output("");
+        }
+        
+        $this->printEventData(
+            $this->getEventKind(),
+            $eventID,
+            $this->dTag
+        );
+        
+        // Print a njump hyperlink only if the event was published successfully
+        if ($success) {
+            $this->logger->output("https://njump.me/" . $eventID);
+        }
     }
 }

@@ -43,31 +43,38 @@
 namespace Sybil\Utilities;
 
 use Sybil\Exception\RecordNotFoundException;
+use Sybil\Service\LoggerService;
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Filter\Filter;
 use swentel\nostr\Subscription\Subscription;
 use swentel\nostr\Message\RequestMessage;
 use swentel\nostr\Message\EventMessage;
 use swentel\nostr\Event\Event;
+use InvalidArgumentException;
+use Exception;
 
 class EventUtility
 {
     // Properties
     private string $eventID = '';
+    private LoggerService $logger;
     
     // Constants
     public const DEFAULT_RELAY = 'wss://freelay.sovbit.host';
+    private const MAX_RETRIES = 2;
 
     /**
      * Constructor for EventUtility
      * 
      * @param string $eventID Optional event ID to initialize with
+     * @param LoggerService|null $logger Logger service
      */
-    public function __construct(string $eventID = '')
+    public function __construct(string $eventID = '', ?LoggerService $logger = null)
     {
         if (!empty($eventID)) {
             $this->setEventID($eventID);
         }
+        $this->logger = $logger ?? new LoggerService();
     }
     
     /**
@@ -96,8 +103,8 @@ class EventUtility
      * Run a utility function based on the command
      * 
      * @param string $command The command to run (fetch, broadcast, delete)
-     * @return array The result of the utility function
-     * @throws \InvalidArgumentException If the command is invalid
+     * @return array{success: bool, message: string, event_id?: string, successful_relays?: array<string>, failed_relays?: array<string>} The result of the utility function
+     * @throws InvalidArgumentException If the command is invalid
      */
     public function run_utility(string $command): array
     {
@@ -106,10 +113,10 @@ class EventUtility
                 list($result, $relaysWithEvent) = $this->fetch_event();
                 
                 if (!empty($relaysWithEvent)) {
-                    echo "Event found on " . count($relaysWithEvent) . " relays: ";
-                    echo implode(", ", $relaysWithEvent) . PHP_EOL;
+                    $this->logger->output("Event found on " . count($relaysWithEvent) . " relays: ");
+                    $this->logger->output(implode(", ", $relaysWithEvent));
                 } else {
-                    echo "Event not found on any relay." . PHP_EOL;
+                    $this->logger->warning("Event not found on any relay.");
                 }
                 
                 return $result;
@@ -121,23 +128,30 @@ class EventUtility
                 return $this->delete_event();
                 
             default:
-                throw new \InvalidArgumentException(
-                    PHP_EOL.'That is not a valid command.'.PHP_EOL.PHP_EOL);
+                throw new InvalidArgumentException(
+                    'That is not a valid command.');
         }
     }
 
     /**
      * Fetch an event from relays using the hex ID
      * 
-     * @return array An array containing [0] the fetched event data from the first successful relay and [1] an array of relay URLs that have the event
+     * @return array{0: array<string, mixed>, 1: array<string>} An array containing [0] the fetched event data from the first successful relay and [1] an array of relay URLs that have the event
+     * @throws InvalidArgumentException If the event ID is not set
      */
     public function fetch_event(): array
     {
+        if (empty($this->eventID)) {
+            throw new InvalidArgumentException("Event ID must be set before fetching");
+        }
+
+        $this->logger->info("Fetching event {$this->eventID} from relays...");
+        
         $eventIDs[] = $this->eventID;
 
         $filter = new Filter();
         $filter->setIds($eventIDs);
-        $filters = [$filter]; // You can add multiple filters
+        $filters = [$filter];
 
         $subscription = new Subscription();
         $requestMessage = new RequestMessage($subscription->getid(), $filters);
@@ -153,62 +167,127 @@ class EventUtility
             new Relay('wss://relay.lumina.rocks'),
             new Relay('wss://wheat.happytavern.co'),
             new Relay('wss://nostr21.com'),
-            new Relay('wss://theforest.nostr1.com'),
-            new Relay('ws://localhost:8080')
+            new Relay('wss://theforest.nostr1.com')
         ];
         
         $relaysWithEvent = [];
         $firstResult = null;
+        $failedRelays = [];
         
         // Check all relays to find which ones have the event
         foreach ($relays as $relay) {
+            $relayUrl = $relay->getUrl();
+            $this->logger->info("Checking relay: {$relayUrl}");
+            
             try {
-                $result = RequestUtility::sendWithRetry($relay, $requestMessage);
+                $result = RequestUtility::sendWithRetry($relay, $requestMessage, self::MAX_RETRIES);
                 
                 // Check if this relay has the event
-                $hasEvent = false;
-                
-                // Check if the response contains the event
                 if (is_array($result) && RequestUtility::responseContainsEvent($result, $this->eventID)) {
-                    // The event ID is in the result
-                    $hasEvent = true;
-                    $relaysWithEvent[] = $relay->getUrl();
+                    $this->logger->info("Event found on relay: {$relayUrl}");
+                    $relaysWithEvent[] = $relayUrl;
                     
                     // Save the first result we find
                     if ($firstResult === null) {
                         $singleRelayResult = [];
-                        $singleRelayResult[$relay->getUrl()] = $result[$relay->getUrl()];
+                        $singleRelayResult[$relayUrl] = $result[$relayUrl];
                         $firstResult = $singleRelayResult;
                     }
+                } else {
+                    $this->logger->info("Event not found on relay: {$relayUrl}");
                 }
-            } catch (\Exception $e) {
-                // If one relay fails, continue with the next one
-                echo "Error fetching from relay " . $relay->getUrl() . ": " . $e->getMessage() . PHP_EOL;
+            } catch (Exception $e) {
+                $failedRelays[] = $relayUrl;
+                $this->logger->warning("Error fetching from relay {$relayUrl}: {$e->getMessage()}");
             }
         }
         
         // If we found at least one relay with the event, return the first result
         if ($firstResult !== null) {
+            $this->logger->info("Successfully fetched event from " . count($relaysWithEvent) . " relays");
             return [$firstResult, $relaysWithEvent];
         }
         
         // If no relay had the event, try the default relay as a last resort
+        $this->logger->info("Trying default relay as last resort: " . self::DEFAULT_RELAY);
         $defaultRelay = new Relay(self::DEFAULT_RELAY);
+        
         try {
-            $result = RequestUtility::sendWithRetry($defaultRelay, $requestMessage);
+            $result = RequestUtility::sendWithRetry($defaultRelay, $requestMessage, self::MAX_RETRIES);
             
             // Check if the default relay has the event
             if (RequestUtility::responseContainsEvent($result, $this->eventID)) {
-                $relaysWithEvent[] = $defaultRelay->getUrl();
+                $relaysWithEvent[] = self::DEFAULT_RELAY;
                 $singleRelayResult = [];
-                $singleRelayResult[$defaultRelay->getUrl()] = $result[$defaultRelay->getUrl()];
+                $singleRelayResult[self::DEFAULT_RELAY] = $result[self::DEFAULT_RELAY];
+                $this->logger->info("Event found on default relay");
                 return [$singleRelayResult, $relaysWithEvent];
             }
             
+            $this->logger->warning("Event not found on default relay");
             return [$result, $relaysWithEvent];
+        } catch (Exception $e) {
+            $this->logger->error("Error fetching from default relay: " . $e->getMessage());
+            if (!empty($failedRelays)) {
+                $this->logger->error("Failed to connect to relays: " . implode(", ", $failedRelays));
+            }
+            return [[], $relaysWithEvent];
+        }
+    }
+
+    /**
+     * Fetch an event from a specific relay using the hex ID
+     * 
+     * @param string $relayUrl The URL of the relay to query
+     * @return array{0: array<string, mixed>, 1: array<string>} An array containing [0] the fetched event data and [1] an array of relay URLs that have the event
+     * @throws InvalidArgumentException If the event ID is not set or the relay URL is invalid
+     */
+    public function fetch_event_from_relay(string $relayUrl): array
+    {
+        if (empty($this->eventID)) {
+            throw new InvalidArgumentException("Event ID must be set before fetching");
+        }
+
+        if (empty($relayUrl)) {
+            throw new InvalidArgumentException("Relay URL must be provided");
+        }
+
+        $this->logger->info("Fetching event {$this->eventID} from relay {$relayUrl}...");
+        
+        $eventIDs[] = $this->eventID;
+
+        $filter = new Filter();
+        $filter->setIds($eventIDs);
+        $filters = [$filter];
+
+        $subscription = new Subscription();
+        $requestMessage = new RequestMessage($subscription->getid(), $filters);
+        
+        // Create a single relay instance
+        $relay = new Relay($relayUrl);
+        
+        try {
+            $result = RequestUtility::sendWithRetry($relay, $requestMessage, self::MAX_RETRIES);
+            
+            // Check if this relay has the event
+            if (is_array($result) && RequestUtility::responseContainsEvent($result, $this->eventID)) {
+                $this->logger->info("Event found on relay: {$relayUrl}");
+                // Extract the event data
+                $eventData = RequestUtility::extractEventData($result, $this->eventID);
+                if ($eventData) {
+                    $this->logger->info("Successfully extracted event data");
+                    return [$result, [$relayUrl]];
+                } else {
+                    $this->logger->warning("Could not extract event data from response");
+                    return [[], []];
+                }
+            } else {
+                $this->logger->info("Event not found on relay: {$relayUrl}");
+                return [[], []];
+            }
         } catch (\Exception $e) {
-            echo "Error fetching from default relay: " . $e->getMessage() . PHP_EOL;
-            return [[], $relaysWithEvent]; // Return empty array if all relays failed
+            $this->logger->error("Error fetching from relay {$relayUrl}: {$e->getMessage()}");
+            return [[], []];
         }
     }
 
@@ -231,10 +310,10 @@ class EventUtility
         
         // Print summary of which relays have the event
         if (!empty($relaysWithEvent)) {
-            echo "Event found on " . count($relaysWithEvent) . " relays: ";
-            echo implode(", ", $relaysWithEvent) . PHP_EOL;
+            $this->logger->info("Event found on " . count($relaysWithEvent) . " relays: ");
+            $this->logger->info(implode(", ", $relaysWithEvent));
         } else {
-            echo "Event not found on any relay." . PHP_EOL;
+            $this->logger->warning("Event not found on any relay.");
             return ['success' => false, 'message' => 'Event not found on any relay'];
         }
         
@@ -242,12 +321,12 @@ class EventUtility
         $eventData = RequestUtility::extractEventData($fetchedEvent, $this->eventID);
         
         if ($eventData) {
-            echo "Found event data in relay response." . PHP_EOL;
+            $this->logger->info("Found event data in relay response.");
         }
         
         // If we couldn't extract the event data, create a minimal event
         if (!$eventData) {
-            echo "Could not extract event data from relay response. Creating minimal event." . PHP_EOL;
+            $this->logger->warning("Could not extract event data from relay response. Creating minimal event.");
             $eventData = [
                 'id' => $this->eventID,
                 'kind' => 1, // Default to kind 1 for text notes
@@ -259,7 +338,7 @@ class EventUtility
         // Create an event object from the event data
         $eventObj = EventPreparationUtility::createEventFromData($eventData);
         
-        echo "Broadcasting event (kind " . $eventData['kind'] . ") to relays..." . PHP_EOL;
+        $this->logger->info("Broadcasting event (kind " . $eventData['kind'] . ") to relays...");
         
         // Create an event message from the event object
         $eventMessage = EventPreparationUtility::createEventMessage($eventObj);
@@ -285,14 +364,14 @@ class EventUtility
     {
         $eventIDs[] = $this->eventID;
 
-        echo "Step 1: Attempting to fetch event {$this->eventID}..." . PHP_EOL;
+        $this->logger->info("Step 1: Attempting to fetch event {$this->eventID}...");
         
         // Try to fetch the event
         try {
             list($fetchedEvent, $relaysWithEvent) = $this->fetch_event();
             
             // Debug output to understand the structure
-            echo "Fetched event type: " . (is_object($fetchedEvent) ? get_class($fetchedEvent) : gettype($fetchedEvent)) . PHP_EOL;
+            $this->logger->debug("Fetched event type: " . (is_object($fetchedEvent) ? get_class($fetchedEvent) : gettype($fetchedEvent)));
             
             $eventFound = !empty($relaysWithEvent);
             $kindNum = 1; // Default to kind 1
@@ -306,11 +385,11 @@ class EventUtility
             }
             
             if ($eventFound) {
-                echo "Event found on " . count($relaysWithEvent) . " relays: ";
-                echo (empty($relaysWithEvent) ? "unknown relays" : implode(", ", $relaysWithEvent)) . PHP_EOL;
-                echo "Event kind: " . $kindNum . PHP_EOL;
+                $this->logger->info("Event found on " . count($relaysWithEvent) . " relays: ");
+                $this->logger->info(empty($relaysWithEvent) ? "unknown relays" : implode(", ", $relaysWithEvent));
+                $this->logger->info("Event kind: " . $kindNum);
             } else {
-                echo "Event not found on any relay. Aborting deletion." . PHP_EOL;
+                $this->logger->warning("Event not found on any relay. Aborting deletion.");
                 return [
                     'success' => false,
                     'message' => "Event not found on any relay. Deletion aborted."
@@ -318,14 +397,14 @@ class EventUtility
             }
             
         } catch (\Exception $e) {
-            echo "Error fetching event: " . $e->getMessage() . PHP_EOL;
+            $this->logger->error("Error fetching event: " . $e->getMessage());
             return [
                 'success' => false,
                 'message' => "Error fetching event: " . $e->getMessage()
             ];
         }
         
-        echo "Step 2: Creating deletion event..." . PHP_EOL;
+        $this->logger->info("Step 2: Creating deletion event...");
         
         // Use the first relay where the event was found as the reference relay
         $referenceRelay = !empty($relaysWithEvent) ? $relaysWithEvent[0] : self::DEFAULT_RELAY;
@@ -336,7 +415,7 @@ class EventUtility
         // Create an event message from the deletion event
         $eventMessage = EventPreparationUtility::createEventMessage($note);
         
-        echo "Step 3: Broadcasting deletion event to default relay set..." . PHP_EOL;
+        $this->logger->info("Step 3: Broadcasting deletion event to default relay set...");
         
         // Send the deletion event to the default relay set
         $deleteResult = RelayUtility::sendEventWithRetry($eventMessage);
@@ -345,27 +424,27 @@ class EventUtility
         $deletionEventId = 'unknown';
         if (isset($deleteResult['event_id'])) {
             $deletionEventId = $deleteResult['event_id'];
-            echo "Deletion event published successfully with ID: " . $deletionEventId . PHP_EOL;
+            $this->logger->info("Deletion event published successfully with ID: " . $deletionEventId);
         } else {
-            echo "Warning: Deletion event publication status unclear." . PHP_EOL;
+            $this->logger->warning("Warning: Deletion event publication status unclear.");
         }
         
-        echo "Step 4: Broadcasting deletion event to relays where the event was found..." . PHP_EOL;
+        $this->logger->info("Step 4: Broadcasting deletion event to relays where the event was found...");
         
         // Use the relays where the event was found
         if (!empty($relaysWithEvent)) {
             // Send the deletion event to the relays where the event was found
             $customDeleteResult = RelayUtility::sendEventWithRetry($eventMessage, RelayUtility::getRelayList(5, $relaysWithEvent));
-            echo "Deletion event broadcast to " . count($relaysWithEvent) . " relays where the event was found." . PHP_EOL;
+            $this->logger->info("Deletion event broadcast to " . count($relaysWithEvent) . " relays where the event was found.");
         } else {
-            echo "No relays found with the event." . PHP_EOL;
+            $this->logger->warning("No relays found with the event.");
         }
         
         // Wait a moment for the deletion to propagate
-        echo "Waiting for deletion to propagate..." . PHP_EOL;
+        $this->logger->info("Waiting for deletion to propagate...");
         sleep(3);
         
-        echo "Step 5: Verifying deletion by attempting to fetch the event again..." . PHP_EOL;
+        $this->logger->info("Step 5: Verifying deletion by attempting to fetch the event again...");
         
         // Verify deletion by checking if the event is still available
         $verificationResult = [];
@@ -374,26 +453,26 @@ class EventUtility
             list($postDeletionFetch, $postDeletionRelays) = $this->fetch_event();
             
             // Debug output to understand the structure
-            echo "Post-deletion fetch type: " . (is_object($postDeletionFetch) ? get_class($postDeletionFetch) : gettype($postDeletionFetch)) . PHP_EOL;
+            $this->logger->debug("Post-deletion fetch type: " . (is_object($postDeletionFetch) ? get_class($postDeletionFetch) : gettype($postDeletionFetch)));
             
             // Use the relays list from the fetch_event function
             $eventFound = !empty($postDeletionRelays);
             $relaysWithEvent = $postDeletionRelays;
             
             if ($eventFound) {
-                echo "Event is still available on " . count($relaysWithEvent) . " relays: ";
-                echo implode(", ", $relaysWithEvent) . PHP_EOL;
-                echo "Summary: Event found on " . count($relaysWithEvent) . " relays after deletion attempt." . PHP_EOL;
+                $this->logger->warning("Event is still available on " . count($relaysWithEvent) . " relays: ");
+                $this->logger->warning(implode(", ", $relaysWithEvent));
+                $this->logger->warning("Summary: Event found on " . count($relaysWithEvent) . " relays after deletion attempt.");
                 $verificationResult['success'] = false;
                 $verificationResult['message'] = "The event was not deleted from all relays. Still found on: " . implode(", ", $relaysWithEvent);
             } else {
-                echo "Event is no longer available on any relay. Deletion successful!" . PHP_EOL;
-                echo "Summary: Event not found on any relay after deletion attempt." . PHP_EOL;
+                $this->logger->info("Event is no longer available on any relay. Deletion successful!");
+                $this->logger->info("Summary: Event not found on any relay after deletion attempt.");
                 $verificationResult['success'] = true;
                 $verificationResult['message'] = "The deletion was successful. Event not found on any relay.";
             }
         } catch (\Exception $e) {
-            echo "Error verifying deletion: " . $e->getMessage() . PHP_EOL;
+            $this->logger->error("Error verifying deletion: " . $e->getMessage());
             $verificationResult['success'] = false;
             $verificationResult['message'] = "Error verifying deletion: " . $e->getMessage();
         }
@@ -404,5 +483,164 @@ class EventUtility
             'message' => $verificationResult['message'],
             'deletion_event_id' => $deletionEventId
         ];
+    }
+
+    /**
+     * Delete an event from a specific relay
+     * 
+     * @param string $relayUrl The URL of the relay to query
+     * @return array The results of deleting the event with verification status
+     * @throws \InvalidArgumentException If the event ID is not set or the relay URL is invalid
+     */
+    public function delete_event_from_relay(string $relayUrl): array
+    {
+        if (empty($this->eventID)) {
+            throw new \InvalidArgumentException("Event ID must be set before deleting");
+        }
+
+        if (empty($relayUrl)) {
+            throw new \InvalidArgumentException("Relay URL must be provided");
+        }
+
+        $this->logger->info("Deleting event {$this->eventID} from relay {$relayUrl}...");
+        
+        // First try to fetch the event from the specific relay
+        list($fetchedEvent, $relaysWithEvent) = $this->fetch_event_from_relay($relayUrl);
+        
+        if (empty($fetchedEvent)) {
+            $this->logger->warning("Event not found on relay {$relayUrl}. Nothing to delete.");
+            return [
+                'success' => false,
+                'message' => "Event not found on relay {$relayUrl}. Nothing to delete."
+            ];
+        }
+        
+        // Extract event data and kind
+        $eventData = RequestUtility::extractEventData($fetchedEvent, $this->eventID);
+        $kindNum = $eventData['kind'] ?? 1; // Default to kind 1 if not found
+        
+        // Create deletion event
+        $note = EventPreparationUtility::createDeletionEvent($this->eventID, $kindNum, $relayUrl);
+        
+        // Create an event message from the deletion event
+        $eventMessage = EventPreparationUtility::createEventMessage($note);
+        
+        // Send the deletion event to the specific relay
+        $relay = new Relay($relayUrl);
+        
+        try {
+            $result = RelayUtility::sendEventWithRetry($eventMessage, [$relay]);
+            
+            // Wait a moment for the deletion to propagate
+            sleep(2);
+            
+            // Verify deletion by checking if the event is still available
+            list($postDeletionFetch, $postDeletionRelays) = $this->fetch_event_from_relay($relayUrl);
+            
+            if (empty($postDeletionRelays)) {
+                $this->logger->info("Event successfully deleted from relay {$relayUrl}");
+                return [
+                    'success' => true,
+                    'message' => "Event successfully deleted from relay {$relayUrl}",
+                    'deletion_event_id' => $result['event_id'] ?? 'unknown'
+                ];
+            } else {
+                $this->logger->warning("Event is still available on relay {$relayUrl} after deletion attempt");
+                return [
+                    'success' => false,
+                    'message' => "Event is still available on relay {$relayUrl} after deletion attempt",
+                    'deletion_event_id' => $result['event_id'] ?? 'unknown'
+                ];
+            }
+        } catch (\Exception $e) {
+            $this->logger->error("Error deleting event from relay {$relayUrl}: {$e->getMessage()}");
+            return [
+                'success' => false,
+                'message' => "Error deleting event from relay {$relayUrl}: {$e->getMessage()}"
+            ];
+        }
+    }
+
+    /**
+     * Broadcast an event to a specific relay
+     * 
+     * @param string $relayUrl The URL of the relay to broadcast to
+     * @return array The results of broadcasting the event
+     * @throws \InvalidArgumentException If the event ID is not set or the relay URL is invalid
+     */
+    public function broadcast_event_to_relay(string $relayUrl): array
+    {
+        if (empty($this->eventID)) {
+            throw new \InvalidArgumentException("Event ID must be set before broadcasting");
+        }
+
+        if (empty($relayUrl)) {
+            throw new \InvalidArgumentException("Relay URL must be provided");
+        }
+
+        $this->logger->info("Broadcasting event {$this->eventID} to relay {$relayUrl}...");
+        
+        // First fetch the event from the specific relay
+        list($fetchedEvent, $relaysWithEvent) = $this->fetch_event_from_relay($relayUrl);
+        
+        if (empty($fetchedEvent)) {
+            $this->logger->warning("Event not found on relay {$relayUrl}. Nothing to broadcast.");
+            return [
+                'success' => false,
+                'message' => "Event not found on relay {$relayUrl}. Nothing to broadcast."
+            ];
+        }
+        
+        // Extract the event data from the fetched event
+        $eventData = RequestUtility::extractEventData($fetchedEvent, $this->eventID);
+        
+        if (!$eventData) {
+            $this->logger->warning("Could not extract event data from relay response. Creating minimal event.");
+            $eventData = [
+                'id' => $this->eventID,
+                'kind' => 1, // Default to kind 1 for text notes
+                'content' => '',
+                'tags' => []
+            ];
+        }
+        
+        // Create an event object from the event data
+        $eventObj = EventPreparationUtility::createEventFromData($eventData);
+        
+        // Create an event message from the event object
+        $eventMessage = EventPreparationUtility::createEventMessage($eventObj);
+        
+        // Create a single relay instance
+        $relay = new Relay($relayUrl);
+        
+        try {
+            $result = RelayUtility::sendEventWithRetry($eventMessage, [$relay]);
+            
+            if (isset($result['success']) && $result['success']) {
+                $this->logger->info("Event successfully broadcast to relay {$relayUrl}");
+                return [
+                    'success' => true,
+                    'message' => "Event successfully broadcast to relay {$relayUrl}",
+                    'successful_relays' => [$relayUrl],
+                    'failed_relays' => []
+                ];
+            } else {
+                $this->logger->warning("Failed to broadcast event to relay {$relayUrl}");
+                return [
+                    'success' => false,
+                    'message' => "Failed to broadcast event to relay {$relayUrl}",
+                    'successful_relays' => [],
+                    'failed_relays' => [$relayUrl]
+                ];
+            }
+        } catch (\Exception $e) {
+            $this->logger->error("Error broadcasting event to relay {$relayUrl}: {$e->getMessage()}");
+            return [
+                'success' => false,
+                'message' => "Error broadcasting event to relay {$relayUrl}: {$e->getMessage()}",
+                'successful_relays' => [],
+                'failed_relays' => [$relayUrl]
+            ];
+        }
     }
 }

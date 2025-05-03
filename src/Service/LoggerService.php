@@ -2,6 +2,8 @@
 
 namespace Sybil\Service;
 
+use Exception;
+
 /**
  * Service for logging
  * 
@@ -16,13 +18,30 @@ class LoggerService
     private bool $debugEnabled;
     
     /**
+     * @var resource The stream for debug/info messages
+     */
+    private $debugStream;
+    
+    /**
+     * @var resource The stream for data output
+     */
+    private $dataStream;
+    
+    /**
      * Constructor
      *
      * @param bool $debugEnabled Whether to enable debug logging
+     * @param resource|null $debugStream Stream for debug/info messages (defaults to STDERR)
+     * @param resource|null $dataStream Stream for data output (defaults to STDOUT)
      */
-    public function __construct(bool $debugEnabled = false)
-    {
+    public function __construct(
+        bool $debugEnabled = false,
+        $debugStream = null,
+        $dataStream = null
+    ) {
         $this->debugEnabled = $debugEnabled;
+        $this->debugStream = $debugStream ?? STDERR;
+        $this->dataStream = $dataStream ?? STDOUT;
     }
     
     /**
@@ -34,7 +53,7 @@ class LoggerService
     public function debug(string $message): void
     {
         if ($this->debugEnabled) {
-            echo "Debug - " . $message . PHP_EOL;
+            fwrite($this->debugStream, "Debug - " . $message . PHP_EOL);
         }
     }
     
@@ -46,7 +65,7 @@ class LoggerService
      */
     public function info(string $message): void
     {
-        echo $message . PHP_EOL;
+        fwrite($this->debugStream, $message . PHP_EOL);
     }
     
     /**
@@ -57,7 +76,7 @@ class LoggerService
      */
     public function warning(string $message): void
     {
-        echo "Warning: " . $message . PHP_EOL;
+        fwrite($this->debugStream, "Warning: " . $message . PHP_EOL);
     }
     
     /**
@@ -68,7 +87,36 @@ class LoggerService
      */
     public function error(string $message): void
     {
-        echo "Error: " . $message . PHP_EOL;
+        fwrite($this->debugStream, "Error: " . $message . PHP_EOL);
+    }
+    
+    /**
+     * Output data that can be piped to a file or used by other scripts
+     *
+     * @param string $data The data to output
+     * @return void
+     */
+    public function output(string $data): void
+    {
+        fwrite($this->dataStream, $data . PHP_EOL);
+    }
+    
+    /**
+     * Output JSON data that can be piped to a file or used by other scripts
+     *
+     * @param array|object $data The data to output as JSON
+     * @param bool $pretty Whether to pretty print the JSON
+     * @return void
+     * @throws Exception If JSON encoding fails
+     */
+    public function outputJson($data, bool $pretty = false): void
+    {
+        $options = $pretty ? JSON_PRETTY_PRINT : 0;
+        $json = json_encode($data, $options);
+        if ($json === false) {
+            throw new Exception("Failed to encode data as JSON: " . json_last_error_msg());
+        }
+        fwrite($this->dataStream, $json . PHP_EOL);
     }
     
     /**
@@ -100,7 +148,7 @@ class LoggerService
             fclose($fp);
             
             return $result !== false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error("Error writing to event log: " . $e->getMessage());
             return false;
         }

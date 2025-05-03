@@ -8,40 +8,26 @@ use Sybil\Service\LoggerService;
 /**
  * Command for displaying help information
  * 
- * This command handles the 'help' command, which displays detailed help
- * information for all commands or for a specific command.
+ * This command handles the 'help' command, which displays help information
+ * about available commands.
+ * Usage: sybil help [command_name]
  */
 class HelpCommand extends BaseCommand
 {
-    /**
-     * @var LoggerService Logger service
-     */
-    private LoggerService $logger;
-    
-    /**
-     * @var array Registered commands
-     */
-    private array $commands;
-    
     /**
      * Constructor
      *
      * @param Application $app The application instance
      * @param LoggerService $logger Logger service
-     * @param array $commands Registered commands
      */
     public function __construct(
         Application $app,
-        LoggerService $logger,
-        array $commands
+        LoggerService $logger
     ) {
         parent::__construct($app);
         
         $this->name = 'help';
-        $this->description = 'Display detailed help information for all commands or for a specific command';
-        
-        $this->logger = $logger;
-        $this->commands = $commands;
+        $this->description = 'Display help information about available commands';
     }
     
     /**
@@ -52,307 +38,279 @@ class HelpCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // If a command name is provided, show help for that command
-        if (!empty($args)) {
-            $commandName = $args[0];
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Get the command name from arguments
+            $commandName = $args[0] ?? null;
             
-            // Check if the command exists
-            if (!isset($this->commands[$commandName])) {
-                $this->logger->error("Command '$commandName' not found.");
-                return 1;
+            // Get all available commands
+            $commands = $this->app->getCommands();
+            
+            if ($commandName) {
+                // Display help for a specific command
+                if (isset($commands[$commandName])) {
+                    $command = $commands[$commandName];
+                    $this->logger->output(PHP_EOL . "Command: {$commandName}");
+                    $this->logger->output("Description: " . $command->getDescription());
+                    
+                    // Display detailed help for specific commands
+                    switch ($commandName) {
+                        case 'note':
+                            $this->logger->output("\nUsage: sybil note <content>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  content    The text content of the note (plain text or path to .txt/.md file)");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil note \"Hello, world!\"");
+                            $this->logger->output("  sybil note content.txt");
+                            $this->logger->output("  sybil note content.md");
+                            $this->logger->output("  echo \"Hello, world!\" | sybil note");
+                            break;
+                            
+                        case 'longform':
+                            $this->logger->output("\nUsage: sybil longform <file>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  file       Path to a Markdown file (.md)");
+                            $this->logger->output("\nYAML Metadata:");
+                            $this->logger->output("  You can include YAML metadata at the start of your file using the following format:");
+                            $this->logger->output("  <<YAML>>");
+                            $this->logger->output("  title: 'Optional title (defaults to first header)'");
+                            $this->logger->output("  tags:");
+                            $this->logger->output("    - ['image', 'https://example.com/image.jpg']");
+                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
+                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
+                            $this->logger->output("    - ['t', 'journalism']");
+                            $this->logger->output("    - ['summary', 'Article description']");
+                            $this->logger->output("  <</YAML>>");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil longform article.md");
+                            break;
+                            
+                        case 'wiki':
+                            $this->logger->output("\nUsage: sybil wiki <file>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  file       Path to an AsciiDoc file (.adoc)");
+                            $this->logger->output("\nYAML Metadata:");
+                            $this->logger->output("  You can include YAML metadata at the start of your file using the following format:");
+                            $this->logger->output("  <<YAML>>");
+                            $this->logger->output("  title: 'Optional title (defaults to first header)'");
+                            $this->logger->output("  tags:");
+                            $this->logger->output("    - ['image', 'https://example.com/image.jpg']");
+                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
+                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
+                            $this->logger->output("    - ['t', 'wiki']");
+                            $this->logger->output("    - ['summary', 'Wiki page description']");
+                            $this->logger->output("  <</YAML>>");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil wiki page.adoc");
+                            break;
+                            
+                        case 'publication':
+                            $this->logger->output("\nUsage: sybil publication <file>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  file       Path to an AsciiDoc file (.adoc)");
+                            $this->logger->output("\nYAML Metadata:");
+                            $this->logger->output("  You must include YAML metadata at the start of your file using the following format:");
+                            $this->logger->output("  <<YAML>>");
+                            $this->logger->output("  author: 'Author Name'");
+                            $this->logger->output("  version: '1'");
+                            $this->logger->output("  tag-type: 'a'");
+                            $this->logger->output("  auto-update: 'yes'");
+                            $this->logger->output("  tags:");
+                            $this->logger->output("    - ['image', 'https://example.com/cover.jpg']");
+                            $this->logger->output("    - ['type', 'book']");
+                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
+                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
+                            $this->logger->output("    - ['t', 'novel']");
+                            $this->logger->output("    - ['summary', 'Book description']");
+                            $this->logger->output("    - ['i', 'isbn:978...']");
+                            $this->logger->output("    - ['published_on', '2024-03-20']");
+                            $this->logger->output("    - ['published_by', 'Publisher Name']");
+                            $this->logger->output("  <</YAML>>");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil publication book.adoc");
+                            break;
+                            
+                        case 'fetch':
+                            $this->logger->output("\nFetch Command:");
+                            $this->logger->output("  Fetch an event from relays");
+                            $this->logger->output("\nUsage: sybil fetch <event_id> [--raw]");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  event_id   Event ID(s) to fetch. Can be:");
+                            $this->logger->output("            - A single event ID");
+                            $this->logger->output("            - Comma-separated list of event IDs");
+                            $this->logger->output("            - Path to a file containing event IDs");
+                            $this->logger->output("              (one per line or comma-separated)");
+                            $this->logger->output("\nOptions:");
+                            $this->logger->output("  --raw     Output raw JSON instead of formatted text");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil fetch 1234567890abcdef");
+                            $this->logger->output("  sybil fetch 1234567890abcdef,abcdef1234567890");
+                            $this->logger->output("  sybil fetch events.txt");
+                            $this->logger->output("  sybil fetch events.txt --raw");
+                            break;
+                            
+                        case 'delete':
+                            $this->logger->output("\nDelete Command:");
+                            $this->logger->output("  Delete an event from relays");
+                            $this->logger->output("\nUsage: sybil delete <event_id>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  event_id   Event ID(s) to delete. Can be:");
+                            $this->logger->output("            - A single event ID");
+                            $this->logger->output("            - Comma-separated list of event IDs");
+                            $this->logger->output("            - Path to a file containing event IDs");
+                            $this->logger->output("              (one per line or comma-separated)");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil delete 1234567890abcdef");
+                            $this->logger->output("  sybil delete 1234567890abcdef,abcdef1234567890");
+                            $this->logger->output("  sybil delete events.txt");
+                            break;
+                            
+                        case 'broadcast':
+                            $this->logger->output("\nBroadcast Command:");
+                            $this->logger->output("  Broadcast an event to relays");
+                            $this->logger->output("\nUsage: sybil broadcast <event_id>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  event_id   Event ID(s) to broadcast. Can be:");
+                            $this->logger->output("            - A single event ID");
+                            $this->logger->output("            - Comma-separated list of event IDs");
+                            $this->logger->output("            - Path to a file containing event IDs");
+                            $this->logger->output("              (one per line or comma-separated)");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil broadcast 1234567890abcdef");
+                            $this->logger->output("  sybil broadcast 1234567890abcdef,abcdef1234567890");
+                            $this->logger->output("  sybil broadcast events.txt");
+                            break;
+                            
+                        case 'republish':
+                            $this->logger->output("\nUsage: sybil republish <event_json>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  event_json  JSON string or path to JSON file containing the event");
+                            $this->logger->output("\nThe event JSON should contain at least:");
+                            $this->logger->output("  - kind: The event kind number");
+                            $this->logger->output("  - content: The event content");
+                            $this->logger->output("  - tags: Array of event tags");
+                            $this->logger->output("\nFields that will be regenerated:");
+                            $this->logger->output("  - id: Event ID");
+                            $this->logger->output("  - sig: Event signature");
+                            $this->logger->output("  - created_at: Creation timestamp");
+                            $this->logger->output("  - pubkey: Public key");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil republish '{\"kind\":1,\"content\":\"Hello\",\"tags\":[]}'");
+                            $this->logger->output("  sybil republish event.json");
+                            $this->logger->output("  cat event.json | sybil republish");
+                            break;
+                            
+                        default:
+                            $this->logger->output("\nUsage: sybil {$commandName} [arguments]");
+                            if (method_exists($command, 'getHelp')) {
+                                $this->logger->output($command->getHelp());
+                            }
+                    }
+                } else {
+                    $this->logger->error("Unknown command: {$commandName}");
+                    return 1;
+                }
+            } else {
+                // Display introduction and usage tips
+                $this->logger->output(PHP_EOL . "Sybil - Command-line tool for Nostr events" . PHP_EOL);
+                $this->logger->output("==================================================");
+                $this->logger->output("USAGE TIPS");
+                $this->logger->output("--------------------------------------------------");
+                $this->logger->output("For installation, setup, and relay configuration, see:");
+                $this->logger->output("file://" . getcwd() . "/README.md");
+                $this->logger->output("");
+                $this->logger->output("1. Output Redirection:");
+                $this->logger->output("   - Redirect output to a file:");
+                $this->logger->output("     sybil fetch <event_id> > output.txt");
+                $this->logger->output("     sybil note \"Hello\" >> output.txt");
+                $this->logger->output("");
+                $this->logger->output("   - Pipe output to another command:");
+                $this->logger->output("     sybil fetch <event_id> | grep \"content\"");
+                $this->logger->output("     sybil note \"Hello\" | jq '.'");
+                $this->logger->output("");
+                $this->logger->output("2. Logging Levels:");
+                $this->logger->output("   - Set logging level using SYBIL_LOG_LEVEL environment variable:");
+                $this->logger->output("     SYBIL_LOG_LEVEL=debug sybil note \"Hello\"");
+                $this->logger->output("     SYBIL_LOG_LEVEL=info sybil fetch <event_id>");
+                $this->logger->output("     SYBIL_LOG_LEVEL=warning sybil broadcast <event_id>");
+                $this->logger->output("     SYBIL_LOG_LEVEL=error sybil delete <event_id>");
+                $this->logger->output("");
+                $this->logger->output("   Available levels: debug, info, warning, error");
+                $this->logger->output("");
+                $this->logger->output("3. Raw Output:");
+                $this->logger->output("   - Use --raw flag for JSON output:");
+                $this->logger->output("     sybil fetch <event_id> --raw");
+                $this->logger->output("");
+                
+                // Display relay management information
+                $this->logger->output("RELAY MANAGEMENT");
+                $this->logger->output("--------------------------------------------------");
+                $this->logger->output("1. Using the --relay option:");
+                $this->logger->output("   - Specify a single relay for a command: --relay wss://relay.example.com");
+                $this->logger->output("   - Example: sybil note \"Hello\" --relay wss://relay.example.com");
+                $this->logger->output("");
+                $this->logger->output("2. Using the relays.yml file:");
+                $this->logger->output("   - Create or edit user/relays.yml to specify your preferred relays");
+                $this->logger->output("   - One relay URL per line");
+                $this->logger->output("   - Current relays.yml content:");
+                
+                // Check for existing relays.yml file
+                $relaysFile = getcwd() . "/user/relays.yml";
+                if (file_exists($relaysFile)) {
+                    $relayUrls = file($relaysFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    if (!empty($relayUrls)) {
+                        foreach ($relayUrls as $url) {
+                            $this->logger->output("     " . trim($url));
+                        }
+                    } else {
+                        $this->logger->output("     (file is empty)");
+                        $this->logger->output("     Example relays:");
+                        $this->logger->output("     wss://relay.damus.io");
+                        $this->logger->output("     wss://relay.nostr.band");
+                        $this->logger->output("     wss://nos.lol");
+                    }
+                } else {
+                    $this->logger->output("     (file not found)");
+                    $this->logger->output("     Example relays:");
+                    $this->logger->output("     wss://relay.damus.io");
+                    $this->logger->output("     wss://relay.nostr.band");
+                    $this->logger->output("     wss://nos.lol");
+                }
+                
+                $this->logger->output("");
+                $this->logger->output("Note: If no relay is specified, Sybil will use these default relays:");
+                $this->logger->output("     wss://thecitadel.nostr1.com");
+                $this->logger->output("     wss://relay.damus.io");
+                $this->logger->output("     wss://relay.nostr.band");
+                $this->logger->output("     wss://nostr.einundzwanzig.space");
+                $this->logger->output("     wss://relay.primal.net");
+                $this->logger->output("     wss://nos.lol");
+                $this->logger->output("     wss://relay.lumina.rocks");
+                $this->logger->output("     wss://freelay.sovbit.host");
+                $this->logger->output("     wss://wheat.happytavern.co");
+                $this->logger->output("     wss://nostr21.com");
+                $this->logger->output("     wss://theforest.nostr1.com");
+                $this->logger->output("");
+                
+                // Display help for all commands
+                $this->logger->output("AVAILABLE COMMANDS");
+                $this->logger->output("--------------------------------------------------");
+                foreach ($commands as $name => $command) {
+                    $this->logger->output("  {$name}: " . $command->getDescription());
+                }
+                $this->logger->output("");
+                $this->logger->output("For detailed help on a specific command, use:");
+                $this->logger->output("  sybil help <command>");
+                $this->logger->output("");
+                $this->logger->output("Examples:");
+                $this->logger->output("  sybil help wiki     # Show help for the wiki command");
+                $this->logger->output("  sybil help note     # Show help for the note command");
+                $this->logger->output("  sybil help longform # Show help for the longform command");
+                $this->logger->output("");
+                $this->logger->output("For more information, including installation, setup, and support, see:");
+                $this->logger->output("file://" . getcwd() . "/README.md");
             }
             
-            // Show detailed help for the command
-            $this->showCommandHelp($commandName, $this->commands[$commandName]);
-            
             return 0;
-        }
-        
-        // Show general help
-        $this->showGeneralHelp();
-        
-        return 0;
-    }
-    
-    /**
-     * Show general help for all commands
-     */
-    private function showGeneralHelp(): void
-    {
-        echo "Sybil - A tool for creating and publishing Nostr events" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Usage: sybil <command> [arguments]" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Available commands:" . PHP_EOL;
-        
-        // Sort commands by name
-        $commands = $this->commands;
-        ksort($commands);
-        
-        // Show command list with descriptions
-        foreach ($commands as $name => $command) {
-            echo "  $name" . str_repeat(' ', max(0, 15 - strlen($name))) . $command->getDescription() . PHP_EOL;
-        }
-        
-        echo PHP_EOL;
-        echo "For detailed help on a specific command, use: sybil help <command>" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for a specific command
-     *
-     * @param string $commandName Command name
-     * @param CommandInterface $command Command instance
-     */
-    private function showCommandHelp(string $commandName, CommandInterface $command): void
-    {
-        echo "Command: $commandName" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Description: " . $command->getDescription() . PHP_EOL;
-        echo PHP_EOL;
-        
-        // Display command-specific usage and arguments
-        switch ($commandName) {
-            case 'note':
-                $this->showNoteCommandHelp();
-                break;
-            case 'longform':
-                $this->showLongformCommandHelp();
-                break;
-            case 'wiki':
-                $this->showWikiCommandHelp();
-                break;
-            case 'broadcast':
-                $this->showBroadcastCommandHelp();
-                break;
-            case 'fetch':
-                $this->showFetchCommandHelp();
-                break;
-            case 'delete':
-                $this->showDeleteCommandHelp();
-                break;
-            case 'publication':
-                $this->showPublicationCommandHelp();
-                break;
-            case 'help':
-                $this->showHelpCommandHelp();
-                break;
-            default:
-                echo "Usage: sybil $commandName [arguments]" . PHP_EOL;
-                echo PHP_EOL;
-                echo "No detailed help available for this command." . PHP_EOL;
-        }
-    }
-    
-    /**
-     * Show detailed help for the 'note' command
-     */
-    private function showNoteCommandHelp(): void
-    {
-        echo "Usage: sybil note <content> [relay_url]" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  content    The content of the text note (required)" . PHP_EOL;
-        echo "  relay_url  The URL of a specific relay to publish to (optional)" . PHP_EOL;
-        echo "             If not provided, the note will be published to all relays in relays.yml" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil note \"Hello, Nostr!\"" . PHP_EOL;
-        echo "  sybil note \"Hello, Nostr!\" wss://relay.example.com" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'longform' command
-     */
-    private function showLongformCommandHelp(): void
-    {
-        echo "Usage: sybil longform <file_path>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  file_path  Path to the Markdown file containing the longform article (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "YAML Configuration:" . PHP_EOL;
-        echo "  You can include YAML configuration at the beginning of your Markdown file" . PHP_EOL;
-        echo "  to specify additional metadata for the longform article." . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Format:" . PHP_EOL;
-        echo "    <<YAML>>" . PHP_EOL;
-        echo "    title: 'Your Article Title'" . PHP_EOL;
-        echo "    tags:" . PHP_EOL;
-        echo "      - ['image', 'https://example.com/image.jpg']" . PHP_EOL;
-        echo "      - ['l', 'en, ISO-639-1']" . PHP_EOL;
-        echo "      - ['reading-direction', 'left-to-right, top-to-bottom']" . PHP_EOL;
-        echo "      - ['t', 'journalism']" . PHP_EOL;
-        echo "      - ['summary', 'A brief description of your article.']" . PHP_EOL;
-        echo "    <<YAML>>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Available YAML Options:" . PHP_EOL;
-        echo "    title:  Alternative title (if different from the first header)" . PHP_EOL;
-        echo "    tags:   Array of tag-value pairs:" . PHP_EOL;
-        echo "      - ['image', 'URL']              URL to the article image" . PHP_EOL;
-        echo "      - ['l', 'language']             Language code (ISO-639-1)" . PHP_EOL;
-        echo "      - ['reading-direction', 'dir']  Reading direction" . PHP_EOL;
-        echo "      - ['t', 'hashtag']              Hashtag (can be used multiple times)" . PHP_EOL;
-        echo "      - ['summary', 'text']           Brief description of the article" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil longform ./src/testdata/testfiles/Markdown_testfile.md" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'wiki' command
-     */
-    private function showWikiCommandHelp(): void
-    {
-        echo "Usage: sybil wiki <file_path>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  file_path  Path to the AsciiDoc file containing the wiki page (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "YAML Configuration:" . PHP_EOL;
-        echo "  You can include YAML configuration at the beginning of your AsciiDoc file" . PHP_EOL;
-        echo "  to specify additional metadata for the wiki page." . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Format:" . PHP_EOL;
-        echo "    <<YAML>>" . PHP_EOL;
-        echo "    title: 'Your Wiki Page Title'" . PHP_EOL;
-        echo "    tags:" . PHP_EOL;
-        echo "      - ['image', 'https://example.com/image.jpg']" . PHP_EOL;
-        echo "      - ['l', 'en, ISO-639-1']" . PHP_EOL;
-        echo "      - ['reading-direction', 'left-to-right, top-to-bottom']" . PHP_EOL;
-        echo "      - ['t', 'wiki']" . PHP_EOL;
-        echo "      - ['summary', 'A brief description of your wiki page.']" . PHP_EOL;
-        echo "    <<YAML>>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Available YAML Options:" . PHP_EOL;
-        echo "    title:  Alternative title (if different from the first header)" . PHP_EOL;
-        echo "    tags:   Array of tag-value pairs:" . PHP_EOL;
-        echo "      - ['image', 'URL']              URL to the page image" . PHP_EOL;
-        echo "      - ['l', 'language']             Language code (ISO-639-1)" . PHP_EOL;
-        echo "      - ['reading-direction', 'dir']  Reading direction" . PHP_EOL;
-        echo "      - ['t', 'hashtag']              Hashtag (can be used multiple times)" . PHP_EOL;
-        echo "      - ['summary', 'text']           Brief description of the wiki page" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil wiki ./src/testdata/testfiles/Wiki_testfile.adoc" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'broadcast' command
-     */
-    private function showBroadcastCommandHelp(): void
-    {
-        echo "Usage: sybil broadcast <event_id>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  event_id  The ID of the event to broadcast (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil broadcast 123456789abcdef123456789abcdef123456789abcdef123456789abcdef" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'fetch' command
-     */
-    private function showFetchCommandHelp(): void
-    {
-        echo "Usage: sybil fetch <event_id>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  event_id  The ID of the event to fetch (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil fetch 123456789abcdef123456789abcdef123456789abcdef123456789abcdef" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'delete' command
-     */
-    private function showDeleteCommandHelp(): void
-    {
-        echo "Usage: sybil delete <event_id>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  event_id  The ID of the event to delete (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil delete 123456789abcdef123456789abcdef123456789abcdef123456789abcdef" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'publication' command
-     */
-    private function showPublicationCommandHelp(): void
-    {
-        echo "Usage: sybil publication <file_path>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  file_path  Path to the AsciiDoc file containing the publication (required)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "YAML Configuration:" . PHP_EOL;
-        echo "  You can include YAML configuration in your AsciiDoc file below the first header" . PHP_EOL;
-        echo "  to specify metadata for the publication." . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Format:" . PHP_EOL;
-        echo "    <<YAML>>" . PHP_EOL;
-        echo "    author: 'unknown'" . PHP_EOL;
-        echo "    version: '1'" . PHP_EOL;
-        echo "    tag-type: 'a'" . PHP_EOL;
-        echo "    auto-update: 'yes'" . PHP_EOL;
-        echo "    tags:" . PHP_EOL;
-        echo "      - ['image', 'https://mymediaserver.com/imagefile.jpg']" . PHP_EOL;
-        echo "      - ['type', 'book']" . PHP_EOL;
-        echo "      - ['l', 'en, ISO-639-1']" . PHP_EOL;
-        echo "      - ['reading-direction', 'left-to-right, top-to-bottom']" . PHP_EOL;
-        echo "      - ['t', 'novel']" . PHP_EOL;
-        echo "      - ['t', 'classical']" . PHP_EOL;
-        echo "      - ['summary', 'This is a description of this book.']" . PHP_EOL;
-        echo "      - ['i', 'isbn:978...']" . PHP_EOL;
-        echo "      - ['published_on', 'yyyy-mm-dd']" . PHP_EOL;
-        echo "      - ['published_by', 'public domain']" . PHP_EOL;
-        echo "      - ['p', '<hex pubkey>']" . PHP_EOL;
-        echo "      - ['E', '<original event ID>, <relay URL>, <hex pubkey>']" . PHP_EOL;
-        echo "      - ['source', 'https://website.com/article19484']" . PHP_EOL;
-        echo "    <</YAML>>" . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Mandatory YAML Options:" . PHP_EOL;
-        echo "    author:       Author of the original book" . PHP_EOL;
-        echo "    version:      Book edition (default: '1')" . PHP_EOL;
-        echo "    tag-type:     Flag for having 'e' or 'a' tag types ('a' recommended)" . PHP_EOL;
-        echo "    auto-update:  Whether events will be automatically updated (yes|ask|no)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "  Optional YAML Options:" . PHP_EOL;
-        echo "    tags:   Array of tag-value pairs:" . PHP_EOL;
-        echo "      - ['image', 'URL']                    URL to the cover image" . PHP_EOL;
-        echo "      - ['type', 'type']                    Document content-type (book, Bible, etc.)" . PHP_EOL;
-        echo "      - ['l', 'language']                   Language code (ISO-639-1)" . PHP_EOL;
-        echo "      - ['reading-direction', 'dir']        Reading direction" . PHP_EOL;
-        echo "      - ['t', 'hashtag']                    Hashtag (can be used multiple times)" . PHP_EOL;
-        echo "      - ['summary', 'text']                 Description of the publication" . PHP_EOL;
-        echo "      - ['i', 'isbn']                       ISBN identifier" . PHP_EOL;
-        echo "      - ['published_on', 'date']            Publication date (yyyy-mm-dd)" . PHP_EOL;
-        echo "      - ['published_by', 'publisher']       Publisher information" . PHP_EOL;
-        echo "      - ['p', 'pubkey']                     Hex pubkey (if source is a Nostr event)" . PHP_EOL;
-        echo "      - ['E', 'event_id,relay_url,pubkey']  Original event details" . PHP_EOL;
-        echo "      - ['source', 'url']                   Source URL (if source is a website)" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil publication ./src/testdata/testfiles/LoremIpsum.adoc" . PHP_EOL;
-    }
-    
-    /**
-     * Show detailed help for the 'help' command
-     */
-    private function showHelpCommandHelp(): void
-    {
-        echo "Usage: sybil help [command]" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Arguments:" . PHP_EOL;
-        echo "  command  The name of the command to show help for (optional)" . PHP_EOL;
-        echo "           If not provided, general help will be displayed" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Examples:" . PHP_EOL;
-        echo "  sybil help" . PHP_EOL;
-        echo "  sybil help note" . PHP_EOL;
+        }, $args);
     }
 }

@@ -7,33 +7,48 @@ use Sybil\Service\LoggerService;
 use Sybil\Service\UtilityService;
 use Sybil\Utilities\EventUtility;
 use InvalidArgumentException;
+use Sybil\Command\Traits\RelayOptionTrait;
+use Sybil\Service\EventService;
+use Sybil\Command\Traits\EventIdsTrait;
 
 /**
  * Command for broadcasting an event
  * 
  * This command handles the 'broadcast' command, which broadcasts an event to relays.
+ * Usage: sybil broadcast <event_id> [--relay <relay_url>]
+ * Multiple event IDs can be provided as a comma-separated list or in a file.
  */
 class BroadcastCommand extends BaseCommand
 {
+    use RelayOptionTrait;
+    use EventIdsTrait;
+    
+    /**
+     * @var EventService Event service
+     */
+    private EventService $eventService;
+    
     /**
      * @var UtilityService Utility service
      */
     private UtilityService $utilityService;
     
     /**
-     * @var LoggerService Logger service
+     * @var EventUtility Event utility
      */
-    private LoggerService $logger;
+    private EventUtility $eventUtility;
     
     /**
      * Constructor
      *
      * @param Application $app The application instance
+     * @param EventService $eventService Event service
      * @param UtilityService $utilityService Utility service
      * @param LoggerService $logger Logger service
      */
     public function __construct(
         Application $app,
+        EventService $eventService,
         UtilityService $utilityService,
         LoggerService $logger
     ) {
@@ -42,8 +57,9 @@ class BroadcastCommand extends BaseCommand
         $this->name = 'broadcast';
         $this->description = 'Broadcast an event to relays';
         
+        $this->eventService = $eventService;
         $this->utilityService = $utilityService;
-        $this->logger = $logger;
+        $this->eventUtility = new EventUtility();
     }
     
     /**
@@ -54,41 +70,46 @@ class BroadcastCommand extends BaseCommand
      */
     public function execute(array $args): int
     {
-        // Validate arguments
-        if (!$this->validateArgs($args, 1, 'The event ID is missing.')) {
-            return 1;
-        }
-        
-        $eventId = $args[0];
-        
-        try {
-            // Set the event ID
-            $this->utilityService->setEventID($eventId);
+        return $this->executeWithErrorHandling(function(array $args) {
+            // Parse arguments
+            list($input, $relayUrl) = $this->parseRelayArgs($args);
             
-            // Broadcast the event
-            $utility = new EventUtility();
-            $result = $utility->broadcast_event();
+            // Get event IDs from input
+            $eventIds = $this->getEventIds($input);
             
-            // Display the result
-            if (isset($result['success']) && $result['success']) {
-                $this->logger->info("Event broadcast successfully to " . count($result['successful_relays']) . " relays.");
-                $this->logger->info("  Accepted by: " . implode(", ", $result['successful_relays']));
-                if (!empty($result['failed_relays'])) {
-                    $this->logger->warning("  Rejected by: " . implode(", ", $result['failed_relays']));
-                }
-            } else {
-                $this->logger->error("Failed to broadcast event: " . ($result['message'] ?? 'Unknown error'));
+            // Validate event IDs
+            if (!$this->validateRequiredArgs($eventIds, 1, "At least one event ID must be provided.")) {
+                return 1;
             }
             
-            $this->logger->info("The utility run has finished.");
+            $allSuccess = true;
             
-            return $result['success'] ? 0 : 1;
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
-        } catch (\Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
-            return 1;
-        }
+            // Broadcast each event
+            foreach ($eventIds as $eventId) {
+                // Set the event ID
+                $this->eventUtility->setEventID($eventId);
+                
+                // Log operation start
+                $this->logger->info("Broadcasting event {$eventId}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+                
+                // Broadcast the event
+                $result = !empty($relayUrl)
+                    ? $this->eventUtility->broadcast_event_to_relay($relayUrl)
+                    : $this->eventUtility->broadcast_event();
+                
+                // Handle the result
+                $success = $this->handleResult(
+                    $result,
+                    "Event {$eventId} has been broadcast.",
+                    "Event {$eventId} could not be broadcast."
+                );
+                
+                if (!$success) {
+                    $allSuccess = false;
+                }
+            }
+            
+            return $allSuccess ? 0 : 1;
+        }, $args);
     }
 }

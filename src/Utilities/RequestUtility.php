@@ -44,9 +44,28 @@ namespace Sybil\Utilities;
 use swentel\nostr\Relay\Relay;
 use swentel\nostr\Message\RequestMessage;
 use swentel\nostr\Request\Request;
+use Sybil\Service\LoggerService;
 
 class RequestUtility
 {
+    /**
+     * @var LoggerService The logger instance
+     */
+    private static ?LoggerService $logger = null;
+    
+    /**
+     * Get the logger instance
+     *
+     * @return LoggerService The logger instance
+     */
+    private static function getLogger(): LoggerService
+    {
+        if (self::$logger === null) {
+            self::$logger = new LoggerService();
+        }
+        return self::$logger;
+    }
+    
     /**
      * Sends a request to a relay with retry on failure.
      *
@@ -67,19 +86,19 @@ class RequestUtility
                     return $request->send();
                 }, 'Request.php');
             } catch (\TypeError $e) {
-                echo "Sending to relay did not work. Will be retried." . PHP_EOL;
+                self::getLogger()->warning("Sending to relay did not work. Will be retried.");
                 $retryCount++;
                 sleep(5);
             } catch (\Exception $e) {
                 // Handle other exceptions, including invalid status code
-                echo "Error sending to relay: " . $e->getMessage() . ". Will be retried." . PHP_EOL;
+                self::getLogger()->warning("Error sending to relay: " . $e->getMessage() . ". Will be retried.");
                 $retryCount++;
                 sleep(5);
             }
         }
 
         // If we've exhausted all retries, return a mock success response
-        echo "All retries for relay failed. Continuing with mock response." . PHP_EOL;
+        self::getLogger()->warning("All retries for relay failed. Continuing with mock response.");
         return [
             'success' => true,
             'message' => 'Request processed locally (all retries failed)',
@@ -107,7 +126,7 @@ class RequestUtility
                 $successfulRelays[] = $relay->getUrl();
             } catch (\Exception $e) {
                 $failedRelays[] = $relay->getUrl();
-                echo "Error sending to relay " . $relay->getUrl() . ": " . $e->getMessage() . PHP_EOL;
+                self::getLogger()->error("Error sending to relay " . $relay->getUrl() . ": " . $e->getMessage());
             }
         }
         
