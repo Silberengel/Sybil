@@ -11,6 +11,8 @@ use InvalidArgumentException;
  * 
  * This class is the main entry point for the application.
  * It handles command registration and execution.
+ * 
+ * @package Sybil
  */
 class Application
 {
@@ -25,7 +27,7 @@ class Application
     private array $services = [];
     
     /**
-     * @var LoggerService|null The logger instance
+     * @var LoggerService|null Logger service
      */
     private ?LoggerService $logger = null;
     
@@ -34,7 +36,7 @@ class Application
      *
      * @return LoggerService The logger instance
      */
-    private function getLogger(): LoggerService
+    protected function getLogger(): LoggerService
     {
         if ($this->logger === null) {
             try {
@@ -132,7 +134,7 @@ class Application
         
         // Check if the command exists
         if (!isset($this->commands[$commandName])) {
-            $this->getLogger()->error("Command '$commandName' not found.");
+            $this->getLogger()->error("Command '$commandName' not found. Use 'help' to see available commands.");
             return 1;
         }
         
@@ -143,10 +145,11 @@ class Application
         try {
             return $this->commands[$commandName]->execute($argv);
         } catch (InvalidArgumentException $e) {
-            $this->getLogger()->error($e->getMessage());
+            $this->getLogger()->error("Invalid argument: " . $e->getMessage());
+            $this->getLogger()->output("Use 'help " . $commandName . "' to see command usage.");
             return 1;
         } catch (\Exception $e) {
-            $this->getLogger()->error($e->getMessage());
+            $this->getLogger()->error("Error executing command: " . $e->getMessage());
             return 1;
         }
     }
@@ -163,7 +166,7 @@ class Application
         if ($commandName !== null) {
             // Check if the command exists
             if (!isset($this->commands[$commandName])) {
-                $this->getLogger()->error("Command '$commandName' not found.");
+                $this->getLogger()->error("Command '$commandName' not found. Use 'help' to see available commands.");
                 return 1;
             }
             
@@ -178,7 +181,7 @@ class Application
         }
         
         // Show general help
-        $this->getLogger()->output("Sybil - A tool for creating and publishing Nostr events");
+        $this->getLogger()->output("Sybil - A Nostr event creation and publishing tool");
         $this->getLogger()->output("");
         $this->getLogger()->output("Usage: sybil <command> [arguments]");
         $this->getLogger()->output("");
@@ -195,6 +198,7 @@ class Application
         
         $this->getLogger()->output("");
         $this->getLogger()->output("For detailed help on a specific command, use: sybil help <command>");
+        $this->getLogger()->output("For more information about Sybil, visit: https://github.com/yourusername/sybil");
         
         return 0;
     }

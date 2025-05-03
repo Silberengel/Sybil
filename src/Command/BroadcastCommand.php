@@ -89,22 +89,33 @@ class BroadcastCommand extends BaseCommand
                 // Set the event ID
                 $this->eventUtility->setEventID($eventId);
                 
-                // Log operation start
-                $this->logger->info("Broadcasting event {$eventId}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+                // Log operation start with appropriate level
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("Broadcasting event {$eventId}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+                }
                 
                 // Broadcast the event
                 $result = !empty($relayUrl)
                     ? $this->eventUtility->broadcast_event_to_relay($relayUrl)
                     : $this->eventUtility->broadcast_event();
                 
-                // Handle the result
-                $success = $this->handleResult(
-                    $result,
-                    "Event {$eventId} has been broadcast.",
-                    "Event {$eventId} could not be broadcast."
-                );
-                
-                if (!$success) {
+                // Handle the result with appropriate logging levels
+                if ($result) {
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                        $this->logger->info("Event {$eventId} has been broadcast.");
+                    }
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("Broadcast details for event {$eventId}:");
+                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                        $this->logger->debug("  Result: " . json_encode($result));
+                    }
+                } else {
+                    $this->logger->error("Event {$eventId} could not be broadcast.");
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("Failed broadcast details for event {$eventId}:");
+                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                        $this->logger->debug("  Last error: " . $this->eventUtility->getLastError());
+                    }
                     $allSuccess = false;
                 }
             }

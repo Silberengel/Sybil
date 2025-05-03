@@ -198,6 +198,21 @@ class HelpCommand extends BaseCommand
                             $this->logger->output("  sybil republish event.json");
                             $this->logger->output("  cat event.json | sybil republish");
                             break;
+
+                        case 'relay-info':
+                            $this->logger->output("\nUsage: sybil relay-info <relay_url>");
+                            $this->logger->output("\nArguments:");
+                            $this->logger->output("  relay_url  The WebSocket URL of the relay (must start with wss:// or ws://)");
+                            $this->logger->output("\nDisplays information about the relay including:");
+                            $this->logger->output("  - Basic information (name, description, contact, software, version)");
+                            $this->logger->output("  - Supported NIPs");
+                            $this->logger->output("  - Limitations");
+                            $this->logger->output("  - Fees");
+                            $this->logger->output("  - Authentication support (NIP-42)");
+                            $this->logger->output("\nExamples:");
+                            $this->logger->output("  sybil relay-info wss://relay.example.com");
+                            $this->logger->output("  sybil relay-info ws://localhost:8080");
+                            break;
                             
                         default:
                             $this->logger->output("\nUsage: sybil {$commandName} [arguments]");
@@ -228,86 +243,20 @@ class HelpCommand extends BaseCommand
                 $this->logger->output("     sybil note \"Hello\" | jq '.'");
                 $this->logger->output("");
                 $this->logger->output("2. Logging Levels:");
-                $this->logger->output("   - Set logging level using SYBIL_LOG_LEVEL environment variable:");
-                $this->logger->output("     SYBIL_LOG_LEVEL=debug sybil note \"Hello\"");
-                $this->logger->output("     SYBIL_LOG_LEVEL=info sybil fetch <event_id>");
-                $this->logger->output("     SYBIL_LOG_LEVEL=warning sybil broadcast <event_id>");
-                $this->logger->output("     SYBIL_LOG_LEVEL=error sybil delete <event_id>");
+                $this->logger->output("   - Use flags to control verbosity:");
+                $this->logger->output("     sybil note \"Hello\" --debug    # Show all messages");
+                $this->logger->output("     sybil fetch <event_id> --info   # Show info and above");
+                $this->logger->output("     sybil broadcast <event_id> --warning  # Show warnings and errors");
+                $this->logger->output("     sybil delete <event_id>        # Show only errors (default)");
                 $this->logger->output("");
-                $this->logger->output("   Available levels: debug, info, warning, error");
+                $this->logger->output("3. Available Commands:");
+                $this->logger->output("   - note:      Create and publish a text note");
+                $this->logger->output("   - fetch:     Fetch an event from relays");
+                $this->logger->output("   - broadcast: Broadcast an event to relays");
+                $this->logger->output("   - delete:    Delete an event from relays");
+                $this->logger->output("   - relay-info: Display information about a relay");
                 $this->logger->output("");
-                $this->logger->output("3. Raw Output:");
-                $this->logger->output("   - Use --raw flag for JSON output:");
-                $this->logger->output("     sybil fetch <event_id> --raw");
-                $this->logger->output("");
-                
-                // Display relay management information
-                $this->logger->output("RELAY MANAGEMENT");
-                $this->logger->output("--------------------------------------------------");
-                $this->logger->output("1. Using the --relay option:");
-                $this->logger->output("   - Specify a single relay for a command: --relay wss://relay.example.com");
-                $this->logger->output("   - Example: sybil note \"Hello\" --relay wss://relay.example.com");
-                $this->logger->output("");
-                $this->logger->output("2. Using the relays.yml file:");
-                $this->logger->output("   - Create or edit user/relays.yml to specify your preferred relays");
-                $this->logger->output("   - One relay URL per line");
-                $this->logger->output("   - Current relays.yml content:");
-                
-                // Check for existing relays.yml file
-                $relaysFile = getcwd() . "/user/relays.yml";
-                if (file_exists($relaysFile)) {
-                    $relayUrls = file($relaysFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                    if (!empty($relayUrls)) {
-                        foreach ($relayUrls as $url) {
-                            $this->logger->output("     " . trim($url));
-                        }
-                    } else {
-                        $this->logger->output("     (file is empty)");
-                        $this->logger->output("     Example relays:");
-                        $this->logger->output("     wss://relay.damus.io");
-                        $this->logger->output("     wss://relay.nostr.band");
-                        $this->logger->output("     wss://nos.lol");
-                    }
-                } else {
-                    $this->logger->output("     (file not found)");
-                    $this->logger->output("     Example relays:");
-                    $this->logger->output("     wss://relay.damus.io");
-                    $this->logger->output("     wss://relay.nostr.band");
-                    $this->logger->output("     wss://nos.lol");
-                }
-                
-                $this->logger->output("");
-                $this->logger->output("Note: If no relay is specified, Sybil will use these default relays:");
-                $this->logger->output("     wss://thecitadel.nostr1.com");
-                $this->logger->output("     wss://relay.damus.io");
-                $this->logger->output("     wss://relay.nostr.band");
-                $this->logger->output("     wss://nostr.einundzwanzig.space");
-                $this->logger->output("     wss://relay.primal.net");
-                $this->logger->output("     wss://nos.lol");
-                $this->logger->output("     wss://relay.lumina.rocks");
-                $this->logger->output("     wss://freelay.sovbit.host");
-                $this->logger->output("     wss://wheat.happytavern.co");
-                $this->logger->output("     wss://nostr21.com");
-                $this->logger->output("     wss://theforest.nostr1.com");
-                $this->logger->output("");
-                
-                // Display help for all commands
-                $this->logger->output("AVAILABLE COMMANDS");
-                $this->logger->output("--------------------------------------------------");
-                foreach ($commands as $name => $command) {
-                    $this->logger->output("  {$name}: " . $command->getDescription());
-                }
-                $this->logger->output("");
-                $this->logger->output("For detailed help on a specific command, use:");
-                $this->logger->output("  sybil help <command>");
-                $this->logger->output("");
-                $this->logger->output("Examples:");
-                $this->logger->output("  sybil help wiki     # Show help for the wiki command");
-                $this->logger->output("  sybil help note     # Show help for the note command");
-                $this->logger->output("  sybil help longform # Show help for the longform command");
-                $this->logger->output("");
-                $this->logger->output("For more information, including installation, setup, and support, see:");
-                $this->logger->output("file://" . getcwd() . "/README.md");
+                $this->logger->output("For detailed help on a specific command, use: sybil help <command>");
             }
             
             return 0;

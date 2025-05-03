@@ -4,6 +4,7 @@ namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
 use InvalidArgumentException;
+use Sybil\Service\LoggerService;
 
 /**
  * Class WikiEvent
@@ -27,6 +28,11 @@ class WikiEvent extends BaseEvent
      * @var array The hashtags for the wiki page
      */
     protected array $hashtags = [];
+    
+    /**
+     * @var LoggerService
+     */
+    protected LoggerService $logger;
     
     /**
      * Get the event kind number
@@ -64,6 +70,10 @@ class WikiEvent extends BaseEvent
         
         // Extract YAML metadata
         if (strpos($markup, '<<YAML>>') !== false) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Processing YAML metadata from wiki page");
+            }
+            
             // Extract YAML metadata - handle both with and without comment markers
             $yamlPattern = '/(?:\/\/\/\/\s*)?<<YAML>>(.*?)<<\/YAML>>(?:\s*\/\/\/\/)?/s';
             preg_match($yamlPattern, $markup, $yamlMatches);
@@ -77,26 +87,48 @@ class WikiEvent extends BaseEvent
                 // Set title and other metadata
                 if (isset($yamlData['title'])) {
                     $this->setTitle($yamlData['title']);
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("  Title: " . $yamlData['title']);
+                    }
                 }
                 
                 if (isset($yamlData['author'])) {
                     $this->author = $yamlData['author'];
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("  Author: " . $yamlData['author']);
+                    }
                 }
                 
                 if (isset($yamlData['summary'])) {
                     $this->summary = $yamlData['summary'];
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("  Summary: " . substr($yamlData['summary'], 0, 100) . (strlen($yamlData['summary']) > 100 ? '...' : ''));
+                    }
                 }
                 
                 // Process tags
                 if (isset($yamlData['tags']) && is_array($yamlData['tags'])) {
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("  Processing " . count($yamlData['tags']) . " tags");
+                    }
+                    
                     foreach ($yamlData['tags'] as $tag) {
                         if (is_array($tag) && count($tag) >= 2) {
                             if ($tag[0] === 't') {
                                 $this->hashtags[] = $tag[1];
+                                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                                    $this->logger->debug("    Added hashtag: " . $tag[1]);
+                                }
                             } else if ($tag[0] === 'summary') {
                                 $this->summary = $tag[1];
+                                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                                    $this->logger->debug("    Added summary: " . substr($tag[1], 0, 100) . (strlen($tag[1]) > 100 ? '...' : ''));
+                                }
                             } else {
                                 $this->optionalTags[] = $tag;
+                                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                                    $this->logger->debug("    Added optional tag: " . json_encode($tag));
+                                }
                             }
                         }
                     }
@@ -130,14 +162,28 @@ class WikiEvent extends BaseEvent
             
             if (!empty($matches[1])) {
                 $this->setTitle($matches[1]);
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Extracted title from content: " . $matches[1]);
+                }
             } else {
                 // Use a default title
                 $this->setTitle('Wiki Page');
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Using default title: Wiki Page");
+                }
             }
         }
         
         // Set content
         $this->content = $markup;
+        
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Processed wiki page:");
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  Content length: " . strlen($markup) . " bytes");
+            $this->logger->debug("  Hashtags: " . count($this->hashtags));
+            $this->logger->debug("  Optional tags: " . count($this->optionalTags));
+        }
         
         return [
             [
@@ -194,10 +240,17 @@ class WikiEvent extends BaseEvent
         $event->setContent($this->content);
         
         // Add tags
-        $tags = [
-            ['d', $this->dTag],
-            ['title', $this->title]
-        ];
+        $tags = [];
+        
+        // Add d-tag
+        if (!empty($this->dTag)) {
+            $tags[] = ['d', $this->dTag];
+        }
+        
+        // Add title tag
+        if (!empty($this->title)) {
+            $tags[] = ['title', $this->title];
+        }
         
         // Add author tag
         if (!empty($this->author)) {
@@ -214,9 +267,6 @@ class WikiEvent extends BaseEvent
             $tags[] = ['t', $hashtag];
         }
         
-        // Add published_at tag with Unix timestamp as a string
-        $tags[] = ['published_at', (string)time()];
-        
         // Add optional tags
         foreach ($this->optionalTags as $tag) {
             $tags[] = $tag;
@@ -225,6 +275,81 @@ class WikiEvent extends BaseEvent
         // Set tags
         $event->setTags($tags);
         
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Built wiki event:");
+            $this->logger->debug("  Kind: " . $this->getEventKind());
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  D-Tag: " . $this->dTag);
+            $this->logger->debug("  Author: " . $this->author);
+            $this->logger->debug("  Summary: " . substr($this->summary, 0, 100) . (strlen($this->summary) > 100 ? '...' : ''));
+            $this->logger->debug("  Hashtags: " . count($this->hashtags));
+            $this->logger->debug("  Optional tags: " . count($this->optionalTags));
+            $this->logger->debug("  Content length: " . strlen($this->content) . " bytes");
+        }
+        
         return $event;
+    }
+
+    public function publishToRelay(string $relayUrl, ?string $keyEnvVar = null): array
+    {
+        // Build the event
+        $event = $this->buildEvent();
+        
+        // Get private key from environment
+        $utility = new KeyUtility();
+        $privateKey = $utility::getNsec($keyEnvVar);
+        
+        // Sign the event
+        $signer = new \swentel\nostr\Sign\Sign();
+        $signer->signEvent($event, $privateKey);
+        
+        // Get the event ID
+        $eventId = $event->getId();
+        
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing wiki page to relay {$relayUrl}");
+        }
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Wiki page details:");
+            $this->logger->debug("  Event ID: " . $eventId);
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+        }
+        
+        // Create event message
+        $eventMessage = new \swentel\nostr\Message\EventMessage($event);
+        
+        // Create relay
+        $relay = new Relay($relayUrl);
+        
+        // Send the event with retry on failure, passing the custom relay list
+        $result = $this->sendEventWithRetry($eventMessage, [$relay]);
+        
+        // Add the event ID to the result
+        $result['event_id'] = $eventId;
+        
+        // Log the result with appropriate level
+        if ($result['success']) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Wiki page published successfully to relay {$relayUrl}");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Publish result:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Response: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to publish wiki page to relay {$relayUrl}");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed publish details:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
+        
+        return $result;
     }
 }

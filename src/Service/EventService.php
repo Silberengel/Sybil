@@ -31,7 +31,7 @@ class EventService
     /**
      * @var LoggerService Logger service
      */
-    private LoggerService $logger;
+    protected LoggerService $logger;
     
     /**
      * Constructor

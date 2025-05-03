@@ -8,7 +8,6 @@ use Sybil\Utilities\RelayUtility;
 use Sybil\Utilities\ErrorHandlingUtility;
 use Sybil\Utilities\LogUtility;
 use Sybil\Utilities\EventPreparationUtility;
-use Sybil\Utilities\Logger;
 use Sybil\Service\LoggerService;
 use Sybil\Utilities\KeyUtility;
 
@@ -51,9 +50,9 @@ abstract class BaseEvent
     public const DEFAULT_RELAY = 'wss://thecitadel.nostr1.com';
     
     /**
-     * @var Logger The logger instance
+     * @var LoggerService The logger instance
      */
-    protected Logger $logger;
+    protected LoggerService $logger;
     
     /**
      * Constructor
@@ -211,11 +210,37 @@ abstract class BaseEvent
         // Build and publish the event
         $event = $this->buildEvent();
         
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing " . $this->getEventKindName() . " event");
+        }
+        
         // Prepare and send the event
         $result = $this->prepareEventData($event, $keyEnvVar);
         
         // Check if the event was published successfully
         $success = isset($result['success']) && $result['success'];
+        
+        // Handle the result with appropriate logging levels
+        if ($success) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("The " . $this->getEventKindName() . " event has been written.");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug($this->getEventKindName() . " event details:");
+                $this->logger->debug("  Title: " . $this->title);
+                $this->logger->debug("  D-Tag: " . $this->dTag);
+                $this->logger->debug("  Result: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("The " . $this->getEventKindName() . " event was created but could not be published to any relay.");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed " . $this->getEventKindName() . " event details:");
+                $this->logger->debug("  Title: " . $this->title);
+                $this->logger->debug("  D-Tag: " . $this->dTag);
+                $this->logger->debug("  Last error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
         
         // Record the result
         $this->recordResult($this->getEventKindName(), $event, $success);
@@ -233,7 +258,13 @@ abstract class BaseEvent
     {
         $markup = file_get_contents($this->file);
         if (!$markup) {
+            $this->logger->error("Could not read file: " . $this->file);
             throw new InvalidArgumentException('The file could not be found or is empty.');
+        }
+        
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Loaded markup file: " . $this->file);
+            $this->logger->debug("  Content length: " . strlen($markup) . " bytes");
         }
         
         return $markup;
@@ -248,44 +279,17 @@ abstract class BaseEvent
      * @return void
      * @throws InvalidArgumentException If the event ID was not created
      */
-    protected function recordResult(string $kind, Event $note, bool $success = true): void
+    protected function recordResult(string $kind, Event $note, bool $success): void
     {
-        // Get event ID with retry
-        $eventID = $this->getEventIdWithRetry($note);
-        
-        // Log the event
-        if ($success) {
-            $this->logger->output("Published " . $kind . " event with ID " . $eventID);
-            $this->logger->output("");
-        } else {
-            $this->logger->warning("Created " . $kind . " event with ID " . $eventID . " but no relay accepted it.");
-            $this->logger->warning("The event was not published to any relay.");
-            $this->logger->output("");
+        if (!$note->id) {
+            $this->logger->error("Event ID was not created for " . $kind);
+            throw new InvalidArgumentException('Event ID was not created.');
         }
         
-        $this->printEventData(
-            $this->getEventKind(),
-            $eventID,
-            $this->dTag
-        );
-        
-        // Print a njump hyperlink only if the event was published successfully
-        if ($success) {
-            $eventKind = $this->getEventKind();
-            $publicKey = KeyUtility::getPublicKey();
-            
-            // For text notes (kind 1), use nevent
-            if ($eventKind === 1) {
-                $this->logger->output("https://njump.me/nevent:" . $eventID);
-            }
-            // For longform (kind 30023), wiki (kind 30818), and publication (kind 30040), use naddr
-            else if (in_array($eventKind, [30023, 30818, 30040, 30041])) {
-                $this->logger->output("https://njump.me/naddr:" . $publicKey . ":" . $eventKind . ":" . $this->dTag);
-            }
-            // For other kinds, use nevent
-            else {
-                $this->logger->output("https://njump.me/nevent:" . $eventID);
-            }
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Recording result for " . $kind . " event:");
+            $this->logger->debug("  Event ID: " . $note->id);
+            $this->logger->debug("  Success: " . ($success ? 'true' : 'false'));
         }
     }
     

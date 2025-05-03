@@ -101,8 +101,10 @@ class FetchCommand extends BaseCommand
                 // Set the event ID
                 $this->eventUtility->setEventID($eventId);
                 
-                // Log operation start
-                $this->logger->info("Fetching event {$eventId}" . (!empty($relayUrl) ? " from relay {$relayUrl}" : ""));
+                // Log operation start with appropriate level
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("Fetching event {$eventId}" . (!empty($relayUrl) ? " from relay {$relayUrl}" : ""));
+                }
                 
                 // Fetch the event
                 $result = !empty($relayUrl)
@@ -124,7 +126,14 @@ class FetchCommand extends BaseCommand
                                 'data' => $eventData
                             ];
                         }
-                        $this->logger->info("Event {$eventId} has been fetched.");
+                        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                            $this->logger->info("Event {$eventId} has been fetched.");
+                        }
+                        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                            $this->logger->debug("Fetch details for event {$eventId}:");
+                            $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                            $this->logger->debug("  Response: " . json_encode($result[0]));
+                        }
                     } else {
                         if (!$raw) {
                             $allEvents[$eventId] = [
@@ -133,6 +142,10 @@ class FetchCommand extends BaseCommand
                             ];
                         }
                         $this->logger->warning("Could not extract data for event {$eventId}.");
+                        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                            $this->logger->debug("Failed to extract data for event {$eventId}:");
+                            $this->logger->debug("  Raw response: " . json_encode($result[0]));
+                        }
                         $success = false;
                     }
                 } else {
@@ -143,6 +156,11 @@ class FetchCommand extends BaseCommand
                         ];
                     }
                     $this->logger->warning("Event {$eventId} could not be fetched.");
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("Failed to fetch event {$eventId}:");
+                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                        $this->logger->debug("  Last error: " . $this->eventUtility->getLastError());
+                    }
                     $success = false;
                 }
             }

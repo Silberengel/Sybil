@@ -75,22 +75,40 @@ class LongformCommand extends BaseCommand
             $longform = new LongformEvent();
             $longform->setFile($filePath);
             
-            // Log operation start
-            $this->logOperationStart("Publishing longform article", $relayUrl);
+            // Log operation start with appropriate level
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Publishing longform article from {$filePath}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+            }
             
             // Publish the longform article
             $result = !empty($relayUrl)
                 ? $longform->publishToRelay($relayUrl)
                 : $longform->publish();
             
-            // Handle the result
-            $success = $this->handleResult(
-                $result,
-                "The longform article has been written.",
-                "The longform article was created but could not be published to any relay."
-            );
+            // Handle the result with appropriate logging levels
+            if ($result) {
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("The longform article has been written.");
+                }
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Longform article details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $longform->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Result: " . json_encode($result));
+                }
+            } else {
+                $this->logger->error("The longform article was created but could not be published to any relay.");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Failed longform article details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $longform->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Last error: " . $longform->getLastError());
+                }
+            }
             
-            return $success ? 0 : 1;
+            return $result ? 0 : 1;
         }, $args);
     }
 }

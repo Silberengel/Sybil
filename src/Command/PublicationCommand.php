@@ -73,22 +73,40 @@ class PublicationCommand extends BaseCommand
             $publication = new PublicationEvent();
             $publication->setFile($filePath);
             
-            // Log operation start
-            $this->logOperationStart("Publishing publication", $relayUrl);
+            // Log operation start with appropriate level
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Publishing publication from {$filePath}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+            }
             
             // Publish the publication
             $result = !empty($relayUrl)
                 ? $publication->publishToRelay($relayUrl)
                 : $publication->publish();
             
-            // Handle the result
-            $success = $this->handleResult(
-                $result,
-                "The publication has been written.",
-                "The publication was created but could not be published to any relay."
-            );
+            // Handle the result with appropriate logging levels
+            if ($result) {
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("The publication has been written.");
+                }
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Publication details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $publication->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Result: " . json_encode($result));
+                }
+            } else {
+                $this->logger->error("The publication was created but could not be published to any relay.");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Failed publication details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $publication->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Last error: " . $publication->getLastError());
+                }
+            }
             
-            return $success ? 0 : 1;
+            return $result ? 0 : 1;
         }, $args);
     }
 }

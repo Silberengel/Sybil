@@ -46,7 +46,7 @@ class UtilityService
     /**
      * @var LoggerService Logger service
      */
-    private LoggerService $logger;
+    protected LoggerService $logger;
     
     /**
      * Constructor

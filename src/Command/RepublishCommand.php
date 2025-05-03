@@ -51,6 +51,11 @@ class RepublishCommand extends BaseCommand
                 return 1;
             }
             
+            // Log operation start with appropriate level
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Republishing event" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+            }
+            
             // Remove fields that should be regenerated
             unset($eventData['id']);
             unset($eventData['sig']);
@@ -71,14 +76,30 @@ class RepublishCommand extends BaseCommand
                 ? RelayUtility::sendEventWithRetry($eventMessage, RelayUtility::getRelayList($eventData['kind'], [$relayUrl]))
                 : RelayUtility::sendEventWithRetry($eventMessage);
             
-            // Handle the result
-            $success = $this->handleResult(
-                $result,
-                "The event has been republished.",
-                "The event could not be republished."
-            );
+            // Handle the result with appropriate logging levels
+            if ($result) {
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("The event has been republished.");
+                }
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Republish details:");
+                    $this->logger->debug("  Kind: " . $eventData['kind']);
+                    $this->logger->debug("  Content: " . substr($eventData['content'], 0, 100) . (strlen($eventData['content']) > 100 ? '...' : ''));
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Result: " . json_encode($result));
+                }
+            } else {
+                $this->logger->error("The event could not be republished.");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Failed republish details:");
+                    $this->logger->debug("  Kind: " . $eventData['kind']);
+                    $this->logger->debug("  Content: " . substr($eventData['content'], 0, 100) . (strlen($eventData['content']) > 100 ? '...' : ''));
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Last error: " . RelayUtility::getLastError());
+                }
+            }
             
-            return $success ? 0 : 1;
+            return $result ? 0 : 1;
         }, $args);
     }
     
@@ -112,6 +133,11 @@ class RepublishCommand extends BaseCommand
         foreach ($requiredFields as $field) {
             if (!isset($eventData[$field])) {
                 $this->logger->error("Missing required field: $field");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Event data validation failed:");
+                    $this->logger->debug("  Input: " . substr($input, 0, 100) . (strlen($input) > 100 ? '...' : ''));
+                    $this->logger->debug("  Missing field: " . $field);
+                }
                 return null;
             }
         }

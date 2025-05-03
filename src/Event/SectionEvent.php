@@ -4,6 +4,7 @@ namespace Sybil\Event;
 
 use swentel\nostr\Event\Event;
 use InvalidArgumentException;
+use Sybil\Service\LoggerService;
 
 /**
  * Class SectionEvent
@@ -13,6 +14,11 @@ use InvalidArgumentException;
  */
 class SectionEvent extends BaseEvent
 {
+    /**
+     * @var LoggerService
+     */
+    protected LoggerService $logger;
+    
     /**
      * Get the event kind number
      * 
@@ -42,6 +48,11 @@ class SectionEvent extends BaseEvent
      */
     protected function preprocessMarkup(string $markup): array
     {
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Processing section content:");
+            $this->logger->debug("  Content length: " . strlen($markup) . " bytes");
+        }
+        
         // For section events, we don't need to preprocess the markup
         return [
             [
@@ -61,6 +72,9 @@ class SectionEvent extends BaseEvent
         // If title is not set, use a default title
         if (empty($this->title)) {
             $this->setTitle('Section');
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Using default title: Section");
+            }
         }
         
         // Create d-tag
@@ -68,6 +82,13 @@ class SectionEvent extends BaseEvent
         
         // Set content
         $this->content = $markupFormatted[0]['content'];
+        
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Processed section:");
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  D-Tag: " . $this->dTag);
+            $this->logger->debug("  Content length: " . strlen($this->content) . " bytes");
+        }
     }
     
     /**
@@ -90,6 +111,12 @@ class SectionEvent extends BaseEvent
         // Limit to 75 characters
         $dTag = substr($dTag, 0, 75);
         
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Created d-tag from title:");
+            $this->logger->debug("  Original title: " . $title);
+            $this->logger->debug("  Generated d-tag: " . $dTag);
+        }
+        
         return $dTag;
     }
     
@@ -106,10 +133,17 @@ class SectionEvent extends BaseEvent
         $event->setContent($this->content);
         
         // Add tags
-        $tags = [
-            ['d', $this->dTag],
-            ['title', $this->title]
-        ];
+        $tags = [];
+        
+        // Add d-tag
+        if (!empty($this->dTag)) {
+            $tags[] = ['d', $this->dTag];
+        }
+        
+        // Add title tag
+        if (!empty($this->title)) {
+            $tags[] = ['title', $this->title];
+        }
         
         // Add optional tags
         foreach ($this->optionalTags as $tag) {
@@ -118,6 +152,15 @@ class SectionEvent extends BaseEvent
         
         // Set tags
         $event->setTags($tags);
+        
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Built section event:");
+            $this->logger->debug("  Kind: " . $this->getEventKind());
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  D-Tag: " . $this->dTag);
+            $this->logger->debug("  Optional tags: " . count($this->optionalTags));
+            $this->logger->debug("  Content length: " . strlen($this->content) . " bytes");
+        }
         
         return $event;
     }
@@ -140,5 +183,75 @@ class SectionEvent extends BaseEvent
     public function build(): Event
     {
         return $this->buildEvent();
+    }
+    
+    /**
+     * Publishes the event to a relay
+     * 
+     * @param string $relayUrl The relay URL
+     * @param string|null $keyEnvVar The environment variable name for the private key
+     * @return array The result of the publish operation
+     */
+    public function publishToRelay(string $relayUrl, ?string $keyEnvVar = null): array
+    {
+        // Build the event
+        $event = $this->buildEvent();
+        
+        // Get private key from environment
+        $utility = new KeyUtility();
+        $privateKey = $utility::getNsec($keyEnvVar);
+        
+        // Sign the event
+        $signer = new \swentel\nostr\Sign\Sign();
+        $signer->signEvent($event, $privateKey);
+        
+        // Get the event ID
+        $eventId = $event->getId();
+        
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing section to relay {$relayUrl}");
+        }
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Section details:");
+            $this->logger->debug("  Event ID: " . $eventId);
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+        }
+        
+        // Create event message
+        $eventMessage = new \swentel\nostr\Message\EventMessage($event);
+        
+        // Create relay
+        $relay = new Relay($relayUrl);
+        
+        // Send the event with retry on failure, passing the custom relay list
+        $result = $this->sendEventWithRetry($eventMessage, [$relay]);
+        
+        // Add the event ID to the result
+        $result['event_id'] = $eventId;
+        
+        // Log the result with appropriate level
+        if ($result['success']) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Section published successfully to relay {$relayUrl}");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Publish result:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Response: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to publish section to relay {$relayUrl}");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed publish details:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
+        
+        return $result;
     }
 }

@@ -24,6 +24,7 @@ require_once __DIR__ . '/../src/Command/DeleteCommand.php';
 require_once __DIR__ . '/../src/Command/BroadcastCommand.php';
 require_once __DIR__ . '/../src/Command/HelpCommand.php';
 require_once __DIR__ . '/../src/Command/RepublishCommand.php';
+require_once __DIR__ . '/../src/Command/RelayInfoCommand.php';
 require_once __DIR__ . '/../src/Service/LoggerService.php';
 require_once __DIR__ . '/../src/Service/RelayService.php';
 require_once __DIR__ . '/../src/Service/EventService.php';
@@ -81,6 +82,10 @@ $app->registerCommand(new Sybil\Command\PublicationCommand(
     $app->get('event_service'),
     $app->get('tag_service'),
     $app->get('logger')
+));
+
+$app->registerCommand(new Sybil\Command\RelayInfoCommand(
+    $app
 ));
 
 $app->registerCommand(new Sybil\Command\LongformCommand(

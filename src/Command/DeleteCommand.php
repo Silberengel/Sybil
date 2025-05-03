@@ -90,22 +90,33 @@ class DeleteCommand extends BaseCommand
                 // Set the event ID
                 $this->eventUtility->setEventID($eventId);
                 
-                // Log operation start
-                $this->logger->info("Deleting event {$eventId}" . (!empty($relayUrl) ? " from relay {$relayUrl}" : ""));
+                // Log operation start with appropriate level
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("Deleting event {$eventId}" . (!empty($relayUrl) ? " from relay {$relayUrl}" : ""));
+                }
                 
                 // Delete the event
                 $result = !empty($relayUrl)
                     ? $this->eventUtility->delete_event_from_relay($relayUrl)
                     : $this->eventUtility->delete_event();
                 
-                // Handle the result
-                $success = $this->handleResult(
-                    $result,
-                    "Event {$eventId} has been deleted.",
-                    "Event {$eventId} could not be deleted."
-                );
-                
-                if (!$success) {
+                // Handle the result with appropriate logging levels
+                if ($result) {
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                        $this->logger->info("Event {$eventId} has been deleted.");
+                    }
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("Delete details for event {$eventId}:");
+                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                        $this->logger->debug("  Result: " . json_encode($result));
+                    }
+                } else {
+                    $this->logger->error("Event {$eventId} could not be deleted.");
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("Failed delete details for event {$eventId}:");
+                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                        $this->logger->debug("  Last error: " . $this->eventUtility->getLastError());
+                    }
                     $allSuccess = false;
                 }
             }

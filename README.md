@@ -72,43 +72,16 @@ Sybil uses relays to publish and fetch events. You can manage relays in two ways
      wss://nos.lol
      ```
 
+3. Checking relay information:
+   - Use the `relay-info` command to get detailed information about a relay
+   - Example: `sybil relay-info wss://relay.example.com`
+   - Shows supported NIPs, limitations, fees, and authentication support
+
+4. Authentication (NIP-42):
+   - Sybil automatically handles authentication with relays that support NIP-42
+   - Authentication is enabled by default when sending events
+   - You can check if a relay supports authentication using `relay-info`
+   - Example: `sybil relay-info wss://relay.example.com`
+
 If no relay is specified, Sybil will use these default relays:
 ```
-wss://thecitadel.nostr1.com
-wss://relay.damus.io
-wss://relay.nostr.band
-wss://nostr.einundzwanzig.space
-wss://relay.primal.net
-wss://nos.lol
-wss://relay.lumina.rocks
-wss://freelay.sovbit.host
-wss://wheat.happytavern.co
-wss://nostr21.com
-wss://theforest.nostr1.com
-```
-
-## Usage
-
-For detailed usage information, including output redirection, logging levels, and command-specific help, run:
-```bash
-sybil help
-```
-
-For help on a specific command:
-```bash
-sybil help <command>
-```
-
-The help system provides comprehensive information about:
-- Output redirection and piping
-- Logging levels and configuration
-- Relay management
-- Command-specific usage and examples
-
-## Support
-
-Project repository:
-https://gitcitadel.com/r/naddr1qvzqqqrhnypzplfq3m5v3u5r0q9f255fdeyz8nyac6lagssx8zy4wugxjs8ajf7pqythwumn8ghj7un9d3shjtnwdaehgu3wvfskuep0qqz4x7tzd9kqftxaxq
-
-For support or questions, contact the developer at:
-https://njump.me/npub1l5sga6xg72phsz5422ykujprejwud075ggrr3z2hwyrfgr7eylqstegx9z

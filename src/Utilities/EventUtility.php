@@ -57,7 +57,10 @@ class EventUtility
 {
     // Properties
     private string $eventID = '';
-    private LoggerService $logger;
+    /**
+     * @var LoggerService Logger service
+     */
+    protected LoggerService $logger;
     
     // Constants
     public const DEFAULT_RELAY = 'wss://freelay.sovbit.host';

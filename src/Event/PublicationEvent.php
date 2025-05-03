@@ -9,6 +9,7 @@ use Sybil\Utilities\TagUtility;
 use Sybil\Utilities\RelayUtility;
 use Sybil\Utilities\ErrorHandlingUtility;
 use Sybil\Utilities\EventPreparationUtility;
+use Sybil\Service\LoggerService;
 
 /**
  * Class PublicationEvent
@@ -57,6 +58,11 @@ class PublicationEvent extends BaseEvent
      * @var string Version of the publication
      */
     protected string $version = '1';
+    
+    /**
+     * @var LoggerService
+     */
+    protected LoggerService $logger;
     
     /**
      * Get the event kind number
@@ -223,12 +229,17 @@ class PublicationEvent extends BaseEvent
      */
     private function createSectionEvents(): void
     {
-        echo "Creating section events for " . count($this->sections) . " sections" . PHP_EOL;
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Creating section events for " . count($this->sections) . " sections");
+        }
         
         // Create a section event for each section
         foreach ($this->sections as $index => $section) {
-            echo "Processing section " . ($index + 1) . ": " . $section['title'] . PHP_EOL;
-            echo "Section content length: " . strlen($section['content']) . PHP_EOL;
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Processing section " . ($index + 1) . ": " . $section['title']);
+                $this->logger->debug("  Content length: " . strlen($section['content']) . " bytes");
+            }
             
             // Create section event
             $sectionEvent = new SectionEvent();
@@ -248,8 +259,6 @@ class PublicationEvent extends BaseEvent
             // Create d-tag for the section, passing true to indicate it's a section
             $sectionDTag = $this->createDTag($section['title'], true);
             $sectionEvent->setDTag($sectionDTag);
-            
-            echo "Created d-tag for section: " . $sectionDTag . PHP_EOL;
             
             // Store the section event
             $this->sectionEvents[] = $sectionEvent;
@@ -296,17 +305,26 @@ class PublicationEvent extends BaseEvent
         // Get event ID with retry
         $eventID = $this->getSectionEventIdWithRetry($note);
         
-        // Log the event
+        // Log the event with appropriate levels
         if ($success) {
-            echo "Building section $index of $total." . PHP_EOL;
-            echo "Debug - Initial Event ID: " . $eventID . PHP_EOL;
-            echo "Sending event kind " . $kind . " to 1 relays..." . PHP_EOL;
-            echo "Event successfully sent to 1 relays:" . PHP_EOL;
-            echo "  Accepted by: wss://thecitadel.nostr1.com" . PHP_EOL . PHP_EOL;
-            echo "Published " . $kind . " event with ID " . $eventID . PHP_EOL . PHP_EOL;
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Published section " . ($index + 1) . " of " . $total . " (" . $kind . ") with ID " . $eventID);
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Section details:");
+                $this->logger->debug("  Section: " . ($index + 1) . " of " . $total);
+                $this->logger->debug("  Kind: " . $kind);
+                $this->logger->debug("  Event ID: " . $eventID);
+                $this->logger->debug("  URL: https://njump.me/" . $eventID);
+            }
         } else {
-            echo "Created " . $kind . " event with ID " . $eventID . " but no relay accepted it." . PHP_EOL;
-            echo "The event was not published to any relay." . PHP_EOL . PHP_EOL;
+            $this->logger->error("Created section " . ($index + 1) . " of " . $total . " (" . $kind . ") with ID " . $eventID . " but no relay accepted it.");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed section details:");
+                $this->logger->debug("  Section: " . ($index + 1) . " of " . $total);
+                $this->logger->debug("  Kind: " . $kind);
+                $this->logger->debug("  Event ID: " . $eventID);
+            }
         }
     }
     
@@ -317,82 +335,63 @@ class PublicationEvent extends BaseEvent
      */
     protected function buildEvent(): Event
     {
-        // Debug information
-        echo "Building event with the following data:" . PHP_EOL;
-        echo "Title: " . $this->title . PHP_EOL;
-        echo "D-Tag: " . $this->dTag . PHP_EOL;
-        echo "Tag Type: " . $this->tagType . PHP_EOL;
-        echo "Number of Sections: " . count($this->sections) . PHP_EOL;
-        echo "Number of Section Events: " . count($this->sectionEvents) . PHP_EOL;
-        echo "Number of Section Event IDs: " . count($this->sectionEventIds) . PHP_EOL;
-        echo "Number of Section D-Tags: " . count($this->sectionDTags) . PHP_EOL;
-        echo "Number of Hashtags: " . count($this->hashtags) . PHP_EOL;
-        echo "Number of Optional Tags: " . count($this->optionalTags) . PHP_EOL;
-        echo "Content Length: " . strlen($this->content) . PHP_EOL;
-        
         // Create event
         $event = new Event();
         $event->setKind($this->getEventKind());
-        
-        // 30040 events should not contain content, only references to sections
-        $event->setContent("");
-        echo "Setting empty content for 30040 event (table of contents)" . PHP_EOL;
+        $event->setContent($this->content);
         
         // Add tags
-        $tags = [
-            ['d', $this->dTag],
-            ['title', $this->title],
-            ['author', $this->author],
-            ['version', $this->version],
-            ['m', 'application/json'],
-            ['M', 'meta-data/index/replaceable']
-        ];
+        $tags = [];
         
-        // Add section references
-        if ($this->tagType === 'e') {
-            // Add e-tags
-            echo "Adding e-tags for " . count($this->sectionEventIds) . " sections" . PHP_EOL;
-            foreach ($this->sectionEventIds as $sectionEventId) {
-                $tags[] = ['e', $sectionEventId];
-                echo "Added e-tag: " . $sectionEventId . PHP_EOL;
-            }
-            
-            // Add tag type
-            $tags[] = ['t', 'e-tags'];
-        } else {
-            // Add a-tags
-            $publicHex = KeyUtility::getPublicHexKey();
-            echo "Adding a-tags for " . count($this->sectionDTags) . " sections with public key: " . $publicHex . PHP_EOL;
-            
-            foreach ($this->sectionDTags as $index => $sectionDTag) {
-                $tags[] = ['a', '30041:' . $publicHex . ':' . $sectionDTag];
-                echo "Added a-tag: " . $sectionDTag . PHP_EOL;
-            }
-            
-            // Add tag type
-            $tags[] = ['t', 'a-tags'];
+        // Add d-tag
+        if (!empty($this->dTag)) {
+            $tags[] = ['d', $this->dTag];
+        }
+        
+        // Add title tag
+        if (!empty($this->title)) {
+            $tags[] = ['title', $this->title];
+        }
+        
+        // Add author tag
+        if (!empty($this->author)) {
+            $tags[] = ['author', $this->author];
+        }
+        
+        // Add version tag
+        if (!empty($this->version)) {
+            $tags[] = ['version', $this->version];
+        }
+        
+        // Add section tags
+        foreach ($this->sectionEventIds as $sectionEventId) {
+            $tags[] = [$this->tagType, $sectionEventId];
         }
         
         // Add hashtags
-        echo "Adding " . count($this->hashtags) . " hashtags" . PHP_EOL;
         foreach ($this->hashtags as $hashtag) {
             $tags[] = ['t', $hashtag];
-            echo "Added hashtag: " . $hashtag . PHP_EOL;
         }
         
         // Add optional tags
-        echo "Adding " . count($this->optionalTags) . " optional tags" . PHP_EOL;
         foreach ($this->optionalTags as $tag) {
             $tags[] = $tag;
-            echo "Added optional tag: " . json_encode($tag) . PHP_EOL;
         }
         
         // Set tags
         $event->setTags($tags);
         
-        // Debug the final event
-        echo "Final event tags: " . count($tags) . PHP_EOL;
-        echo "Final event content length: " . strlen($this->content) . PHP_EOL;
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Built publication event:");
+            $this->logger->debug("  Kind: " . $this->getEventKind());
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  D-Tag: " . $this->dTag);
+            $this->logger->debug("  Author: " . $this->author);
+            $this->logger->debug("  Version: " . $this->version);
+            $this->logger->debug("  Sections: " . count($this->sectionEventIds));
+            $this->logger->debug("  Hashtags: " . count($this->hashtags));
+            $this->logger->debug("  Optional tags: " . count($this->optionalTags));
+        }
         
         return $event;
     }
@@ -405,7 +404,37 @@ class PublicationEvent extends BaseEvent
      */
     public function sendEvent(Event $event): array
     {
-        return $this->prepareEventData($event);
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Sending publication event");
+        }
+        
+        // Create event message
+        $eventMessage = new \swentel\nostr\Message\EventMessage($event);
+        
+        // Send the event with retry on failure
+        $result = $this->sendEventWithRetry($eventMessage);
+        
+        // Log the result with appropriate level
+        if ($result['success']) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Publication event sent successfully");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Send result:");
+                $this->logger->debug("  Event ID: " . $event->getId());
+                $this->logger->debug("  Response: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to send publication event");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed send details:");
+                $this->logger->debug("  Event ID: " . $event->getId());
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
+        
+        return $result;
     }
     
     /**

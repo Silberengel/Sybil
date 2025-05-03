@@ -13,7 +13,9 @@ use Exception;
  * Base class for commands
  * 
  * This class implements the CommandInterface and provides common functionality
- * for all commands.
+ * for all commands. It includes error handling, logging, and argument validation.
+ * 
+ * @package Sybil\Command
  */
 abstract class BaseCommand implements CommandInterface
 {
@@ -80,7 +82,7 @@ abstract class BaseCommand implements CommandInterface
      * Execute the command
      *
      * @param array $args Command arguments
-     * @return int Exit code
+     * @return int Exit code (0 for success, non-zero for failure)
      */
     abstract public function execute(array $args): int;
     
@@ -91,9 +93,14 @@ abstract class BaseCommand implements CommandInterface
      * @param string $successMessage The message to display on success
      * @param string $failureMessage The message to display on failure
      * @return bool Whether the operation was successful
+     * @throws InvalidArgumentException If success message is empty
      */
     protected function handleResult(array $result, string $successMessage, string $failureMessage): bool
     {
+        if (empty($successMessage)) {
+            throw new InvalidArgumentException('Success message cannot be empty');
+        }
+        
         if (isset($result['success']) && $result['success']) {
             $this->logger->info($successMessage);
             if (!empty($result['successful_relays'])) {
@@ -113,21 +120,32 @@ abstract class BaseCommand implements CommandInterface
     }
     
     /**
-     * Execute a command with standard error handling
+     * Execute the command with error handling
      *
-     * @param callable $operation The operation to execute
-     * @param array $args The command arguments
-     * @return int Exit code
+     * @param callable(array):int $callback The callback to execute
+     * @param array $args Command arguments
+     * @return int Exit code (0 for success, non-zero for failure)
      */
-    protected function executeWithErrorHandling(callable $operation, array $args): int
+    protected function executeWithErrorHandling(callable $callback, array $args): int
     {
         try {
-            return $operation($args);
-        } catch (InvalidArgumentException $e) {
-            $this->logger->error($e->getMessage());
-            return 1;
+            // Check for log level flags
+            foreach ($args as $key => $arg) {
+                if ($arg === '--debug') {
+                    $this->logger->setLogLevel(LoggerService::LOG_LEVEL_DEBUG);
+                    unset($args[$key]);
+                } elseif ($arg === '--info') {
+                    $this->logger->setLogLevel(LoggerService::LOG_LEVEL_INFO);
+                    unset($args[$key]);
+                } elseif ($arg === '--warning') {
+                    $this->logger->setLogLevel(LoggerService::LOG_LEVEL_WARNING);
+                    unset($args[$key]);
+                }
+            }
+            
+            return $callback(array_values($args));
         } catch (Exception $e) {
-            $this->logger->error("An error occurred: " . $e->getMessage());
+            $this->logger->error($e->getMessage());
             return 1;
         }
     }
@@ -181,5 +199,54 @@ abstract class BaseCommand implements CommandInterface
         }
         
         return true;
+    }
+    
+    /**
+     * Handle common command options
+     *
+     * @param array $args Command arguments
+     * @return array Filtered arguments with options removed
+     */
+    protected function handleCommonOptions(array $args): array
+    {
+        $filteredArgs = [];
+        foreach ($args as $arg) {
+            if (in_array($arg, ['--debug', '--info', '--warning', '--help', '-h'])) {
+                switch ($arg) {
+                    case '--debug':
+                        $this->logger->setLogLevel(LoggerService::LOG_LEVEL_DEBUG);
+                        break;
+                    case '--info':
+                        $this->logger->setLogLevel(LoggerService::LOG_LEVEL_INFO);
+                        break;
+                    case '--warning':
+                        $this->logger->setLogLevel(LoggerService::LOG_LEVEL_WARNING);
+                        break;
+                    case '--help':
+                    case '-h':
+                        $this->showHelp();
+                        exit(0);
+                }
+            } else {
+                $filteredArgs[] = $arg;
+            }
+        }
+        return $filteredArgs;
+    }
+    
+    /**
+     * Show command help
+     */
+    protected function showHelp(): void
+    {
+        $this->logger->output("Usage: sybil " . $this->getName() . " [arguments]");
+        $this->logger->output("");
+        $this->logger->output($this->getDescription());
+        $this->logger->output("");
+        $this->logger->output("Options:");
+        $this->logger->output("  --debug     Enable debug logging");
+        $this->logger->output("  --info      Enable info logging");
+        $this->logger->output("  --warning   Enable warning logging");
+        $this->logger->output("  --help, -h  Show this help message");
     }
 }

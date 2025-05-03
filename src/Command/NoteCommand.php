@@ -33,6 +33,11 @@ class NoteCommand extends BaseCommand
     private RelayService $relayService;
     
     /**
+     * @var LoggerService Logger service
+     */
+    protected LoggerService $logger;
+    
+    /**
      * Constructor
      *
      * @param Application $app The application instance
@@ -53,6 +58,7 @@ class NoteCommand extends BaseCommand
         
         $this->eventService = $eventService;
         $this->relayService = $relayService;
+        $this->logger = $logger;
     }
     
     /**
@@ -75,22 +81,38 @@ class NoteCommand extends BaseCommand
             // Create text note event
             $textNote = new TextNoteEvent($content);
             
-            // Log operation start
-            $this->logOperationStart("Publishing note", $relayUrl);
+            // Log operation start with appropriate level
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Publishing note" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+            }
             
             // Publish the text note
             $result = !empty($relayUrl) 
                 ? $textNote->publishToRelay($relayUrl, $keyEnvVar)
                 : $textNote->publish($keyEnvVar);
             
-            // Handle the result
-            $success = $this->handleResult(
-                $result,
-                "The text note has been written.",
-                "The text note was created but could not be published to any relay."
-            );
+            // Handle the result with appropriate logging levels
+            if ($result) {
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("The text note has been written.");
+                }
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Note details:");
+                    $this->logger->debug("  Content: " . substr($content, 0, 100) . (strlen($content) > 100 ? '...' : ''));
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Result: " . json_encode($result));
+                }
+            } else {
+                $this->logger->error("The text note was created but could not be published to any relay.");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Failed note details:");
+                    $this->logger->debug("  Content: " . substr($content, 0, 100) . (strlen($content) > 100 ? '...' : ''));
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Last error: " . $textNote->getLastError());
+                }
+            }
             
-            return $success ? 0 : 1;
+            return $result ? 0 : 1;
         }, $args);
     }
 }

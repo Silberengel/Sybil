@@ -73,8 +73,8 @@ class EventPreparationUtility
             $kind = $note->getKind();
         }
         
-        // Get relay list for this kind of event
-        $relays = RelayUtility::getRelayList($kind);
+        // Get relay list for this kind of event, with authentication enabled
+        $relays = RelayUtility::getRelayList($kind, [], true);
         
         // Sign the event
         $signer = new Sign();
@@ -192,5 +192,57 @@ class EventPreparationUtility
         }
         
         return $event;
+    }
+
+    /**
+     * Creates a delegation tag for NIP-26
+     *
+     * @param string $delegateePubkey The public key of the delegatee
+     * @param int $since The timestamp from which delegation is valid
+     * @param int $until The timestamp until which delegation is valid
+     * @param string $conditions Optional conditions for the delegation
+     * @return array The delegation tag
+     */
+    public static function createDelegationTag(
+        string $delegateePubkey,
+        int $since,
+        int $until,
+        string $conditions = ''
+    ): array {
+        return [
+            'delegation',
+            $delegateePubkey,
+            $conditions,
+            $since,
+            $until
+        ];
+    }
+
+    /**
+     * Creates and signs an event with delegation
+     *
+     * @param int $kind The event kind
+     * @param string $content The event content
+     * @param array $tags The event tags
+     * @param string $delegateePubkey The public key of the delegatee
+     * @param int $since The timestamp from which delegation is valid
+     * @param int $until The timestamp until which delegation is valid
+     * @param string $conditions Optional conditions for the delegation
+     * @return Event The signed event
+     */
+    public static function createAndSignDelegatedEvent(
+        int $kind,
+        string $content,
+        array $tags,
+        string $delegateePubkey,
+        int $since,
+        int $until,
+        string $conditions = ''
+    ): Event {
+        // Add delegation tag
+        $tags[] = self::createDelegationTag($delegateePubkey, $since, $until, $conditions);
+        
+        // Create and sign the event
+        return self::createAndSignEvent($kind, $content, $tags);
     }
 }

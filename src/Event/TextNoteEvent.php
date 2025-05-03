@@ -10,7 +10,7 @@ use Sybil\Utilities\TagUtility;
 use Sybil\Utilities\RelayUtility;
 use Sybil\Utilities\ErrorHandlingUtility;
 use Sybil\Utilities\EventPreparationUtility;
-use Sybil\Utilities\LoggerUtility;
+use Sybil\Service\LoggerService;
 
 /**
  * Class TextNoteEvent
@@ -170,8 +170,15 @@ class TextNoteEvent extends BaseEvent
         // Get the event ID
         $eventId = $event->getId();
         
-        // Output the event ID
-        echo "Event ID: " . $eventId . PHP_EOL;
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing text note to relay {$relayUrl}");
+        }
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Text note details:");
+            $this->logger->debug("  Event ID: " . $eventId);
+            $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+        }
         
         // Create event message
         $eventMessage = new \swentel\nostr\Message\EventMessage($event);
@@ -184,6 +191,27 @@ class TextNoteEvent extends BaseEvent
         
         // Add the event ID to the result
         $result['event_id'] = $eventId;
+        
+        // Log the result with appropriate level
+        if ($result['success']) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Text note published successfully to relay {$relayUrl}");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Publish result:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Response: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to publish text note to relay {$relayUrl}");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed publish details:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
         
         return $result;
     }
@@ -209,11 +237,37 @@ class TextNoteEvent extends BaseEvent
         // Build and publish the event
         $event = $this->buildEvent();
         
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing text note");
+        }
+        
         // Prepare and send the event
         $result = $this->prepareEventData($event, $keyEnvVar);
         
         // Check if the event was published successfully
         $success = isset($result['success']) && $result['success'];
+        
+        // Handle the result with appropriate logging levels
+        if ($success) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Text note published successfully");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Publish details:");
+                $this->logger->debug("  Event ID: " . $event->getId());
+                $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+                $this->logger->debug("  Result: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to publish text note");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed publish details:");
+                $this->logger->debug("  Event ID: " . $event->getId());
+                $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
         
         // Record the result
         $this->recordResult($this->getEventKindName(), $event, $success);
@@ -226,25 +280,26 @@ class TextNoteEvent extends BaseEvent
         // Get event ID with retry
         $eventID = $this->getEventIdWithRetry($note);
         
-        // Log the event
+        // Log the event with appropriate levels
         if ($success) {
-            $this->logger->output("Published " . $kind . " event with ID " . $eventID);
-            $this->logger->output("");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Published " . $kind . " event with ID " . $eventID);
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Event details:");
+                $this->logger->debug("  Kind: " . $kind);
+                $this->logger->debug("  Event ID: " . $eventID);
+                $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+                $this->logger->debug("  URL: https://njump.me/" . $eventID);
+            }
         } else {
-            $this->logger->warning("Created " . $kind . " event with ID " . $eventID . " but no relay accepted it.");
-            $this->logger->warning("The event was not published to any relay.");
-            $this->logger->output("");
-        }
-        
-        $this->printEventData(
-            $this->getEventKind(),
-            $eventID,
-            $this->dTag
-        );
-        
-        // Print a njump hyperlink only if the event was published successfully
-        if ($success) {
-            $this->logger->output("https://njump.me/" . $eventID);
+            $this->logger->error("Created " . $kind . " event with ID " . $eventID . " but no relay accepted it.");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed event details:");
+                $this->logger->debug("  Kind: " . $kind);
+                $this->logger->debug("  Event ID: " . $eventID);
+                $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+            }
         }
     }
 }

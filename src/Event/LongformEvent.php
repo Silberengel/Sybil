@@ -35,6 +35,11 @@ class LongformEvent extends BaseEvent
     protected array $hashtags = [];
     
     /**
+     * @var LoggerService
+     */
+    protected LoggerService $logger;
+    
+    /**
      * Constructor
      */
     public function __construct()
@@ -203,8 +208,10 @@ class LongformEvent extends BaseEvent
         
         // Then check for YAML metadata with <<YAML>> tags
         if (strpos($markup, '<<YAML>>') !== false) {
-            // Debug output
-            $this->logger->debug("Original content length: " . strlen($markup));
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Processing front matter:");
+                $this->logger->debug("  Original content length: " . strlen($markup) . " bytes");
+            }
             
             // Try a simpler approach - just remove the first 10 lines if they contain YAML
             $lines = explode("\n", $markup);
@@ -228,11 +235,12 @@ class LongformEvent extends BaseEvent
                     // Remove the lines between yamlStartLine and yamlEndLine (inclusive)
                     array_splice($lines, $yamlStartLine, $yamlEndLine - $yamlStartLine + 1);
                     $markup = implode("\n", $lines);
-                    $this->logger->debug("Removed YAML frontmatter: " . $yamlStartLine . " to " . $yamlEndLine);
+                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                        $this->logger->debug("  Removed YAML frontmatter: lines " . $yamlStartLine . " to " . $yamlEndLine);
+                        $this->logger->debug("  New content length: " . strlen($markup) . " bytes");
+                    }
                 }
             }
-            
-            $this->logger->debug("New content length: " . strlen($markup));
         }
         
         return $markup;
@@ -299,10 +307,17 @@ class LongformEvent extends BaseEvent
         $event->setContent($this->content);
         
         // Add tags
-        $tags = [
-            ['d', $this->dTag],
-            ['title', $this->title]
-        ];
+        $tags = [];
+        
+        // Add d-tag
+        if (!empty($this->dTag)) {
+            $tags[] = ['d', $this->dTag];
+        }
+        
+        // Add title tag
+        if (!empty($this->title)) {
+            $tags[] = ['title', $this->title];
+        }
         
         // Add author tag
         if (!empty($this->author)) {
@@ -324,9 +339,6 @@ class LongformEvent extends BaseEvent
             $tags[] = ['t', $hashtag];
         }
         
-        // Add published_at tag with Unix timestamp as a string
-        $tags[] = ['published_at', (string)time()];
-        
         // Add optional tags
         foreach ($this->optionalTags as $tag) {
             $tags[] = $tag;
@@ -335,6 +347,82 @@ class LongformEvent extends BaseEvent
         // Set tags
         $event->setTags($tags);
         
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Built longform event:");
+            $this->logger->debug("  Kind: " . $this->getEventKind());
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  D-Tag: " . $this->dTag);
+            $this->logger->debug("  Author: " . $this->author);
+            $this->logger->debug("  Summary: " . substr($this->summary, 0, 100) . (strlen($this->summary) > 100 ? '...' : ''));
+            $this->logger->debug("  Image: " . $this->image);
+            $this->logger->debug("  Hashtags: " . count($this->hashtags));
+            $this->logger->debug("  Optional tags: " . count($this->optionalTags));
+            $this->logger->debug("  Content length: " . strlen($this->content) . " bytes");
+        }
+        
         return $event;
+    }
+
+    public function publishToRelay(string $relayUrl, ?string $keyEnvVar = null): array
+    {
+        // Build the event
+        $event = $this->buildEvent();
+        
+        // Get private key from environment
+        $utility = new KeyUtility();
+        $privateKey = $utility::getNsec($keyEnvVar);
+        
+        // Sign the event
+        $signer = new \swentel\nostr\Sign\Sign();
+        $signer->signEvent($event, $privateKey);
+        
+        // Get the event ID
+        $eventId = $event->getId();
+        
+        // Log operation start with appropriate level
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+            $this->logger->info("Publishing longform article to relay {$relayUrl}");
+        }
+        if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+            $this->logger->debug("Longform article details:");
+            $this->logger->debug("  Event ID: " . $eventId);
+            $this->logger->debug("  Title: " . $this->title);
+            $this->logger->debug("  Content: " . substr($this->content, 0, 100) . (strlen($this->content) > 100 ? '...' : ''));
+        }
+        
+        // Create event message
+        $eventMessage = new \swentel\nostr\Message\EventMessage($event);
+        
+        // Create relay
+        $relay = new Relay($relayUrl);
+        
+        // Send the event with retry on failure, passing the custom relay list
+        $result = $this->sendEventWithRetry($eventMessage, [$relay]);
+        
+        // Add the event ID to the result
+        $result['event_id'] = $eventId;
+        
+        // Log the result with appropriate level
+        if ($result['success']) {
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Longform article published successfully to relay {$relayUrl}");
+            }
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Publish result:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Response: " . json_encode($result));
+            }
+        } else {
+            $this->logger->error("Failed to publish longform article to relay {$relayUrl}");
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                $this->logger->debug("Failed publish details:");
+                $this->logger->debug("  Event ID: " . $eventId);
+                $this->logger->debug("  Relay: " . $relayUrl);
+                $this->logger->debug("  Error: " . ($result['error'] ?? 'Unknown error'));
+            }
+        }
+        
+        return $result;
     }
 }

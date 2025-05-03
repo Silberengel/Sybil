@@ -32,6 +32,11 @@ class WikiCommand extends BaseCommand
     private TagService $tagService;
     
     /**
+     * @var LoggerService Logger service
+     */
+    protected LoggerService $logger;
+    
+    /**
      * Constructor
      *
      * @param Application $app The application instance
@@ -52,6 +57,7 @@ class WikiCommand extends BaseCommand
         
         $this->eventService = $eventService;
         $this->tagService = $tagService;
+        $this->logger = $logger;
     }
     
     /**
@@ -75,22 +81,40 @@ class WikiCommand extends BaseCommand
             $wiki = new WikiEvent();
             $wiki->setFile($filePath);
             
-            // Log operation start
-            $this->logOperationStart("Publishing wiki article", $relayUrl);
+            // Log operation start with appropriate level
+            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                $this->logger->info("Publishing wiki article from {$filePath}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
+            }
             
             // Publish the wiki article
             $result = !empty($relayUrl)
                 ? $wiki->publishToRelay($relayUrl)
                 : $wiki->publish();
             
-            // Handle the result
-            $success = $this->handleResult(
-                $result,
-                "The wiki article has been written.",
-                "The wiki article was created but could not be published to any relay."
-            );
+            // Handle the result with appropriate logging levels
+            if ($result) {
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
+                    $this->logger->info("The wiki article has been written.");
+                }
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Wiki article details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $wiki->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Result: " . json_encode($result));
+                }
+            } else {
+                $this->logger->error("The wiki article was created but could not be published to any relay.");
+                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
+                    $this->logger->debug("Failed wiki article details:");
+                    $this->logger->debug("  File: " . $filePath);
+                    $this->logger->debug("  Title: " . $wiki->getTitle());
+                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
+                    $this->logger->debug("  Last error: " . $wiki->getLastError());
+                }
+            }
             
-            return $success ? 0 : 1;
+            return $result ? 0 : 1;
         }, $args);
     }
 }
