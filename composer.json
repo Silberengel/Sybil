@@ -14,22 +14,46 @@
         }
     },
     "require": {
-        "php": ">=8.0",
+        "php": ">=8.1",
         "ext-yaml": "*",
+        "doctrine/doctrine-bundle": "^2.14",
+        "doctrine/orm": "^3.3",
+        "monolog/monolog": "^3.9",
+        "paragonie/sodium_compat": "^2.1",
+        "psr/log": "^3.0",
         "swentel/nostr-php": "^1.7.1",
+        "symfony/console": "^7.0",
+        "symfony/var-dumper": "^7.0",
         "textalk/websocket": "^1.5"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10",
+        "squizlabs/php_codesniffer": "^3.7",
+        "vimeo/psalm": "^5.0"
     },
     "bin": [
         "bin/sybil",
         "bin/sybil.bat"
     ],
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit --coverage-text",
+        "test:coverage": "phpunit --coverage-html coverage",
+        "cs-check": "phpcs",
+        "cs-fix": "phpcbf",
+        "phpstan": "phpstan analyse",
+        "psalm": "psalm",
+        "check": [
+            "@test",
+            "@cs-check",
+            "@phpstan",
+            "@psalm"
+        ]
     }
 }

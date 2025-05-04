@@ -1,0 +1,57 @@
+////
+<<YAML>>
+title: 'Test Wiki Page'
+tags:
+  - ['image', 'https://i.nostr.build/test-wiki-image.png']
+  - ['l', 'en, ISO-639-1']
+  - ['reading-direction', 'left-to-right, top-to-bottom']
+  - ['t', 'test']
+  - ['t', 'wiki']
+  - ['summary', 'A test wiki page with Lorem Ipsum content and wiki features']
+<</YAML>>
+////
+
+= Test Wiki Page
+
+== Overview
+
+This is a test wiki page that demonstrates various wiki features and formatting.
+
+== Main Content
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+=== Internal Links
+
+You can link to other wiki pages using double brackets:
+- [[Getting Started]]
+- [[User Guide]]
+- [[API Documentation]]
+- [[Troubleshooting]]
+
+=== Categories
+
+This page belongs to the following categories:
+- [[Category:Test]]
+- [[Category:Documentation]]
+- [[Category:Examples]]
+
+=== Code Examples
+
+[source,python]
+----
+def hello_world():
+    print("Hello, Wiki!")
+----
+
+=== References
+
+* [[Reference:Style Guide]]
+* [[Reference:Markup Syntax]]
+* [[Reference:Best Practices]]
+
+== See Also
+
+* [[Related:Test Pages]]
+* [[Related:Example Content]]
+* [[Related:Wiki Features]]

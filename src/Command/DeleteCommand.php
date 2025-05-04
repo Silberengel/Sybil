@@ -2,126 +2,152 @@
 
 namespace Sybil\Command;
 
-use Sybil\Application;
-use Sybil\Service\EventService;
-use Sybil\Service\LoggerService;
-use Sybil\Service\UtilityService;
-use InvalidArgumentException;
-use Sybil\Utilities\EventUtility;
-use Exception;
-use Sybil\Command\Traits\RelayOptionTrait;
-use Sybil\Command\Traits\EventIdsTrait;
+use Sybil\Command\Trait\{
+    CommandTrait,
+    RelayCommandTrait,
+    EventCommandTrait,
+    CommandImportsTrait
+};
 
 /**
- * Command for deleting an event
+ * Command for deleting a Nostr event
  * 
- * This command handles the 'delete' command, which deletes an event from relays.
- * Usage: sybil delete <event_id> [--relay <relay_url>]
- * Multiple event IDs can be provided as a comma-separated list or in a file.
+ * This command handles the 'delete' command, which creates and publishes
+ * a deletion event for a specific event.
+ * Usage: nostr:delete <event_id> [--relay <relay_url>] [--reason <reason>]
  */
-class DeleteCommand extends BaseCommand
+class DeleteCommand extends Command implements CommandInterface
 {
-    use RelayOptionTrait;
-    use EventIdsTrait;
-    
-    /**
-     * @var EventService Event service
-     */
-    private EventService $eventService;
-    
-    /**
-     * @var UtilityService Utility service
-     */
-    private UtilityService $utilityService;
-    
-    /**
-     * @var EventUtility Event utility
-     */
-    private EventUtility $eventUtility;
-    
-    /**
-     * Constructor
-     *
-     * @param Application $app The application instance
-     * @param EventService $eventService Event service
-     * @param UtilityService $utilityService Utility service
-     * @param LoggerService $logger Logger service
-     */
+    use CommandTrait;
+    use RelayCommandTrait;
+    use EventCommandTrait;
+    use CommandImportsTrait;
+
+    private NostrEventService $eventService;
+    private LoggerInterface $logger;
+    private string $privateKey;
+    private const MAX_REASON_LENGTH = 1000;
+
     public function __construct(
-        Application $app,
-        EventService $eventService,
-        UtilityService $utilityService,
-        LoggerService $logger
+        NostrEventService $eventService,
+        LoggerInterface $logger,
+        ParameterBagInterface $params
     ) {
-        parent::__construct($app);
-        
-        $this->name = 'delete';
-        $this->description = 'Delete an event from relays';
-        
+        parent::__construct();
         $this->eventService = $eventService;
-        $this->utilityService = $utilityService;
-        $this->eventUtility = new EventUtility();
+        $this->logger = $logger;
+        $this->privateKey = $params->get('app.private_key');
     }
-    
-    /**
-     * Execute the command
-     *
-     * @param array $args Command arguments
-     * @return int Exit code
-     */
-    public function execute(array $args): int
+
+    public function getName(): string
     {
-        return $this->executeWithErrorHandling(function(array $args) {
-            // Parse arguments
-            list($input, $relayUrl) = $this->parseRelayArgs($args);
-            
-            // Get event IDs from input
-            $eventIds = $this->getEventIds($input);
-            
-            // Validate event IDs
-            if (!$this->validateRequiredArgs($eventIds, 1, "At least one event ID must be provided.")) {
-                return 1;
-            }
-            
-            $allSuccess = true;
-            
-            // Delete each event
-            foreach ($eventIds as $eventId) {
-                // Set the event ID
-                $this->eventUtility->setEventID($eventId);
-                
-                // Log operation start with appropriate level
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                    $this->logger->info("Deleting event {$eventId}" . (!empty($relayUrl) ? " from relay {$relayUrl}" : ""));
-                }
-                
-                // Delete the event
-                $result = !empty($relayUrl)
-                    ? $this->eventUtility->delete_event_from_relay($relayUrl)
-                    : $this->eventUtility->delete_event();
-                
-                // Handle the result with appropriate logging levels
-                if ($result) {
-                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                        $this->logger->info("Event {$eventId} has been deleted.");
-                    }
-                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                        $this->logger->debug("Delete details for event {$eventId}:");
-                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                        $this->logger->debug("  Result: " . json_encode($result));
-                    }
-                } else {
-                    $this->logger->error("Event {$eventId} could not be deleted.");
-                    if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                        $this->logger->debug("Failed delete details for event {$eventId}:");
-                        $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                        $this->logger->debug("  Last error: " . $this->eventUtility->getLastError());
-                    }
-                    $allSuccess = false;
-                }
-            }
-            
-            return $allSuccess ? 0 : 1;
-        }, $args);
+        return 'nostr:delete';
     }
-}
+
+    public function getDescription(): string
+    {
+        return 'Delete a Nostr event by creating a deletion event';
+    }
+
+    public function getHelp(): string
+    {
+        return <<<'HELP'
+The <info>%command.name%</info> command creates and publishes a deletion event for a specific event.
+
+<info>php %command.full_name% <event_id> [--reason <reason>] [--json]</info>
+
+Arguments:
+  <event_id>    The ID of the event to delete (64-character hex string)
+
+Options:
+  --reason      Optional reason for deletion (max 1000 characters)
+  --json         Output raw event data in JSON format
+
+Examples:
+  <info>php %command.full_name% 1234...abcd</info>
+  <info>php %command.full_name% 1234...abcd --reason "Content is no longer relevant"</info>
+  <info>php %command.full_name% 1234...abcd --json</info>
+HELP;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->setName('delete')
+            ->setDescription('Delete a Nostr event by creating a deletion event')
+            ->addArgument('event_id', InputArgument::REQUIRED, 'The ID of the event to delete')
+            ->addOption('reason', null, InputOption::VALUE_REQUIRED, 'Reason for deletion (max 1000 characters)')
+            ->addOption('raw', null, InputOption::VALUE_NONE, 'Output raw event data');
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        return $this->executeWithErrorHandling($input, $output, function (InputInterface $input, OutputInterface $output) {
+            $eventId = $input->getArgument('event_id');
+            $reason = $input->getOption('reason');
+            $raw = $input->getOption('raw');
+
+            if (!$eventId) {
+                throw new \RuntimeException('Event ID is required');
+            }
+
+            // Validate event ID
+            if (!$this->isValidEventId($eventId)) {
+                throw new \RuntimeException('Invalid event ID. Must be a 64-character hex string.');
+            }
+
+            // Validate reason length
+            if ($reason && strlen($reason) > self::MAX_REASON_LENGTH) {
+                throw new \RuntimeException(sprintf('Reason must not exceed %d characters', self::MAX_REASON_LENGTH));
+            }
+
+            // Get public key for authentication
+            $publicKey = $this->getPublicKey();
+
+            // Create event data
+            $eventData = [
+                'kind' => 5, // Deletion
+                'content' => $reason ?? '',
+                'tags' => [
+                    ['e', $eventId],
+                ],
+                'created_at' => time(),
+                'pubkey' => $publicKey,
+            ];
+
+            // Create and publish event
+            $event = $this->eventService->createEvent($eventData);
+            $success = $this->eventService->publishEvent($event, $publicKey);
+
+            if (!$success) {
+                throw new \RuntimeException('Failed to publish deletion event');
+            }
+
+            if ($raw) {
+                $output->writeln(json_encode($event->toArray(), JSON_PRETTY_PRINT));
+            } else {
+                $output->writeln(sprintf('<info>Deletion event published successfully with ID: %s</info>', $event->getId()));
+                if ($reason) {
+                    $output->writeln(sprintf('<info>Reason: %s</info>', $reason));
+                }
+            }
+
+            return Command::SUCCESS;
+        });
+    }
+
+    private function isValidEventId(string $eventId): bool
+    {
+        return preg_match('/^[0-9a-f]{64}$/', $eventId) === 1;
+    }
+
+    private function getPublicKey(): string
+    {
+        try {
+            $keyPair = new KeyPair($this->privateKey);
+            return $keyPair->getPublicKey();
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Failed to derive public key: ' . $e->getMessage());
+        }
+    }
+} 

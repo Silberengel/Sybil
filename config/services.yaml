@@ -1,0 +1,66 @@
+parameters:
+    app.relay.default: '%env(NOSTR_RELAY_URL)%'
+    app.secret_key: '%env(NOSTR_SECRET_KEY)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Sybil\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    Sybil\Command\:
+        resource: '../src/Command/'
+        tags: ['console.command']
+
+    Sybil\Event\:
+        resource: '../src/Event/'
+        tags: ['kernel.event_subscriber']
+
+    Sybil\Service\:
+        resource: '../src/Service/'
+        public: true
+
+    Sybil\Utility\:
+        resource: '../src/Utility/'
+        public: true
+
+    Sybil\Repository\NostrEventRepository:
+        public: true
+        arguments:
+            $registry: '@doctrine'
+            $relayQueryService: '@Sybil\Service\RelayQueryService'
+
+    Sybil\Service\RelayQueryService:
+        public: true
+        arguments:
+            $logger: '@logger'
+
+    Sybil\Service\NostrEventService:
+        public: true
+        arguments:
+            $logger: '@logger'
+            $eventRepository: '@Sybil\Repository\NostrEventRepository'
+            $eventFactory: '@Sybil\Service\EventFactoryService'
+            $eventBroadcast: '@Sybil\Utility\Event\EventBroadcastUtility'
+
+    Sybil\Service\EventFactoryService:
+        public: true
+
+    Sybil\Utility\Event\EventBroadcastUtility:
+        arguments:
+            $relayQueryService: '@Sybil\Service\RelayQueryService'
+
+    Sybil\Service\EventBroadcastService:
+        arguments:
+            $relayQueryService: '@Sybil\Service\RelayQueryService'
+            $keyPair: '@?Sybil\Utility\Key\KeyPairUtility'
+
+    Sybil\Utility\Log\LoggerFactory:
+        public: true 

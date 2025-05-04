@@ -2,68 +2,56 @@
 
 namespace Sybil\Command;
 
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Command\Command;
+
 /**
- * Interface for commands
+ * Interface for all commands
  * 
- * This interface defines the methods that all commands must implement.
- * Commands are the primary way users interact with the Sybil application.
- * Each command represents a specific action that can be performed.
- * 
- * @package Sybil\Command
- * 
- * @example
- * ```php
- * class MyCommand implements CommandInterface
- * {
- *     public function getName(): string
- *     {
- *         return 'my-command';
- *     }
- *     
- *     public function getDescription(): string
- *     {
- *         return 'Performs a specific action';
- *     }
- *     
- *     public function execute(array $args): int
- *     {
- *         // Command implementation
- *         return 0; // Success
- *     }
- * }
- * ```
+ * This interface defines the contract that all commands must implement.
+ * It extends Symfony's command system while providing additional functionality
+ * specific to Sybil commands.
  */
 interface CommandInterface
 {
     /**
-     * Get the command name
+     * Get the name of the command
      *
-     * The command name is used to identify the command in the CLI.
-     * It should be lowercase and use hyphens for word separation.
-     * 
-     * @return string The command name (e.g., 'my-command')
+     * @return string The command name
      */
     public function getName(): string;
-    
+
     /**
-     * Get the command description
+     * Get the description of the command
      *
-     * The description should be a brief, one-line explanation of what the command does.
-     * It is displayed in the help output and should be clear and concise.
-     * 
      * @return string The command description
      */
     public function getDescription(): string;
-    
+
+    /**
+     * Configure the command
+     *
+     * This method is called during command initialization to set up
+     * arguments, options, and other command configuration.
+     *
+     * @return void
+     */
+    public function configure(): void;
+
     /**
      * Execute the command
      *
-     * This method is called when the command is invoked from the CLI.
-     * It should handle all command logic, including argument validation,
-     * error handling, and logging.
-     * 
-     * @param array $args Command arguments (excluding the command name)
-     * @return int Exit code (0 for success, non-zero for failure)
+     * @param InputInterface $input The input interface
+     * @param OutputInterface $output The output interface
+     * @return int The command exit code (Command::SUCCESS or Command::FAILURE)
      */
-    public function execute(array $args): int;
-}
+    public function execute(InputInterface $input, OutputInterface $output): int;
+
+    /**
+     * Get the command help
+     *
+     * @return string The command help text
+     */
+    public function getHelp(): string;
+} 

@@ -3,11 +3,26 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
-         displayDetailsOnTestsThatTriggerNotices="true">
+         displayDetailsOnTestsThatTriggerNotices="true"
+         executionOrder="random"
+         failOnWarning="true"
+         failOnEmptyTestSuite="true">
     <testsuites>
         <testsuite name="Integration">
-            <file>src/tests/ArticleIntegrationTest.php</file>
-            <file>src/tests/CoreIntegrationTest.php</file>
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>vendor</directory>
+            <directory>tests</directory>
+        </exclude>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="SYBIL_DEBUG" value="1"/>
+    </php>
 </phpunit>

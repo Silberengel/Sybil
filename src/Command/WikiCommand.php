@@ -2,119 +2,179 @@
 
 namespace Sybil\Command;
 
-use Sybil\Application;
-use Sybil\Service\EventService;
-use Sybil\Service\TagService;
-use Sybil\Service\LoggerService;
-use Sybil\Event\WikiEvent;
-use InvalidArgumentException;
-use Sybil\Command\Traits\RelayOptionTrait;
+use Sybil\Command\Trait\{
+    CommandTrait,
+    RelayCommandTrait,
+    EventCommandTrait,
+    CommandImportsTrait
+};
 
 /**
  * Command for publishing a wiki article
  * 
  * This command handles the 'wiki' command, which creates and publishes
- * a wiki article event from an AsciiDoc file.
- * Usage: sybil wiki <file_path> [--relay <relay_url>]
+ * a wiki article event. Wiki articles are created from AsciiDoc files with YAML
+ * front matter containing metadata like title, author, tags, etc.
+ * 
+ * The command creates a kind 30024 event for the wiki article.
+ * 
+ * Usage: nostr:wiki <file_path> [--relay <relay_url>] [--json]
+ * 
+ * Examples:
+ *   sybil wiki tests/Fixtures/Wiki_testfile.adoc
+ *   sybil wiki tests/Fixtures/Wiki_testfile.adoc --relay wss://relay.example.com
+ *   sybil wiki tests/Fixtures/Wiki_testfile.adoc --json
+ * 
+ * Test examples can be found in:
+ *   tests/Integration/ArticleIntegrationTest.php
  */
-class WikiCommand extends BaseCommand
+class WikiCommand extends Command implements CommandInterface
 {
-    use RelayOptionTrait;
-    
-    /**
-     * @var EventService Event service
-     */
-    private EventService $eventService;
-    
-    /**
-     * @var TagService Tag service
-     */
-    private TagService $tagService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    protected LoggerService $logger;
-    
-    /**
-     * Constructor
-     *
-     * @param Application $app The application instance
-     * @param EventService $eventService Event service
-     * @param TagService $tagService Tag service
-     * @param LoggerService $logger Logger service
-     */
+    use CommandTrait;
+    use RelayCommandTrait;
+    use EventCommandTrait;
+    use CommandImportsTrait;
+    private NostrEventService $eventService;
+    private LoggerInterface $logger;
+    private ParameterBagInterface $params;
+
     public function __construct(
-        Application $app,
-        EventService $eventService,
-        TagService $tagService,
-        LoggerService $logger
+        NostrEventService $eventService,
+        LoggerInterface $logger,
+        ParameterBagInterface $params
     ) {
-        parent::__construct($app);
-        
-        $this->name = 'wiki';
-        $this->description = 'Create and publish a wiki page from an AsciiDoc file';
-        
+        parent::__construct();
         $this->eventService = $eventService;
-        $this->tagService = $tagService;
         $this->logger = $logger;
+        $this->params = $params;
     }
-    
-    /**
-     * Execute the command
-     *
-     * @param array $args Command arguments
-     * @return int Exit code
-     */
-    public function execute(array $args): int
+
+    public function getName(): string
     {
-        return $this->executeWithErrorHandling(function(array $args) {
-            // Parse arguments
-            list($filePath, $relayUrl) = $this->parseRelayArgs($args);
-            
-            // Validate file path
-            if (!$this->validateRequiredArgs([$filePath], 1, "The source file argument is missing.")) {
-                return 1;
-            }
-            
-            // Create wiki event
-            $wiki = new WikiEvent();
-            $wiki->setFile($filePath);
-            
-            // Log operation start with appropriate level
-            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                $this->logger->info("Publishing wiki article from {$filePath}" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
-            }
-            
-            // Publish the wiki article
-            $result = !empty($relayUrl)
-                ? $wiki->publishToRelay($relayUrl)
-                : $wiki->publish();
-            
-            // Handle the result with appropriate logging levels
-            if ($result) {
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                    $this->logger->info("The wiki article has been written.");
-                }
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                    $this->logger->debug("Wiki article details:");
-                    $this->logger->debug("  File: " . $filePath);
-                    $this->logger->debug("  Title: " . $wiki->getTitle());
-                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                    $this->logger->debug("  Result: " . json_encode($result));
-                }
-            } else {
-                $this->logger->error("The wiki article was created but could not be published to any relay.");
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                    $this->logger->debug("Failed wiki article details:");
-                    $this->logger->debug("  File: " . $filePath);
-                    $this->logger->debug("  Title: " . $wiki->getTitle());
-                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                    $this->logger->debug("  Last error: " . $wiki->getLastError());
-                }
-            }
-            
-            return $result ? 0 : 1;
-        }, $args);
+        return 'nostr:wiki';
     }
-}
+
+    public function getDescription(): string
+    {
+        return 'Create and publish a wiki article';
+    }
+
+    public function getHelp(): string
+    {
+        return <<<'HELP'
+The <info>%command.name%</info> command creates and publishes a wiki article.
+
+<info>php %command.full_name% <file_path> [--relay <relay_url>] [--json]</info>
+
+Arguments:
+  file_path   The path to the AsciiDoc file containing the wiki article
+
+Options:
+  --relay     The relay URL to publish to (optional)
+  --json      Output in JSON format
+
+Examples:
+  <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc</info>
+  <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc --relay wss://relay.example.com</info>
+  <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc --json</info>
+HELP;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->setName('wiki')
+            ->setDescription('Create and publish a wiki article')
+            ->addArgument('file_path', InputArgument::REQUIRED, 'The path to the AsciiDoc file containing the wiki article')
+            ->addOption('relay', 'r', InputOption::VALUE_REQUIRED, 'The relay URL to publish to')
+            ->addOption('json', 'j', InputOption::VALUE_NONE, 'Output in JSON format');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        return $this->executeWithErrorHandling($input, $output, function (InputInterface $input, OutputInterface $output) {
+            $filePath = $input->getArgument('file_path');
+            $relay = $input->getOption('relay');
+            $jsonOutput = $input->getOption('json');
+
+            // Get content and metadata
+            $result = $this->getWikiContent($filePath);
+            if ($result === null) {
+                throw new \RuntimeException('Invalid content or metadata');
+            }
+
+            $content = $result['content'];
+            $metadata = $result['metadata'];
+
+            // Get public key
+            $privateKey = $this->params->get('app.private_key');
+            $publicKey = KeyUtility::derivePublicKey($privateKey);
+
+            // Create event data
+            $eventData = [
+                'kind' => 30024, // Wiki article
+                'content' => $content,
+                'tags' => [
+                    ['d', $metadata['title']],
+                    ['title', $metadata['title']],
+                    ...array_map(fn($tag) => ['t', $tag], $metadata['tags'])
+                ],
+                'created_at' => time(),
+                'pubkey' => $publicKey,
+            ];
+
+            // Create and publish event
+            $event = $this->eventService->createEvent($eventData);
+            $success = $this->eventService->publishEvent($event);
+
+            if (!$success) {
+                throw new \RuntimeException('Failed to publish wiki article');
+            }
+
+            if ($jsonOutput) {
+                $output->writeln(json_encode($event->toArray(), JSON_PRETTY_PRINT));
+            } else {
+                $output->writeln(sprintf('<info>Wiki article published successfully with ID: %s</info>', $event->getId()));
+                $output->writeln(sprintf('<info>Title: %s</info>', $metadata['title']));
+            }
+
+            return Command::SUCCESS;
+        });
+    }
+
+    private function getWikiContent(string $input): ?array
+    {
+        try {
+            // Handle file path
+            if (file_exists($input)) {
+                $input = file_get_contents($input);
+                if ($input === false) {
+                    throw new \RuntimeException('Failed to read file');
+                }
+            }
+
+            // Parse front matter
+            $pattern = '/^---\s*\n(.*?)\n---\s*\n(.*)/s';
+            if (!preg_match($pattern, $input, $matches)) {
+                throw new \RuntimeException('Invalid front matter format');
+            }
+
+            $frontMatter = yaml_parse($matches[1]);
+            $content = $matches[2];
+
+            if ($frontMatter === false || !isset($frontMatter['title'])) {
+                throw new \RuntimeException('Invalid front matter content');
+            }
+
+            return [
+                'content' => $content,
+                'metadata' => [
+                    'title' => $frontMatter['title'],
+                    'tags' => $frontMatter['tags'] ?? [],
+                ],
+            ];
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error parsing wiki content: ' . $e->getMessage());
+        }
+    }
+} 

@@ -2,264 +2,272 @@
 
 namespace Sybil\Command;
 
-use Sybil\Application;
-use Sybil\Service\LoggerService;
+use Sybil\Command\Trait\{
+    CommandTrait,
+    RelayCommandTrait,
+    EventCommandTrait,
+    CommandImportsTrait
+};
 
 /**
  * Command for displaying help information
  * 
  * This command handles the 'help' command, which displays help information
- * about available commands.
- * Usage: sybil help [command_name]
+ * for the application and its commands.
+ * Usage: nostr:help [<command>]
  */
-class HelpCommand extends BaseCommand
+class HelpCommand extends Command implements CommandInterface
 {
-    /**
-     * Constructor
-     *
-     * @param Application $app The application instance
-     * @param LoggerService $logger Logger service
-     */
-    public function __construct(
-        Application $app,
-        LoggerService $logger
-    ) {
-        parent::__construct($app);
-        
-        $this->name = 'help';
-        $this->description = 'Display help information about available commands';
-    }
-    
-    /**
-     * Execute the command
-     *
-     * @param array $args Command arguments
-     * @return int Exit code
-     */
-    public function execute(array $args): int
-    {
-        return $this->executeWithErrorHandling(function(array $args) {
-            // Get the command name from arguments
-            $commandName = $args[0] ?? null;
-            
-            // Get all available commands
-            $commands = $this->app->getCommands();
-            
-            if ($commandName) {
-                // Display help for a specific command
-                if (isset($commands[$commandName])) {
-                    $command = $commands[$commandName];
-                    $this->logger->output(PHP_EOL . "Command: {$commandName}");
-                    $this->logger->output("Description: " . $command->getDescription());
-                    
-                    // Display detailed help for specific commands
-                    switch ($commandName) {
-                        case 'note':
-                            $this->logger->output("\nUsage: sybil note <content>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  content    The text content of the note (plain text or path to .txt/.md file)");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil note \"Hello, world!\"");
-                            $this->logger->output("  sybil note content.txt");
-                            $this->logger->output("  sybil note content.md");
-                            $this->logger->output("  echo \"Hello, world!\" | sybil note");
-                            break;
-                            
-                        case 'longform':
-                            $this->logger->output("\nUsage: sybil longform <file>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  file       Path to a Markdown file (.md)");
-                            $this->logger->output("\nYAML Metadata:");
-                            $this->logger->output("  You can include YAML metadata at the start of your file using the following format:");
-                            $this->logger->output("  <<YAML>>");
-                            $this->logger->output("  title: 'Optional title (defaults to first header)'");
-                            $this->logger->output("  tags:");
-                            $this->logger->output("    - ['image', 'https://example.com/image.jpg']");
-                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
-                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
-                            $this->logger->output("    - ['t', 'journalism']");
-                            $this->logger->output("    - ['summary', 'Article description']");
-                            $this->logger->output("  <</YAML>>");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil longform article.md");
-                            break;
-                            
-                        case 'wiki':
-                            $this->logger->output("\nUsage: sybil wiki <file>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  file       Path to an AsciiDoc file (.adoc)");
-                            $this->logger->output("\nYAML Metadata:");
-                            $this->logger->output("  You can include YAML metadata at the start of your file using the following format:");
-                            $this->logger->output("  <<YAML>>");
-                            $this->logger->output("  title: 'Optional title (defaults to first header)'");
-                            $this->logger->output("  tags:");
-                            $this->logger->output("    - ['image', 'https://example.com/image.jpg']");
-                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
-                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
-                            $this->logger->output("    - ['t', 'wiki']");
-                            $this->logger->output("    - ['summary', 'Wiki page description']");
-                            $this->logger->output("  <</YAML>>");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil wiki page.adoc");
-                            break;
-                            
-                        case 'publication':
-                            $this->logger->output("\nUsage: sybil publication <file>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  file       Path to an AsciiDoc file (.adoc)");
-                            $this->logger->output("\nYAML Metadata:");
-                            $this->logger->output("  You must include YAML metadata at the start of your file using the following format:");
-                            $this->logger->output("  <<YAML>>");
-                            $this->logger->output("  author: 'Author Name'");
-                            $this->logger->output("  version: '1'");
-                            $this->logger->output("  tag-type: 'a'");
-                            $this->logger->output("  auto-update: 'yes'");
-                            $this->logger->output("  tags:");
-                            $this->logger->output("    - ['image', 'https://example.com/cover.jpg']");
-                            $this->logger->output("    - ['type', 'book']");
-                            $this->logger->output("    - ['l', 'en, ISO-639-1']");
-                            $this->logger->output("    - ['reading-direction', 'left-to-right, top-to-bottom']");
-                            $this->logger->output("    - ['t', 'novel']");
-                            $this->logger->output("    - ['summary', 'Book description']");
-                            $this->logger->output("    - ['i', 'isbn:978...']");
-                            $this->logger->output("    - ['published_on', '2024-03-20']");
-                            $this->logger->output("    - ['published_by', 'Publisher Name']");
-                            $this->logger->output("  <</YAML>>");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil publication book.adoc");
-                            break;
-                            
-                        case 'fetch':
-                            $this->logger->output("\nFetch Command:");
-                            $this->logger->output("  Fetch an event from relays");
-                            $this->logger->output("\nUsage: sybil fetch <event_id> [--raw]");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  event_id   Event ID(s) to fetch. Can be:");
-                            $this->logger->output("            - A single event ID");
-                            $this->logger->output("            - Comma-separated list of event IDs");
-                            $this->logger->output("            - Path to a file containing event IDs");
-                            $this->logger->output("              (one per line or comma-separated)");
-                            $this->logger->output("\nOptions:");
-                            $this->logger->output("  --raw     Output raw JSON instead of formatted text");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil fetch 1234567890abcdef");
-                            $this->logger->output("  sybil fetch 1234567890abcdef,abcdef1234567890");
-                            $this->logger->output("  sybil fetch events.txt");
-                            $this->logger->output("  sybil fetch events.txt --raw");
-                            break;
-                            
-                        case 'delete':
-                            $this->logger->output("\nDelete Command:");
-                            $this->logger->output("  Delete an event from relays");
-                            $this->logger->output("\nUsage: sybil delete <event_id>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  event_id   Event ID(s) to delete. Can be:");
-                            $this->logger->output("            - A single event ID");
-                            $this->logger->output("            - Comma-separated list of event IDs");
-                            $this->logger->output("            - Path to a file containing event IDs");
-                            $this->logger->output("              (one per line or comma-separated)");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil delete 1234567890abcdef");
-                            $this->logger->output("  sybil delete 1234567890abcdef,abcdef1234567890");
-                            $this->logger->output("  sybil delete events.txt");
-                            break;
-                            
-                        case 'broadcast':
-                            $this->logger->output("\nBroadcast Command:");
-                            $this->logger->output("  Broadcast an event to relays");
-                            $this->logger->output("\nUsage: sybil broadcast <event_id>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  event_id   Event ID(s) to broadcast. Can be:");
-                            $this->logger->output("            - A single event ID");
-                            $this->logger->output("            - Comma-separated list of event IDs");
-                            $this->logger->output("            - Path to a file containing event IDs");
-                            $this->logger->output("              (one per line or comma-separated)");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil broadcast 1234567890abcdef");
-                            $this->logger->output("  sybil broadcast 1234567890abcdef,abcdef1234567890");
-                            $this->logger->output("  sybil broadcast events.txt");
-                            break;
-                            
-                        case 'republish':
-                            $this->logger->output("\nUsage: sybil republish <event_json>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  event_json  JSON string or path to JSON file containing the event");
-                            $this->logger->output("\nThe event JSON should contain at least:");
-                            $this->logger->output("  - kind: The event kind number");
-                            $this->logger->output("  - content: The event content");
-                            $this->logger->output("  - tags: Array of event tags");
-                            $this->logger->output("\nFields that will be regenerated:");
-                            $this->logger->output("  - id: Event ID");
-                            $this->logger->output("  - sig: Event signature");
-                            $this->logger->output("  - created_at: Creation timestamp");
-                            $this->logger->output("  - pubkey: Public key");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil republish '{\"kind\":1,\"content\":\"Hello\",\"tags\":[]}'");
-                            $this->logger->output("  sybil republish event.json");
-                            $this->logger->output("  cat event.json | sybil republish");
-                            break;
+    use CommandTrait;
+    use RelayCommandTrait;
+    use EventCommandTrait;
+    use CommandImportsTrait;
+    private LoggerInterface $logger;
 
-                        case 'relay-info':
-                            $this->logger->output("\nUsage: sybil relay-info <relay_url>");
-                            $this->logger->output("\nArguments:");
-                            $this->logger->output("  relay_url  The WebSocket URL of the relay (must start with wss:// or ws://)");
-                            $this->logger->output("\nDisplays information about the relay including:");
-                            $this->logger->output("  - Basic information (name, description, contact, software, version)");
-                            $this->logger->output("  - Supported NIPs");
-                            $this->logger->output("  - Limitations");
-                            $this->logger->output("  - Fees");
-                            $this->logger->output("  - Authentication support (NIP-42)");
-                            $this->logger->output("\nExamples:");
-                            $this->logger->output("  sybil relay-info wss://relay.example.com");
-                            $this->logger->output("  sybil relay-info ws://localhost:8080");
-                            break;
-                            
-                        default:
-                            $this->logger->output("\nUsage: sybil {$commandName} [arguments]");
-                            if (method_exists($command, 'getHelp')) {
-                                $this->logger->output($command->getHelp());
-                            }
-                    }
-                } else {
-                    $this->logger->error("Unknown command: {$commandName}");
-                    return 1;
-                }
-            } else {
-                // Display introduction and usage tips
-                $this->logger->output(PHP_EOL . "Sybil - Command-line tool for Nostr events" . PHP_EOL);
-                $this->logger->output("==================================================");
-                $this->logger->output("USAGE TIPS");
-                $this->logger->output("--------------------------------------------------");
-                $this->logger->output("For installation, setup, and relay configuration, see:");
-                $this->logger->output("file://" . getcwd() . "/README.md");
-                $this->logger->output("");
-                $this->logger->output("1. Output Redirection:");
-                $this->logger->output("   - Redirect output to a file:");
-                $this->logger->output("     sybil fetch <event_id> > output.txt");
-                $this->logger->output("     sybil note \"Hello\" >> output.txt");
-                $this->logger->output("");
-                $this->logger->output("   - Pipe output to another command:");
-                $this->logger->output("     sybil fetch <event_id> | grep \"content\"");
-                $this->logger->output("     sybil note \"Hello\" | jq '.'");
-                $this->logger->output("");
-                $this->logger->output("2. Logging Levels:");
-                $this->logger->output("   - Use flags to control verbosity:");
-                $this->logger->output("     sybil note \"Hello\" --debug    # Show all messages");
-                $this->logger->output("     sybil fetch <event_id> --info   # Show info and above");
-                $this->logger->output("     sybil broadcast <event_id> --warning  # Show warnings and errors");
-                $this->logger->output("     sybil delete <event_id>        # Show only errors (default)");
-                $this->logger->output("");
-                $this->logger->output("3. Available Commands:");
-                $this->logger->output("   - note:      Create and publish a text note");
-                $this->logger->output("   - fetch:     Fetch an event from relays");
-                $this->logger->output("   - broadcast: Broadcast an event to relays");
-                $this->logger->output("   - delete:    Delete an event from relays");
-                $this->logger->output("   - relay-info: Display information about a relay");
-                $this->logger->output("");
-                $this->logger->output("For detailed help on a specific command, use: sybil help <command>");
-            }
-            
-            return 0;
-        }, $args);
+    public function __construct(LoggerInterface $logger)
+    {
+        parent::__construct();
+        $this->logger = $logger;
     }
-}
+
+    public function getName(): string
+    {
+        return 'nostr:help';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Display help information';
+    }
+
+    public function getHelp(): string
+    {
+        return <<<'HELP'
+The <info>%command.name%</info> command displays help information for the application and its commands.
+
+<info>php %command.full_name% [<command>]</info>
+
+Arguments:
+  <command>    The command to get help for (optional)
+
+Examples:
+  <info>php %command.full_name%</info>
+  <info>php %command.full_name% feed</info>
+  <info>php %command.full_name% note</info>
+HELP;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->setName('help')
+            ->setDescription('Display help information')
+            ->addArgument('command', InputArgument::OPTIONAL, 'The command to get help for');
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $output->writeln('Sybil - Nostr Command Line Tool');
+        $output->writeln('=============================');
+        $output->writeln('');
+
+        $output->writeln('Common Options:');
+        $output->writeln('  --relay <url>     Specify relay URL (default: wss://relay.damus.io)');
+        $output->writeln('  --protocol <ws|http> Protocol to use (default: ws)');
+        $output->writeln('  --key <key>       Specify key to use (default: NOSTR_SECRET_KEY env var)');
+        $output->writeln('');
+
+        $output->writeln('Content Creation:');
+        $output->writeln('  sybil note <content> [--relay <url>] [--key <key>]');
+        $output->writeln('  sybil longform <content> [--relay <url>] [--key <key>]');
+        $output->writeln('  sybil wiki <content> [--relay <url>] [--key <key>]');
+        $output->writeln('  sybil publication <content> [--relay <url>] [--key <key>]');
+        $output->writeln('');
+
+        $output->writeln('Event Interaction:');
+        $output->writeln('  query');
+        $output->writeln('    Query Nostr relays for events');
+        $output->writeln('    Usage: sybil query -r <relay> [-k <kind>] [-a <author>] [-t <tag>] [-s <since>] [-u <until>] [-l <limit>] [--sync]');
+        $output->writeln('');
+        
+        $output->writeln('  reply');
+        $output->writeln('    Reply to a Nostr event');
+        $output->writeln('    Usage: sybil reply <event_id> <content> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  republish');
+        $output->writeln('    Republish a Nostr event');
+        $output->writeln('    Usage: sybil republish <event_json> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  broadcast');
+        $output->writeln('    Broadcast a Nostr event to multiple relays');
+        $output->writeln('    Usage: sybil broadcast <event_json> [--relays <relay_urls>]');
+        $output->writeln('');
+        
+        $output->writeln('  delete');
+        $output->writeln('    Delete a Nostr event');
+        $output->writeln('    Usage: sybil delete <event_id> [--reason <reason>]');
+        $output->writeln('');
+
+        $output->writeln('Git Repository Management:');
+        $output->writeln('  sybil git-announce --id <repo-id> --name <name> --description <desc> [--web <url>] [--clone <url>] [--relays <urls>] [--maintainers <pubkeys>] [--tags <tags>] [--euc <commit-id>]');
+        $output->writeln('  sybil git-state --id <repo-id> [--refs-heads <branch=commit>] [--refs-tags <tag=commit>] [--head <ref>]');
+        $output->writeln('  sybil git-patch --repo-id <repo-id> --owner <pubkey> --content <file> [--commit <id>] [--parent-commit <id>] [--commit-pgp-sig <sig>] [--committer <info>] [--root] [--root-revision] [--reply-to <event-id>]');
+        $output->writeln('  sybil git-issue --repo-id <repo-id> --owner <pubkey> --subject <subject> --content <file> [--labels <labels>]');
+        $output->writeln('  sybil git-status --event-id <event-id> --status <status> [--content <message>] [--repo-id <repo-id>] [--owner <pubkey>] [--revision-id <event-id>] [--merge-commit <id>] [--applied-commits <ids>]');
+        $output->writeln('');
+
+        $output->writeln('For more information, visit: https://github.com/Silberengel/sybil');
+
+        return Command::SUCCESS;
+    }
+
+    private function displayGeneralHelp(OutputInterface $output): void
+    {
+        $output->writeln('Sybil - A Nostr event creation and publishing tool');
+        $output->writeln('');
+        $output->writeln('Usage: sybil <command> [arguments]');
+        $output->writeln('');
+        
+        $output->writeln('Common Options:');
+        $output->writeln('  --relay <relay_url>    Specify a relay URL');
+        $output->writeln('  --protocol <ws|http>   Specify the protocol to use (default: ws, can be omitted)');
+        $output->writeln('  --key <key_env_var>    Use a different private key (default: NOSTR_SECRET_KEY)');
+        $output->writeln('  --json                 Output results in JSON format');
+        $output->writeln('  --limit <number>       Limit the number of results');
+        $output->writeln('  --force                Force an operation without confirmation');
+        $output->writeln('');
+        
+        $output->writeln('Available commands:');
+        $output->writeln('');
+        
+        // Content Creation Commands
+        $output->writeln('Content Creation:');
+        $output->writeln('  note');
+        $output->writeln('    Post a text note');
+        $output->writeln('    Usage: sybil note <content> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  longform');
+        $output->writeln('    Create and publish a longform article');
+        $output->writeln('    Usage: sybil longform <file_path> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  wiki');
+        $output->writeln('    Create and publish a wiki article');
+        $output->writeln('    Usage: sybil wiki <file_path> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  publication');
+        $output->writeln('    Create and publish a publication');
+        $output->writeln('    Usage: sybil publication <file_path> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        // Relay Management Commands
+        $output->writeln('Relay Management:');
+        $output->writeln('  relay-add');
+        $output->writeln('    Add a new Nostr relay');
+        $output->writeln('    Usage: sybil relay-add <relay> [--test]');
+        $output->writeln('');
+        
+        $output->writeln('  relay-list');
+        $output->writeln('    Display a list of known Nostr relays');
+        $output->writeln('    Usage: sybil relay-list');
+        $output->writeln('');
+        
+        $output->writeln('  relay-info');
+        $output->writeln('    Display detailed information about a Nostr relay');
+        $output->writeln('    Usage: sybil relay-info <relay>');
+        $output->writeln('');
+        
+        $output->writeln('  relay-remove');
+        $output->writeln('    Remove a Nostr relay');
+        $output->writeln('    Usage: sybil relay-remove <relay> [--force]');
+        $output->writeln('');
+        
+        $output->writeln('  relay-test');
+        $output->writeln('    Test a Nostr relay\'s connectivity and features');
+        $output->writeln('    Usage: sybil relay-test <relay>');
+        $output->writeln('');
+        
+        // Event Interaction Commands
+        $output->writeln('Event Interaction:');
+        $output->writeln('  query');
+        $output->writeln('    Query Nostr relays for events');
+        $output->writeln('    Usage: sybil query -r <relay> [-k <kind>] [-a <author>] [-t <tag>] [-s <since>] [-u <until>] [-l <limit>] [--sync]');
+        $output->writeln('');
+        
+        $output->writeln('  reply');
+        $output->writeln('    Reply to a Nostr event');
+        $output->writeln('    Usage: sybil reply <event_id> <content> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  republish');
+        $output->writeln('    Republish a Nostr event');
+        $output->writeln('    Usage: sybil republish <event_json> [--relay <relay_url>]');
+        $output->writeln('');
+        
+        $output->writeln('  broadcast');
+        $output->writeln('    Broadcast a Nostr event to multiple relays');
+        $output->writeln('    Usage: sybil broadcast <event_json> [--relays <relay_urls>]');
+        $output->writeln('');
+        
+        $output->writeln('  delete');
+        $output->writeln('    Delete a Nostr event');
+        $output->writeln('    Usage: sybil delete <event_id> [--reason <reason>]');
+        $output->writeln('');
+        
+        // Information Commands
+        $output->writeln('Information:');
+        $output->writeln('  nip-info');
+        $output->writeln('    Display information about Nostr Improvement Proposals');
+        $output->writeln('    Usage: sybil nip-info [<nip>] [--category <category>] [--status <status>]');
+        $output->writeln('');
+        
+        $output->writeln('  nkbip');
+        $output->writeln('    Display information about Nostr Knowledge Base Improvement Proposals');
+        $output->writeln('    Usage: sybil nkbip [<nkbip>] [--category <category>] [--status <status>]');
+        $output->writeln('');
+        
+        $output->writeln('  help');
+        $output->writeln('    Display help information');
+        $output->writeln('    Usage: sybil help [<command>]');
+        $output->writeln('');
+        
+        $output->writeln('For more information about Sybil, visit: https://github.com/Silberengel/sybil');
+    }
+
+    private function displayCommandHelp(string $command, OutputInterface $output): void
+    {
+        switch ($command) {
+            case 'feed':
+                $output->writeln('Command: feed');
+                $output->writeln('');
+                $output->writeln('Show a relay\'s feed with formatted output');
+                $output->writeln('');
+                $output->writeln('Usage: sybil feed -r <relay> [--protocol <ws|http>] [--limit <number>]');
+                $output->writeln('');
+                $output->writeln('Arguments:');
+                $output->writeln('  -r, --relay');
+                $output->writeln('    Relay URL to query (required)');
+                $output->writeln('  --limit');
+                $output->writeln('    Maximum number of events to show (default: 20)');
+                $output->writeln('');
+                $output->writeln('Examples:');
+                $output->writeln('  sybil feed -r wss://relay.damus.io');
+                $output->writeln('  sybil feed -r wss://relay.damus.io --limit 50');
+                $output->writeln('');
+                $output->writeln('Notes:');
+                $output->writeln('  The feed command shows kind 1 (text note) events from the specified relay.');
+                $output->writeln('  Events are sorted by creation time (newest first).');
+                $output->writeln('  Author names are resolved from their metadata (kind 0) events.');
+                $output->writeln('  URLs are formatted in blue and mentions in green.');
+                break;
+
+            default:
+                $output->writeln(sprintf('No help available for command "%s"', $command));
+                break;
+        }
+    }
+} 

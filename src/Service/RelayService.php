@@ -5,6 +5,7 @@ namespace Sybil\Service;
 use swentel\nostr\Relay\Relay;
 use InvalidArgumentException;
 use RuntimeException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Service for managing relays
@@ -27,31 +28,31 @@ class RelayService
     private array $relayCache = [];
     
     /**
-     * @var LoggerService Logger service
+     * @var LoggerInterface Logger service
      */
-    private LoggerService $logger;
+    private LoggerInterface $logger;
     
     /**
      * Constructor
      *
      * @param array $config Relay configuration
-     * @param LoggerService $logger Logger service
+     * @param LoggerInterface $logger Logger service
      */
-    public function __construct(array $config, LoggerService $logger)
+    public function __construct(array $config, LoggerInterface $logger)
     {
         $this->config = $config;
         $this->logger = $logger;
     }
     
     /**
-     * Get a list of relay objects
+     * Get a list of relay URLs
      *
      * @param int $kind Event kind
      * @param array $preferredRelays Optional array of preferred relay URLs
-     * @return array Array of Relay objects
+     * @return array Array of relay URLs
      * @throws InvalidArgumentException If relay configuration is invalid
      */
-    public function getRelayList(int $kind = 0, array $preferredRelays = []): array
+    public function getRelayUrls(int $kind = 0, array $preferredRelays = []): array
     {
         $cacheKey = "{$kind}_" . md5(json_encode($preferredRelays));
         if (isset($this->relayCache[$cacheKey])) {
@@ -60,13 +61,13 @@ class RelayService
         
         // If preferred relays are provided, use them first
         if (!empty($preferredRelays)) {
-            $relays = $this->createRelayObjects($preferredRelays);
+            $relays = array_filter($preferredRelays, [$this, 'validateRelayUrl']);
             $this->relayCache[$cacheKey] = $relays;
             return $relays;
         }
         
         // Use the appropriate default relay based on event kind
-        $defaultRelay = ($kind === 1) ? $this->config['kind1_default'] : $this->config['default'];
+        $defaultRelay = $this->config['default'];
         if (!$this->validateRelayUrl($defaultRelay)) {
             throw new InvalidArgumentException("Invalid default relay URL: $defaultRelay");
         }
@@ -79,7 +80,7 @@ class RelayService
             $relayUrls = [$defaultRelay];
         }
         
-        $relays = $this->createRelayObjects($relayUrls);
+        $relays = array_filter($relayUrls, [$this, 'validateRelayUrl']);
         $this->relayCache[$cacheKey] = $relays;
         return $relays;
     }
@@ -88,7 +89,7 @@ class RelayService
      * Get the default relays for a specific event kind
      *
      * @param int $kind Event kind
-     * @return array Array of Relay objects
+     * @return array Array of relay URLs
      * @throws InvalidArgumentException If relay configuration is invalid
      */
     public function getDefaultRelays(int $kind = 0): array
@@ -103,27 +104,8 @@ class RelayService
             throw new InvalidArgumentException("Invalid relay configuration for kind $kind");
         }
         
-        $relays = $this->createRelayObjects($relayUrls);
+        $relays = array_filter($relayUrls, [$this, 'validateRelayUrl']);
         $this->relayCache[$cacheKey] = $relays;
-        return $relays;
-    }
-    
-    /**
-     * Create relay objects from URLs
-     *
-     * @param array $urls Array of relay URLs
-     * @return array Array of Relay objects
-     * @throws InvalidArgumentException If any relay URL is invalid
-     */
-    private function createRelayObjects(array $urls): array
-    {
-        $relays = [];
-        foreach ($urls as $url) {
-            if (!$this->validateRelayUrl($url)) {
-                throw new InvalidArgumentException("Invalid relay URL: $url");
-            }
-            $relays[] = new Relay(websocket: $url);
-        }
         return $relays;
     }
     
@@ -160,7 +142,7 @@ class RelayService
      * @param string $url The relay URL to validate
      * @return bool True if valid, false otherwise
      */
-    private function validateRelayUrl(string $url): bool
+    public function validateRelayUrl(string $url): bool
     {
         // Check if URL starts with ws:// or wss://
         if (!preg_match('/^wss?:\/\//', $url)) {
@@ -268,7 +250,7 @@ class RelayService
         }
         
         // Remove the relay
-        $relays = array_diff($relays, [$url]);
+        $relays = array_filter($relays, fn($r) => $r !== $url);
         
         // Write back to file
         $content = implode(PHP_EOL, $relays) . PHP_EOL;

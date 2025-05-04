@@ -2,117 +2,117 @@
 
 namespace Sybil\Command;
 
-use Sybil\Application;
-use Sybil\Service\EventService;
-use Sybil\Service\RelayService;
-use Sybil\Service\LoggerService;
-use Sybil\Event\TextNoteEvent;
-use InvalidArgumentException;
-use Exception;
-use Sybil\Command\Traits\RelayOptionTrait;
+use Sybil\Command\Trait\{
+    CommandTrait,
+    RelayCommandTrait,
+    EventCommandTrait,
+    CommandImportsTrait
+};
 
 /**
  * Command for publishing a text note
  * 
  * This command handles the 'note' command, which creates and publishes
  * a text note event.
- * Usage: sybil note <content> [--relay <relay_url>]
+ * 
+ * Usage: sybil note <content> [--relay <relay_url>] [--json]
+ * 
+ * Examples:
+ *   sybil note "Hello Nostr!"
+ *   sybil note "Hello specific relay" --relay wss://relay.example.com
+ *   sybil note "Hello with raw output" --json
+ * 
+ * Test examples can be found in:
+ *   tests/Integration/CoreIntegrationTest.php
  */
-class NoteCommand extends BaseCommand
+class NoteCommand extends Command implements CommandInterface
 {
-    use RelayOptionTrait;
-    
-    /**
-     * @var EventService Event service
-     */
-    private EventService $eventService;
-    
-    /**
-     * @var RelayService Relay service
-     */
-    private RelayService $relayService;
-    
-    /**
-     * @var LoggerService Logger service
-     */
-    protected LoggerService $logger;
-    
-    /**
-     * Constructor
-     *
-     * @param Application $app The application instance
-     * @param EventService $eventService Event service
-     * @param RelayService $relayService Relay service
-     * @param LoggerService $logger Logger service
-     */
+    use CommandTrait;
+    use RelayCommandTrait;
+    use EventCommandTrait;
+    use CommandImportsTrait;
+    private NostrEventService $eventService;
+    private LoggerInterface $logger;
+    private string $privateKey;
+
     public function __construct(
-        Application $app,
-        EventService $eventService,
-        RelayService $relayService,
-        LoggerService $logger
+        NostrEventService $eventService,
+        LoggerInterface $logger,
+        ParameterBagInterface $params
     ) {
-        parent::__construct($app);
-        
-        $this->name = 'note';
-        $this->description = 'Create and publish a text note';
-        
+        parent::__construct();
         $this->eventService = $eventService;
-        $this->relayService = $relayService;
         $this->logger = $logger;
+        $this->privateKey = $params->get('app.private_key');
     }
-    
-    /**
-     * Execute the command
-     *
-     * @param array $args Command arguments
-     * @return int Exit code
-     */
-    public function execute(array $args): int
+
+    public function getName(): string
     {
-        return $this->executeWithErrorHandling(function(array $args) {
-            // Parse arguments
-            list($content, $relayUrl, $keyEnvVar) = $this->parseRelayAndKeyArgs($args);
-            
-            // Validate content
-            if (!$this->validateRequiredArgs([$content], 1, "The note content is missing.")) {
-                return 1;
+        return 'nostr:note';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Post a text note';
+    }
+
+    public function getHelp(): string
+    {
+        return <<<'HELP'
+The <info>%command.name%</info> command creates and publishes a text note event.
+
+<info>php %command.full_name% <content> [--relay RELAY_URL] [--json]</info>
+
+Arguments:
+  <content>      The note content to publish
+
+Options:
+  --relay        The relay URL to publish to (optional)
+  --json          Output raw event data
+
+Examples:
+  <info>php %command.full_name% "Hello Nostr!"</info>
+  <info>php %command.full_name% "Hello specific relay" --relay wss://relay.example.com</info>
+  <info>php %command.full_name% "Hello with raw output" --json</info>
+HELP;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->setName('note')
+            ->setDescription('Post a text note')
+            ->addArgument('content', InputArgument::REQUIRED, 'The note content')
+            ->addOption('relay', null, InputOption::VALUE_REQUIRED, 'The relay URL to publish to')
+            ->addOption('raw', 'r', InputOption::VALUE_NONE, 'Output raw event data');
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        return $this->executeWithErrorHandling($input, $output, function (InputInterface $input, OutputInterface $output) {
+            $content = $input->getArgument('content');
+            if (empty($content)) {
+                throw new \InvalidArgumentException('Note content cannot be empty');
             }
-            
-            // Create text note event
-            $textNote = new TextNoteEvent($content);
-            
-            // Log operation start with appropriate level
-            if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                $this->logger->info("Publishing note" . (!empty($relayUrl) ? " to relay {$relayUrl}" : ""));
-            }
-            
-            // Publish the text note
-            $result = !empty($relayUrl) 
-                ? $textNote->publishToRelay($relayUrl, $keyEnvVar)
-                : $textNote->publish($keyEnvVar);
-            
-            // Handle the result with appropriate logging levels
-            if ($result) {
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_INFO) {
-                    $this->logger->info("The text note has been written.");
-                }
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                    $this->logger->debug("Note details:");
-                    $this->logger->debug("  Content: " . substr($content, 0, 100) . (strlen($content) > 100 ? '...' : ''));
-                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                    $this->logger->debug("  Result: " . json_encode($result));
-                }
+
+            // Create and publish the note
+            $event = $this->eventService->createNote($content, $this->privateKey);
+
+            $relayUrl = $input->getOption('relay');
+            if ($relayUrl) {
+                $this->validateRelayUrlOrFail($relayUrl);
+                $this->eventService->publishToRelay($event, $relayUrl);
             } else {
-                $this->logger->error("The text note was created but could not be published to any relay.");
-                if ($this->logger->getLogLevel() <= LoggerService::LOG_LEVEL_DEBUG) {
-                    $this->logger->debug("Failed note details:");
-                    $this->logger->debug("  Content: " . substr($content, 0, 100) . (strlen($content) > 100 ? '...' : ''));
-                    $this->logger->debug("  Relay URL: " . ($relayUrl ?: "All configured relays"));
-                    $this->logger->debug("  Last error: " . $textNote->getLastError());
-                }
+                $this->eventService->publish($event);
             }
-            
-            return $result ? 0 : 1;
-        }, $args);
+
+            if ($input->getOption('raw')) {
+                $output->writeln(json_encode($event, JSON_PRETTY_PRINT));
+            } else {
+                $output->writeln('<info>Note published with ID: ' . $event->getId() . '</info>');
+            }
+
+            return Command::SUCCESS;
+        });
     }
 }
