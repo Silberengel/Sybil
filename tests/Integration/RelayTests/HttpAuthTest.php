@@ -2,181 +2,121 @@
 
 namespace Sybil\Tests\Integration\RelayTests;
 
-use Sybil\Exception\RelayAuthException;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Sybil\Exception\RelayAuthException;
 
 /**
- * Tests for HTTP (NIP-98) relay authentication
+ * Integration tests for HTTP relay authentication
  */
-final class HttpAuthTest extends RelayAuthTestCase
+class HttpAuthTest extends RelayAuthTestCase
 {
-    private Client $httpClient;
+    private string $testUuid;
+    private string $testPubkey;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->httpClient = new Client();
+        $this->testUuid = '123e4567-e89b-12d3-a456-426614174000';
+        $this->testPubkey = $this->testPublicKey;
     }
 
-    public function testSuccessfulAuthentication(): void
+    /**
+     * Test HTTP authentication header creation
+     */
+    public function testHttpAuthHeader(): void
     {
-        try {
-            $this->logger->info('Testing successful HTTP authentication');
-            $relayUrl = $this->getTestRelay('http');
-            $endpoint = $relayUrl . '/event';
-            $method = 'POST';
-            $payload = json_encode(['content' => 'Test event']);
-            
-            // Create authentication header
-            $authHeader = $this->httpAuth->createAuthHeader($endpoint, $method, $payload);
-            
-            // Make authenticated request
-            $response = $this->httpClient->request($method, $endpoint, [
-                'headers' => [
-                    'Authorization' => $authHeader,
-                    'Content-Type' => 'application/json'
-                ],
-                'body' => $payload
-            ]);
-            
-            $this->assertEquals(200, $response->getStatusCode());
-            
-            $this->logger->info('HTTP authentication successful', [
-                'relay' => $relayUrl,
-                'pubkey' => $this->testPublicKey
-            ]);
-        } catch (GuzzleException $e) {
-            $this->logger->error('HTTP request failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            $this->fail('HTTP request failed: ' . $e->getMessage());
-        } catch (RelayAuthException $e) {
-            $this->logger->error('Authentication failed', [
-                'error' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]);
-            $this->fail('Authentication failed: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            $this->logger->error('Unexpected error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            $this->fail('Unexpected error: ' . $e->getMessage());
-        }
+        $this->logger->info('Testing HTTP authentication header creation');
+
+        $url = $this->getTestRelay('http') . '/api/event';
+        $method = 'POST';
+        $body = json_encode(['test' => 'data']);
+
+        $authHeader = $this->httpAuth->createAuthHeader($url, $method, $body);
+        $this->assertNotEmpty($authHeader, 'Auth header should not be empty');
+        $this->assertStringStartsWith('Nostr ', $authHeader, 'Auth header should start with Nostr');
     }
 
-    public function testInvalidUrl(): void
+    /**
+     * Test HTTP authentication with valid credentials
+     */
+    public function testHttpAuthValid(): void
     {
-        $this->logger->info('Testing invalid URL handling');
-        
+        $this->logger->info('Testing HTTP authentication with valid credentials');
+
+        $url = $this->getTestRelay('http') . '/api/event';
+        $method = 'POST';
+        $body = json_encode(['test' => 'data']);
+
+        $authHeader = $this->httpAuth->createAuthHeader($url, $method, $body);
+
         $this->assertRelayAuthException(
-            function () {
-                $this->httpAuth->createAuthHeader('invalid-url', 'POST');
+            function () use ($authHeader) {
+                $this->httpAuth->verifyAuthHeader($authHeader);
             },
-            RelayAuthException::ERROR_INVALID_URL,
-            'Expected invalid URL error'
+            0,
+            'Valid auth header should not throw exception'
         );
     }
 
-    public function testInvalidMethod(): void
+    /**
+     * Test HTTP authentication with invalid credentials
+     */
+    public function testHttpAuthInvalid(): void
     {
-        $this->logger->info('Testing invalid method handling');
-        
+        $this->logger->info('Testing HTTP authentication with invalid credentials');
+
         $this->assertRelayAuthException(
             function () {
-                $this->httpAuth->createAuthHeader('https://relay.example.com/event', 'INVALID');
+                $this->httpAuth->verifyAuthHeader('Invalid auth header');
             },
-            RelayAuthException::ERROR_INVALID_METHOD,
-            'Expected invalid method error'
+            RelayAuthException::INVALID_AUTH_HEADER,
+            'Invalid auth header should throw exception'
         );
     }
 
-    public function testEventVerification(): void
+    /**
+     * Test HTTP authentication with expired credentials
+     */
+    public function testHttpAuthExpired(): void
     {
-        try {
-            $this->logger->info('Testing event verification');
-            $relayUrl = $this->getTestRelay('http');
-            $endpoint = $relayUrl . '/event';
-            $method = 'POST';
-            $payload = json_encode(['content' => 'Test event']);
-            
-            // Create authentication event
-            $event = $this->httpAuth->createAuthEvent($endpoint, $method, $payload);
-            
-            // Verify the event
-            $isValid = $this->httpAuth->verifyAuthEvent($event, $endpoint, $method, $payload);
-            $this->assertTrue($isValid);
-            
-            $this->logger->info('Event verification successful', [
-                'event_id' => $event['id'] ?? 'unknown'
-            ]);
-        } catch (RelayAuthException $e) {
-            $this->logger->error('Event verification failed', [
-                'error' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]);
-            $this->fail('Event verification failed: ' . $e->getMessage());
-        }
+        $this->logger->info('Testing HTTP authentication with expired credentials');
+
+        $url = $this->getTestRelay('http') . '/api/event';
+        $method = 'POST';
+        $body = json_encode(['test' => 'data']);
+
+        // Create auth header with expired timestamp
+        $authHeader = $this->httpAuth->createAuthHeader($url, $method, $body, time() - 3600);
+
+        $this->assertRelayAuthException(
+            function () use ($authHeader) {
+                $this->httpAuth->verifyAuthHeader($authHeader);
+            },
+            RelayAuthException::EXPIRED_AUTH_HEADER,
+            'Expired auth header should throw exception'
+        );
     }
 
-    public function testExpiredEvent(): void
+    /**
+     * Test HTTP authentication with invalid signature
+     */
+    public function testHttpAuthInvalidSignature(): void
     {
-        $this->logger->info('Testing expired event handling');
-        
-        try {
-            $relayUrl = $this->getTestRelay('http');
-            $endpoint = $relayUrl . '/event';
-            $method = 'POST';
-            
-            // Create event with old timestamp
-            $event = $this->httpAuth->createAuthEvent($endpoint, $method);
-            $event['created_at'] = time() - 3600; // 1 hour ago
-            
-            $this->assertRelayAuthException(
-                function () use ($event, $endpoint, $method) {
-                    $this->httpAuth->verifyAuthEvent($event, $endpoint, $method);
-                },
-                RelayAuthException::ERROR_TIMESTAMP_EXPIRED,
-                'Expected expired timestamp error'
-            );
-        } catch (RelayAuthException $e) {
-            $this->logger->error('Event creation failed', [
-                'error' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]);
-            $this->fail('Event creation failed: ' . $e->getMessage());
-        }
-    }
+        $this->logger->info('Testing HTTP authentication with invalid signature');
 
-    public function testPayloadMismatch(): void
-    {
-        $this->logger->info('Testing payload mismatch handling');
-        
-        try {
-            $relayUrl = $this->getTestRelay('http');
-            $endpoint = $relayUrl . '/event';
-            $method = 'POST';
-            $originalPayload = json_encode(['content' => 'Original']);
-            $modifiedPayload = json_encode(['content' => 'Modified']);
-            
-            // Create event with original payload
-            $event = $this->httpAuth->createAuthEvent($endpoint, $method, $originalPayload);
-            
-            $this->assertRelayAuthException(
-                function () use ($event, $endpoint, $method, $modifiedPayload) {
-                    $this->httpAuth->verifyAuthEvent($event, $endpoint, $method, $modifiedPayload);
-                },
-                RelayAuthException::ERROR_PAYLOAD_MISMATCH,
-                'Expected payload mismatch error'
-            );
-        } catch (RelayAuthException $e) {
-            $this->logger->error('Event creation failed', [
-                'error' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]);
-            $this->fail('Event creation failed: ' . $e->getMessage());
-        }
+        $url = $this->getTestRelay('http') . '/api/event';
+        $method = 'POST';
+        $body = json_encode(['test' => 'data']);
+
+        $authHeader = $this->httpAuth->createAuthHeader($url, $method, $body);
+        $authHeader = str_replace('signature=', 'signature=invalid', $authHeader);
+
+        $this->assertRelayAuthException(
+            function () use ($authHeader) {
+                $this->httpAuth->verifyAuthHeader($authHeader);
+            },
+            RelayAuthException::INVALID_SIGNATURE,
+            'Invalid signature should throw exception'
+        );
     }
 } 

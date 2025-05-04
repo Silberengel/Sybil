@@ -6,12 +6,81 @@ use Sybil\Tests\Integration\ArticleTests\ArticleIntegrationTestCase;
 use Sybil\Exception\RelayAuthException;
 use Sybil\Exception\EventCreationException;
 use Psr\Log\LogLevel;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
- * Tests for wiki article functionality
+ * Integration tests for wiki commands
  */
-final class WikiIntegrationTest extends ArticleIntegrationTestCase
+class WikiIntegrationTest extends ArticleIntegrationTestCase
 {
+    private string $testUuid;
+    private string $testPubkey;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->testUuid = '123e4567-e89b-12d3-a456-426614174000';
+        $this->testPubkey = $this->testPublicKey;
+    }
+
+    /**
+     * Test wiki command
+     */
+    public function testWiki(): void
+    {
+        $this->logger->info('Testing wiki command');
+
+        $command = sprintf(
+            'sybil wiki "Test Wiki" ' .
+            '--content "Test wiki content" ' .
+            '--url "https://example.com/wiki" ' .
+            '--author "Test Author" ' .
+            '--tag "documentation"',
+            $this->testPubkey
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Wiki created successfully', $output);
+
+        // Extract event ID from output
+        $eventId = $this->extractEventId($output);
+
+        // Query the event
+        $event = $this->executeCommand('sybil fetch ' . $eventId . ' ' . $this->relay);
+        $this->assertNotNull($event, 'Should be able to query created event');
+
+        // Verify event metadata
+        $this->assertEventMetadata($event, [
+            'kind' => '30023',
+            'content' => 'Test wiki content'
+        ]);
+
+        // Verify tags
+        $this->assertStringContainsString('"d": "' . $this->testUuid . '"', $event);
+        $this->assertStringContainsString('"title": "Test Wiki"', $event);
+        $this->assertStringContainsString('"url": "https://example.com/wiki"', $event);
+        $this->assertStringContainsString('"author": "Test Author"', $event);
+        $this->assertStringContainsString('"t": "documentation"', $event);
+    }
+
+    /**
+     * Test wiki validation
+     */
+    public function testWikiValidation(): void
+    {
+        $this->logger->info('Testing wiki validation');
+
+        // Test missing required arguments
+        $command = 'sybil wiki';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Not enough arguments', $output);
+
+        // Test invalid URL format
+        $command = 'sybil wiki "Test" --url "invalid-url"';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Invalid URL format', $output);
+    }
+
     private array $wikiMetadata = [
         'title' => 'Test Wiki Article',
         'image' => 'https://example.com/wiki-test-image.jpg',

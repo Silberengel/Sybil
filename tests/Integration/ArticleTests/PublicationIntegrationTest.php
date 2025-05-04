@@ -6,6 +6,7 @@ use Sybil\Tests\Integration\ArticleTests\ArticleIntegrationTestCase;
 use Sybil\Exception\RelayAuthException;
 use Sybil\Exception\EventCreationException;
 use Psr\Log\LogLevel;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Tests for publication-related functionality
@@ -26,6 +27,16 @@ final class PublicationIntegrationTest extends ArticleIntegrationTestCase
         'p' => 'dd664d5e4016433a8cd69f005ae1480804351789b59de5af06276de65633d319',
         'source' => 'https://www.gutenberg.org/ebooks/18732'
     ];
+
+    private string $testUuid;
+    private string $testPubkey;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->testUuid = '123e4567-e89b-12d3-a456-426614174000';
+        $this->testPubkey = $this->testPublicKey;
+    }
 
     public function testSourcefileHas_Atags(): void
     {
@@ -184,5 +195,70 @@ final class PublicationIntegrationTest extends ArticleIntegrationTestCase
         foreach ($expectedMetadata as $key => $value) {
             $this->assertStringContainsString('"' . $key . '": "' . $value . '"', $event);
         }
+    }
+
+    /**
+     * Test publication command
+     */
+    public function testPublication(): void
+    {
+        $this->logger->info('Testing publication command');
+
+        $command = sprintf(
+            'sybil publication "Test Publication" ' .
+            '--content "Test publication content" ' .
+            '--url "https://example.com/publication" ' .
+            '--author "Test Author" ' .
+            '--year "2024" ' .
+            '--tag "research"',
+            $this->testPubkey
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Publication created successfully', $output);
+
+        // Extract event ID from output
+        $eventId = $this->extractEventId($output);
+
+        // Query the event
+        $event = $this->executeCommand('sybil fetch ' . $eventId . ' ' . $this->relay);
+        $this->assertNotNull($event, 'Should be able to query created event');
+
+        // Verify event metadata
+        $this->assertEventMetadata($event, [
+            'kind' => '30025',
+            'content' => 'Test publication content'
+        ]);
+
+        // Verify tags
+        $this->assertStringContainsString('"d": "' . $this->testUuid . '"', $event);
+        $this->assertStringContainsString('"title": "Test Publication"', $event);
+        $this->assertStringContainsString('"url": "https://example.com/publication"', $event);
+        $this->assertStringContainsString('"author": "Test Author"', $event);
+        $this->assertStringContainsString('"year": "2024"', $event);
+        $this->assertStringContainsString('"t": "research"', $event);
+    }
+
+    /**
+     * Test publication validation
+     */
+    public function testPublicationValidation(): void
+    {
+        $this->logger->info('Testing publication validation');
+
+        // Test missing required arguments
+        $command = 'sybil publication';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Not enough arguments', $output);
+
+        // Test invalid URL format
+        $command = 'sybil publication "Test" --url "invalid-url"';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Invalid URL format', $output);
+
+        // Test invalid year format
+        $command = 'sybil publication "Test" --year "invalid-year"';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Invalid year format', $output);
     }
 } 

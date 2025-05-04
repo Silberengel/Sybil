@@ -1,6 +1,6 @@
 <?php
 
-namespace Sybil\Tests\Integration\Database;
+namespace Sybil\Tests\Integration\DatabaseTests;
 
 use Sybil\Tests\Integration\SybilIntegrationTestCase;
 use Doctrine\ORM\EntityManager;

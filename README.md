@@ -6,6 +6,71 @@ A powerful Nostr CLI tool for creating and managing various types of Nostr event
 
 **Please note that only tagged versions work, as I build on the master branch.**
 
+## Features
+
+- **Core Functionality**
+  - Create and manage various Nostr event types
+  - Support for NIP-01 through NIP-98 and NKBIP-01 through NKBIP-06
+  - Event signing and verification
+  - Event filtering, deleting, broadcasting and replacing/republishing
+  - Relay communication and authentication, for websockets and HTTP
+
+- **Event Types**
+  - Notes and replies
+  - Calendar events (date and time-based)
+  - Articles (wiki, longform, publications)
+  - Citations and highlights
+  - Repository management (ngit)
+  - Relay information and management
+
+- **Advanced Features**
+  - Hierarchical command structure with subcommands
+  - Comprehensive help system with command documentation
+  - Shell completion support (bash and zsh)
+  - Event conversion utilities (hex/bech32)
+
+- **Relay Management**
+  - Relay testing and information retrieval
+  - Relay authentication (NIP-98)
+  - Relay configuration management
+  - Rate limiting and error handling
+
+- **Database Integration**
+  - SQLite with Doctrine
+  - Event storage and retrieval
+  - Query optimization
+  - Database statistics and cleanup
+  - Event indexing and search
+
+- **Logging and Monitoring**
+  - Detailed logging with Monolog
+  - Multiple log levels and handlers
+  - Performance monitoring
+  - Error tracking and reporting
+
+- **Security Features**
+  - Secure key management
+  - Event signature verification
+  - Authentication header validation
+  - Rate limiting protection
+
+- **Developer Tools**
+  - Command-line interface
+  - Integration test suite
+  - Database schema management
+
+- **Content Management**
+  - MIME type support
+  - Category management
+  - Tag system
+  - Content validation
+
+- **Documentation**
+  - Comprehensive command reference
+  - Installation guides
+  - Usage examples
+  - Troubleshooting guides
+
 ## Quick Start
 
 ```bash

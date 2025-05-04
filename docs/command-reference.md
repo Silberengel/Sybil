@@ -437,4 +437,105 @@ Example:
   sybil ngit-announce --repo-id my-project --title "New release" --description "Version 1.0.0 is out!"
 ```
 
+## Calendar Events
+
+### calendar:date
+
+Create a date-based calendar event (kind 31922).
+
+```bash
+sybil calendar:date <title> <start> [end] [options]
+```
+
+Arguments:
+- `title`: Title of the calendar event
+- `start`: Start date in YYYY-MM-DD format
+- `end`: (Optional) End date in YYYY-MM-DD format
+
+Options:
+- `--content`, `-c`: Description of the calendar event
+- `--location`, `-l`: Location(s) of the calendar event (can be used multiple times)
+- `--geohash`, `-g`: Geohash for the event location
+- `--participant`, `-p`: Participant pubkey, optional relay URL, and role (can be used multiple times)
+- `--tag`, `-t`: Hashtag(s) to categorize the event (can be used multiple times)
+- `--reference`, `-r`: Reference link(s) (can be used multiple times)
+
+Example:
+```bash
+sybil calendar:date "Team Meeting" "2024-03-20" "2024-03-21" \
+  --content "Annual team planning meeting" \
+  --location "Conference Room A" \
+  --participant "pubkey1,relay1,organizer" \
+  --participant "pubkey2,relay2,attendee" \
+  --tag "meeting" \
+  --tag "planning"
+```
+
+### calendar:time
+
+Create a time-based calendar event (kind 31923).
+
+```bash
+sybil calendar:time <title> <start> [end] [options]
+```
+
+Arguments:
+- `title`: Title of the calendar event
+- `start`: Start Unix timestamp in seconds
+- `end`: (Optional) End Unix timestamp in seconds
+
+Options:
+- `--content`, `-c`: Description of the calendar event
+- `--summary`, `-s`: Brief description of the calendar event
+- `--image`, `-i`: URL of an image to use for the event
+- `--start-tzid`: Time zone of the start timestamp (IANA Time Zone Database)
+- `--end-tzid`: Time zone of the end timestamp (IANA Time Zone Database)
+- `--location`, `-l`: Location(s) of the calendar event (can be used multiple times)
+- `--geohash`, `-g`: Geohash for the event location
+- `--participant`, `-p`: Participant pubkey, optional relay URL, and role (can be used multiple times)
+- `--label`: Label(s) to categorize the event (can be used multiple times)
+- `--tag`, `-t`: Hashtag(s) to categorize the event (can be used multiple times)
+- `--reference`, `-r`: Reference link(s) (can be used multiple times)
+
+Example:
+```bash
+sybil calendar:time "Webinar" 1710921600 1710925200 \
+  --content "Introduction to Nostr" \
+  --summary "Learn about the Nostr protocol" \
+  --image "https://example.com/webinar.jpg" \
+  --start-tzid "America/New_York" \
+  --end-tzid "America/New_York" \
+  --location "Zoom Meeting" \
+  --participant "pubkey1,relay1,speaker" \
+  --label "audiospace,com.cornychat" \
+  --tag "webinar" \
+  --reference "https://zoom.us/j/123456789"
+```
+
+### calendar:rsvp
+
+Create a calendar event RSVP (kind 31925).
+
+```bash
+sybil calendar:rsvp <event-coordinates> <status> [options]
+```
+
+Arguments:
+- `event-coordinates`: Event coordinates in format `<kind>:<pubkey>:<d-identifier>`
+- `status`: RSVP status (accepted/declined/tentative)
+
+Options:
+- `--content`, `-c`: Note about the RSVP
+- `--event-id`, `-e`: Event ID of the calendar event being responded to
+- `--free-busy`, `-f`: Free/busy status (free/busy)
+- `--relay`, `-r`: Recommended relay URL
+
+Example:
+```bash
+sybil calendar:rsvp "31923:pubkey1:event-uuid" accepted \
+  --content "Looking forward to it!" \
+  --free-busy busy \
+  --relay "wss://relay.example.com"
+```
+
 Return to the [Read Me](./../README.md)

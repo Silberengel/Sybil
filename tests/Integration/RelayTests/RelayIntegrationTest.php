@@ -5,6 +5,7 @@ namespace Sybil\Tests\Integration\RelayTests;
 use Sybil\Utility\Event\EventPreparation;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Sybil\Exception\RelayAuthException;
 
 /**
  * Tests for relay integration functionality
@@ -12,6 +13,8 @@ use GuzzleHttp\Exception\GuzzleException;
 final class RelayIntegrationTest extends RelayAuthTestCase
 {
     private Client $client;
+    private string $testUuid;
+    private string $testPubkey;
 
     protected function setUp(): void
     {
@@ -23,6 +26,9 @@ final class RelayIntegrationTest extends RelayAuthTestCase
             'timeout' => 10.0,
             'verify' => true // Enable SSL verification
         ]);
+
+        $this->testUuid = '123e4567-e89b-12d3-a456-426614174000';
+        $this->testPubkey = $this->testPublicKey;
     }
 
     /**
@@ -42,7 +48,7 @@ final class RelayIntegrationTest extends RelayAuthTestCase
             $foundNote = $this->queryNote($note['id']);
             $this->assertNotEmpty($foundNote, 'Should find the posted note');
             $this->assertEquals($noteContent, $foundNote['content'], 'Note content should match');
-            $this->assertEquals($this->testPublicKey, $foundNote['pubkey'], 'Note pubkey should match');
+            $this->assertEquals($this->testPubkey, $foundNote['pubkey'], 'Note pubkey should match');
             
             $this->logger->info('Complete relay flow test successful', [
                 'note_id' => $note['id']
@@ -393,5 +399,192 @@ final class RelayIntegrationTest extends RelayAuthTestCase
         
         $result = json_decode($response->getBody()->getContents(), true);
         return $result[0] ?? null;
+    }
+
+    /**
+     * Test relay:test command
+     */
+    public function testRelayTest(): void
+    {
+        $this->logger->info('Testing relay:test command');
+
+        $command = sprintf(
+            'sybil relay:test "%s"',
+            $this->getTestRelay('ws')
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Relay test successful', $output);
+    }
+
+    /**
+     * Test relay:info command
+     */
+    public function testRelayInfo(): void
+    {
+        $this->logger->info('Testing relay:info command');
+
+        $command = sprintf(
+            'sybil relay:info "%s"',
+            $this->getTestRelay('ws')
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Relay information:', $output);
+    }
+
+    /**
+     * Test relay:add command
+     */
+    public function testRelayAdd(): void
+    {
+        $this->logger->info('Testing relay:add command');
+
+        $command = sprintf(
+            'sybil relay:add "%s" ' .
+            '--name "Test Relay" ' .
+            '--description "Test relay description" ' .
+            '--contact "test@example.com" ' .
+            '--supported-nips "1,2,11" ' .
+            '--software "test-relay" ' .
+            '--version "1.0.0" ' .
+            '--limitation-messages 1000 ' .
+            '--limitation-events 10000 ' .
+            '--limitation-created-at 1600000000 ' .
+            '--limitation-payment-required true ' .
+            '--limitation-payment-url "https://example.com/pay" ' .
+            '--limitation-payment-amount 1000 ' .
+            '--limitation-payment-currency "sats"',
+            $this->getTestRelay('ws')
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Relay added successfully', $output);
+
+        // Extract event ID from output
+        preg_match('/Event ID: ([a-f0-9]{64})/', $output, $matches);
+        $this->assertCount(2, $matches, 'Should find event ID in output');
+        $eventId = $matches[1];
+
+        // Query the event
+        $event = $this->queryNote($eventId);
+        $this->assertNotNull($event, 'Should be able to query created event');
+
+        // Verify event metadata
+        $this->assertEventMetadata($event, [
+            'kind' => 30066,
+            'content' => 'Test relay description'
+        ]);
+
+        // Verify tags
+        $this->assertArrayHasKey('tags', $event);
+        $tags = $event['tags'];
+        $this->assertTagExists($tags, 'd', $this->testUuid);
+        $this->assertTagExists($tags, 'name', 'Test Relay');
+        $this->assertTagExists($tags, 'contact', 'test@example.com');
+        $this->assertTagExists($tags, 'supported_nips', '1', '2', '11');
+        $this->assertTagExists($tags, 'software', 'test-relay');
+        $this->assertTagExists($tags, 'version', '1.0.0');
+        $this->assertTagExists($tags, 'limitation_messages', '1000');
+        $this->assertTagExists($tags, 'limitation_events', '10000');
+        $this->assertTagExists($tags, 'limitation_created_at', '1600000000');
+        $this->assertTagExists($tags, 'limitation_payment_required', 'true');
+        $this->assertTagExists($tags, 'limitation_payment_url', 'https://example.com/pay');
+        $this->assertTagExists($tags, 'limitation_payment_amount', '1000');
+        $this->assertTagExists($tags, 'limitation_payment_currency', 'sats');
+    }
+
+    /**
+     * Test relay:remove command
+     */
+    public function testRelayRemove(): void
+    {
+        $this->logger->info('Testing relay:remove command');
+
+        $command = sprintf(
+            'sybil relay:remove "%s" ' .
+            '--reason "Test removal"',
+            $this->getTestRelay('ws')
+        );
+
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Relay removed successfully', $output);
+
+        // Extract event ID from output
+        preg_match('/Event ID: ([a-f0-9]{64})/', $output, $matches);
+        $this->assertCount(2, $matches, 'Should find event ID in output');
+        $eventId = $matches[1];
+
+        // Query the event
+        $event = $this->queryNote($eventId);
+        $this->assertNotNull($event, 'Should be able to query created event');
+
+        // Verify event metadata
+        $this->assertEventMetadata($event, [
+            'kind' => 30067,
+            'content' => 'Test removal'
+        ]);
+
+        // Verify tags
+        $this->assertArrayHasKey('tags', $event);
+        $tags = $event['tags'];
+        $this->assertTagExists($tags, 'd', $this->testUuid);
+        $this->assertTagExists($tags, 'reason', 'Test removal');
+    }
+
+    /**
+     * Test relay:list command
+     */
+    public function testRelayList(): void
+    {
+        $this->logger->info('Testing relay:list command');
+
+        $command = 'sybil relay:list';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Available relays:', $output);
+    }
+
+    /**
+     * Test validation of relay commands
+     */
+    public function testRelayValidation(): void
+    {
+        $this->logger->info('Testing relay command validation');
+
+        // Test invalid relay URL
+        $command = 'sybil relay:test "invalid-url"';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Invalid relay URL format', $output);
+
+        // Test missing required arguments
+        $command = 'sybil relay:add';
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Not enough arguments', $output);
+
+        // Test invalid NIP list
+        $command = sprintf(
+            'sybil relay:add "%s" --supported-nips "invalid"',
+            $this->getTestRelay('ws')
+        );
+        $output = $this->executeCommand($command);
+        $this->assertStringContainsString('Invalid NIP list format', $output);
+    }
+
+    /**
+     * Helper method to assert tag existence
+     */
+    private function assertTagExists(array $tags, string $tagName, string ...$values): void
+    {
+        $found = false;
+        foreach ($tags as $tag) {
+            if ($tag[0] === $tagName) {
+                $found = true;
+                for ($i = 0; $i < count($values); $i++) {
+                    $this->assertEquals($values[$i], $tag[$i + 1] ?? null, "Tag $tagName should have correct value at position $i");
+                }
+                break;
+            }
+        }
+        $this->assertTrue($found, "Tag $tagName should exist");
     }
 } 

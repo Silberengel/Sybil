@@ -85,6 +85,9 @@ use Sybil\Command\NgitFeedCommand;
 use Sybil\Command\NgitStateCommand;
 use Sybil\Command\NgitIssueCommand;
 use Sybil\Command\NgitAnnounceCommand;
+use Sybil\Command\DateBasedCalendarEventCommand;
+use Sybil\Command\TimeBasedCalendarEventCommand;
+use Sybil\Command\CalendarEventRsvpCommand;
 
 /**
  * Main application class
@@ -253,6 +256,9 @@ class Application extends BaseApplication implements EventSubscriberInterface
             $this->registerCommand(new NgitStateCommand());
             $this->registerCommand(new NgitIssueCommand());
             $this->registerCommand(new NgitAnnounceCommand());
+            $this->registerCommand(new DateBasedCalendarEventCommand($eventService));
+            $this->registerCommand(new TimeBasedCalendarEventCommand($eventService));
+            $this->registerCommand(new CalendarEventRsvpCommand($eventService));
             $this->registerCommand(new BroadcastCommand($eventService));
             $this->registerCommand(new RelayRemoveCommand($relayQueryService));
             $this->registerCommand(new LongformCommand($eventService));
