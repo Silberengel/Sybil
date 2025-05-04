@@ -6,7 +6,7 @@ use App\Service\NostrService;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-trait GitCommandTrait
+trait NgitCommandTrait
 {
     protected function getRepositoryAddress(string $repoId, string $ownerPubkey): string
     {

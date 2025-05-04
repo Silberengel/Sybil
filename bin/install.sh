@@ -148,6 +148,43 @@ setup_nostr_key() {
     fi
 }
 
+# Function to install command completion
+install_completion() {
+    print_status "Installing command completion..."
+    
+    # Create completion directory
+    mkdir -p ~/.local/share/bash-completion/completions
+    
+    # Copy completion script
+    cp bin/completion.sh ~/.local/share/bash-completion/completions/sybil
+    chmod +x ~/.local/share/bash-completion/completions/sybil
+    
+    # Add to .bashrc if not already present
+    if [ -f ~/.bashrc ]; then
+        if ! grep -q "source.*completions/sybil" ~/.bashrc; then
+            echo -e "\n# Sybil command completion" >> ~/.bashrc
+            echo "source ~/.local/share/bash-completion/completions/sybil" >> ~/.bashrc
+            print_status "Added completion to .bashrc"
+        fi
+    fi
+    
+    # Add to .zshrc if it exists
+    if [ -f ~/.zshrc ]; then
+        if ! grep -q "source.*completions/sybil" ~/.zshrc; then
+            echo -e "\n# Sybil command completion" >> ~/.zshrc
+            echo "source ~/.local/share/bash-completion/completions/sybil" >> ~/.zshrc
+            print_status "Added completion to .zshrc"
+        fi
+    fi
+    
+    # Source the completion script in the current shell
+    if [ -n "$BASH_VERSION" ]; then
+        . ~/.local/share/bash-completion/completions/sybil
+    elif [ -n "$ZSH_VERSION" ]; then
+        . ~/.local/share/bash-completion/completions/sybil
+    fi
+}
+
 # Main installation process
 main() {
     print_status "Starting Sybil installation..."
@@ -170,10 +207,14 @@ main() {
     # Setup environment
     setup_env
     
+    # Install command completion
+    install_completion
+    
     # Check Nostr key
     setup_nostr_key
     
     print_status "Installation complete!"
+    print_status "Command completion is enabled by default."
     print_status "Please restart your terminal or run 'source ~/.bashrc' (or 'source ~/.zshrc') to use Sybil"
 }
 

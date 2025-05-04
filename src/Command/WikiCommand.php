@@ -18,12 +18,12 @@ use Sybil\Command\Trait\{
  * 
  * The command creates a kind 30024 event for the wiki article.
  * 
- * Usage: nostr:wiki <file_path> [--relay <relay_url>] [--json]
+ * Usage: nostr:wiki <file_path> [--relay <relay_url>] [--raw]
  * 
  * Examples:
  *   sybil wiki tests/Fixtures/Wiki_testfile.adoc
  *   sybil wiki tests/Fixtures/Wiki_testfile.adoc --relay wss://relay.example.com
- *   sybil wiki tests/Fixtures/Wiki_testfile.adoc --json
+ *   sybil wiki tests/Fixtures/Wiki_testfile.adoc --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/ArticleIntegrationTest.php
@@ -56,7 +56,7 @@ class WikiCommand extends Command implements CommandInterface
 
     public function getDescription(): string
     {
-        return 'Create and publish a wiki article';
+        return 'Create and publish a wiki article (kind 30050)';
     }
 
     public function getHelp(): string
@@ -64,19 +64,19 @@ class WikiCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command creates and publishes a wiki article.
 
-<info>php %command.full_name% <file_path> [--relay <relay_url>] [--json]</info>
+<info>php %command.full_name% <file_path> [--relay <relay_url>] [--raw]</info>
 
 Arguments:
   file_path   The path to the AsciiDoc file containing the wiki article
 
 Options:
   --relay     The relay URL to publish to (optional)
-  --json      Output in JSON format
+  --raw      Output in JSON format
 
 Examples:
   <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc</info>
   <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc --relay wss://relay.example.com</info>
-  <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc --json</info>
+  <info>php %command.full_name% tests/Fixtures/Wiki_testfile.adoc --raw</info>
 HELP;
     }
 
@@ -84,21 +84,49 @@ HELP;
     {
         $this
             ->setName('wiki')
-            ->setDescription('Create and publish a wiki article')
-            ->addArgument('file_path', InputArgument::REQUIRED, 'The path to the AsciiDoc file containing the wiki article')
-            ->addOption('relay', 'r', InputOption::VALUE_REQUIRED, 'The relay URL to publish to')
-            ->addOption('json', 'j', InputOption::VALUE_NONE, 'Output in JSON format');
+            ->setDescription('Create a wiki article (kind 30818)')
+            ->setHelp(<<<'HELP'
+Create a wiki article with the specified content and metadata.
+
+The article will be published as a kind 30818 event with the following MIME types:
+- m: text/asciidoc
+- M: article/wiki/replaceable
+
+Required options:
+  --title: The title of the wiki article
+  --content: The content of the wiki article in AsciiDoc format
+
+Optional options:
+  --author: The author of the wiki article
+  --image: URL to an image for the wiki article
+  --tags: Comma-separated list of hashtags
+  --citations: Comma-separated list of citation event IDs to reference
+
+Example:
+  sybil wiki --title "My Wiki Article" --content "Article content in AsciiDoc format" --author "John Doe" --tags "wiki,example" --citations "event1,event2"
+HELP
+            )
+            ->addOption('title', null, InputOption::VALUE_REQUIRED, 'Title of the wiki article')
+            ->addOption('content', null, InputOption::VALUE_REQUIRED, 'Content of the wiki article in AsciiDoc format')
+            ->addOption('author', null, InputOption::VALUE_OPTIONAL, 'Author of the wiki article')
+            ->addOption('image', null, InputOption::VALUE_OPTIONAL, 'URL to an image for the wiki article')
+            ->addOption('tags', null, InputOption::VALUE_OPTIONAL, 'Comma-separated list of hashtags')
+            ->addOption('citations', null, InputOption::VALUE_OPTIONAL, 'Comma-separated list of citation event IDs to reference');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         return $this->executeWithErrorHandling($input, $output, function (InputInterface $input, OutputInterface $output) {
             $filePath = $input->getArgument('file_path');
-            $relay = $input->getOption('relay');
-            $jsonOutput = $input->getOption('json');
+            $json = $input->getOption('json');
+            $citations = $input->getOption('citations');
+
+            if (!file_exists($filePath)) {
+                throw new \RuntimeException(sprintf('File not found: %s', $filePath));
+            }
 
             // Get content and metadata
-            $result = $this->getWikiContent($filePath);
+            $result = $this->getArticleContent($filePath);
             if ($result === null) {
                 throw new \RuntimeException('Invalid content or metadata');
             }
@@ -106,43 +134,55 @@ HELP;
             $content = $result['content'];
             $metadata = $result['metadata'];
 
-            // Get public key
-            $privateKey = $this->params->get('app.private_key');
-            $publicKey = KeyUtility::derivePublicKey($privateKey);
+            // Get public key for logging context
+            $publicKey = KeyUtility::getPublicKeyFromPrivateKey($this->privateKey);
 
-            // Create event data
-            $eventData = [
-                'kind' => 30024, // Wiki article
-                'content' => $content,
-                'tags' => [
-                    ['d', $metadata['title']],
-                    ['title', $metadata['title']],
-                    ...array_map(fn($tag) => ['t', $tag], $metadata['tags'])
-                ],
-                'created_at' => time(),
-                'pubkey' => $publicKey,
-            ];
+            // Create article event
+            $articleEvent = $this->createArticleEvent($metadata, $content, $publicKey, $citations);
+            $this->eventService->publish($articleEvent);
 
-            // Create and publish event
-            $event = $this->eventService->createEvent($eventData);
-            $success = $this->eventService->publishEvent($event);
-
-            if (!$success) {
-                throw new \RuntimeException('Failed to publish wiki article');
-            }
-
-            if ($jsonOutput) {
-                $output->writeln(json_encode($event->toArray(), JSON_PRETTY_PRINT));
+            if ($json) {
+                $output->writeln(json_encode($articleEvent->toArray(), JSON_PRETTY_PRINT));
             } else {
-                $output->writeln(sprintf('<info>Wiki article published successfully with ID: %s</info>', $event->getId()));
+                $output->writeln(sprintf('<info>Wiki article published successfully!</info>'));
+                $output->writeln(sprintf('<info>Article ID: %s</info>', $articleEvent->getId()));
                 $output->writeln(sprintf('<info>Title: %s</info>', $metadata['title']));
+                if ($citations) {
+                    $output->writeln(sprintf('<info>Citations: %s</info>', $citations));
+                }
             }
 
             return Command::SUCCESS;
         });
     }
 
-    private function getWikiContent(string $input): ?array
+    private function createArticleEvent(array $metadata, string $content, string $publicKey, ?string $citations): NostrEvent
+    {
+        $eventData = [
+            'kind' => 30050,
+            'content' => $content,
+            'tags' => [
+                ['d', $metadata['title']],
+                ['title', $metadata['title']],
+                ['summary', $metadata['summary'] ?? ''],
+                ['image', $metadata['image'] ?? ''],
+                ...array_map(fn($tag) => ['t', $tag], $metadata['tags'] ?? [])
+            ],
+            'created_at' => time(),
+            'pubkey' => $publicKey,
+        ];
+
+        // Add citation references if provided
+        if ($citations) {
+            foreach (explode(',', $citations) as $citationId) {
+                $eventData['tags'][] = ['e', trim($citationId), '', 'citation'];
+            }
+        }
+
+        return $this->eventService->createEvent($eventData);
+    }
+
+    private function getArticleContent(string $input): ?array
     {
         try {
             // Handle file path

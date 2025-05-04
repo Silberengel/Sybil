@@ -16,12 +16,12 @@ use Sybil\Command\Trait\{
  * Nostr relay to the list of known relays. The command can optionally
  * test the relay before adding it.
  * 
- * Usage: nostr:relay-add <relay> [--test] [--json]
+ * Usage: nostr:relay-add <relay> [--test] [--raw]
  * 
  * Examples:
  *   sybil relay-add wss://relay.example.com
  *   sybil relay-add wss://relay.example.com --test
- *   sybil relay-add wss://relay.example.com --test --json
+ *   sybil relay-add wss://relay.example.com --test --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -59,19 +59,19 @@ class RelayAddCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command adds a new Nostr relay to the list of known relays.
 
-<info>php %command.full_name% RELAY_URL [--test] [--json]</info>
+<info>php %command.full_name% RELAY_URL [--test] [--raw]</info>
 
 Arguments:
   RELAY_URL    The WebSocket URL of the relay to add (required)
 
 Options:
   --test       Test the relay before adding it
-  --json       Output raw event data
+  --raw       Output raw event data
 
 Examples:
   <info>php %command.full_name% wss://relay.example.com</info>
   <info>php %command.full_name% wss://relay.example.com --test</info>
-  <info>php %command.full_name% wss://relay.example.com --test --json</info>
+  <info>php %command.full_name% wss://relay.example.com --test --raw</info>
 HELP;
     }
 

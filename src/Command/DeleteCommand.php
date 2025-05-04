@@ -54,19 +54,19 @@ class DeleteCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command creates and publishes a deletion event for a specific event.
 
-<info>php %command.full_name% <event_id> [--reason <reason>] [--json]</info>
+<info>php %command.full_name% <event_id> [--reason <reason>] [--raw]</info>
 
 Arguments:
   <event_id>    The ID of the event to delete (64-character hex string)
 
 Options:
   --reason      Optional reason for deletion (max 1000 characters)
-  --json         Output raw event data in JSON format
+  --raw         Output raw event data in JSON format
 
 Examples:
   <info>php %command.full_name% 1234...abcd</info>
   <info>php %command.full_name% 1234...abcd --reason "Content is no longer relevant"</info>
-  <info>php %command.full_name% 1234...abcd --json</info>
+  <info>php %command.full_name% 1234...abcd --raw</info>
 HELP;
     }
 

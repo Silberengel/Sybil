@@ -11,6 +11,7 @@ use Sybil\Event\Traits\EventMetadataTrait;
 use Sybil\Event\Traits\EventPublishingTrait;
 use Sybil\Event\Traits\EventSerializationTrait;
 use Sybil\Event\Traits\EventValidationTrait;
+use Sybil\Utility\MimeType\MimeTypeUtility;
 
 /**
  * @ORM\Entity
@@ -104,6 +105,14 @@ class PublicationEvent extends AbstractNostrEvent
         if ($this->summary !== null && strlen($this->summary) > 255) {
             throw new ValidationException('Summary exceeds maximum length of 255 characters');
         }
+
+        // Validate required NKBIP-01 tags
+        if (!$this->hasTag('type')) {
+            throw new ValidationException('Publications require a type tag');
+        }
+        if (!$this->hasTag('c')) {
+            throw new ValidationException('Publications require a c tag');
+        }
     }
 
     protected function prepare(): void
@@ -112,6 +121,14 @@ class PublicationEvent extends AbstractNostrEvent
         $this->setTagValue('d', $this->dTag);
         $this->setTagValue('title', $this->title);
         $this->setTagValue('p', $this->pubkey);
+
+        // Add NKBIP-01 required tags with defaults if not set
+        if (!$this->hasTag('type')) {
+            $this->setTagValue('type', 'book'); // Default type
+        }
+        if (!$this->hasTag('c')) {
+            $this->setTagValue('c', 'book'); // Default content type
+        }
 
         // Add optional tags if available
         if ($this->author !== null) {
@@ -122,6 +139,12 @@ class PublicationEvent extends AbstractNostrEvent
             $this->setTagValue('image', $this->image);
         }
 
+        if ($this->hashtags !== null) {
+            foreach ($this->hashtags as $tag) {
+                $this->setTagValue('t', $tag);
+            }
+        }
+
         if ($this->summary !== null) {
             $this->setTagValue('summary', $this->summary);
         }
@@ -130,11 +153,8 @@ class PublicationEvent extends AbstractNostrEvent
             $this->setTagValue('published_at', $this->publishedAt);
         }
 
-        if ($this->hashtags !== null) {
-            foreach ($this->hashtags as $tag) {
-                $this->setTagValue('t', $tag);
-            }
-        }
+        // Add MIME type tags
+        MimeTypeUtility::addMimeTypeTags($this->tags, $this->kind);
 
         // Sort tags for consistent ordering
         sort($this->tags);

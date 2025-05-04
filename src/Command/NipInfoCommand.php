@@ -14,15 +14,15 @@ use Sybil\Command\Trait\{
  * 
  * This command handles the 'nip-info' command, which displays
  * information about Nostr Improvement Proposals. You can filter NIPs
- * by category or status, and use --json for JSON output.
+ * by category or status, and use --raw for JSON output.
  * 
- * Usage: nostr:nip-info [<nip>] [--category CATEGORY] [--status STATUS] [--json]
+ * Usage: nostr:nip-info [<nip>] [--category CATEGORY] [--status STATUS] [--raw]
  * 
  * Examples:
  *   sybil nip-info 1
  *   sybil nip-info --category protocol
  *   sybil nip-info --status final
- *   sybil nip-info 1 --json
+ *   sybil nip-info 1 --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -59,7 +59,7 @@ class NipInfoCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command displays information about Nostr Improvement Proposals (NIPs).
 
-<info>php %command.full_name% [<nip>] [--category CATEGORY] [--status STATUS] [--json]</info>
+<info>php %command.full_name% [<nip>] [--category CATEGORY] [--status STATUS] [--raw]</info>
 
 Arguments:
   <nip>          The NIP number to display information for (optional)
@@ -67,13 +67,13 @@ Arguments:
 Options:
   --category     Filter NIPs by category (e.g., protocol, client, relay)
   --status       Filter NIPs by status (e.g., draft, final, deprecated)
-  --json          Output in JSON format
+  --raw          Output in JSON format
 
 Examples:
   <info>php %command.full_name% 1</info>
   <info>php %command.full_name% --category protocol</info>
   <info>php %command.full_name% --status final</info>
-  <info>php %command.full_name% 1 --json</info>
+  <info>php %command.full_name% 1 --raw</info>
 HELP;
     }
 

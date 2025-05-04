@@ -17,12 +17,12 @@ use Sybil\Command\Trait\{
  * For other event types (longform, publication, section, wiki), it creates
  * a kind 1111 (comment) reply.
  * 
- * Usage: nostr:reply <event_id> <content> [--relay <relay_url>] [--json]
+ * Usage: nostr:reply <event_id> <content> [--relay <relay_url>] [--raw]
  * 
  * Examples:
  *   sybil reply <event_id> "This is a reply"
  *   sybil reply <event_id> "Reply to specific relay" --relay wss://relay.example.com
- *   sybil reply <event_id> "Reply with JSON output" --json
+ *   sybil reply <event_id> "Reply with JSON output" --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -63,7 +63,7 @@ class ReplyCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command creates and publishes a reply to a Nostr event.
 
-<info>php %command.full_name% <event_id> <content> [--relay <relay_url>] [--json]</info>
+<info>php %command.full_name% <event_id> <content> [--relay <relay_url>] [--raw]</info>
 
 Arguments:
   event_id    The ID of the event to reply to (64-character hex string)
@@ -71,12 +71,12 @@ Arguments:
 
 Options:
   --relay     The relay URL to publish to (optional)
-  --json      Output in JSON format
+  --raw      Output in JSON format
 
 Examples:
   <info>php %command.full_name% 1234... "This is a reply"</info>
   <info>php %command.full_name% 1234... "Reply to specific relay" --relay wss://relay.example.com</info>
-  <info>php %command.full_name% 1234... "Reply with JSON output" --json</info>
+  <info>php %command.full_name% 1234... "Reply with JSON output" --raw</info>
 HELP;
     }
 

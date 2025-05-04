@@ -15,12 +15,12 @@ use Sybil\Command\Trait\{
  * This command handles the 'note' command, which creates and publishes
  * a text note event.
  * 
- * Usage: sybil note <content> [--relay <relay_url>] [--json]
+ * Usage: sybil note <content> [--relay <relay_url>] [--raw]
  * 
  * Examples:
  *   sybil note "Hello Nostr!"
  *   sybil note "Hello specific relay" --relay wss://relay.example.com
- *   sybil note "Hello with raw output" --json
+ *   sybil note "Hello with raw output" --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -61,19 +61,19 @@ class NoteCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command creates and publishes a text note event.
 
-<info>php %command.full_name% <content> [--relay RELAY_URL] [--json]</info>
+<info>php %command.full_name% <content> [--relay RELAY_URL] [--raw]</info>
 
 Arguments:
   <content>      The note content to publish
 
 Options:
   --relay        The relay URL to publish to (optional)
-  --json          Output raw event data
+  --raw          Output raw event data
 
 Examples:
   <info>php %command.full_name% "Hello Nostr!"</info>
   <info>php %command.full_name% "Hello specific relay" --relay wss://relay.example.com</info>
-  <info>php %command.full_name% "Hello with raw output" --json</info>
+  <info>php %command.full_name% "Hello with raw output" --raw</info>
 HELP;
     }
 

@@ -14,14 +14,14 @@ use Sybil\Command\Trait\{
  * 
  * This command handles the 'republish' command, which republishes a Nostr event
  * by providing its JSON data. The event must be a valid Nostr event in JSON format.
- * The --json option outputs the republished event in JSON format.
+ * The --raw option outputs the republished event in JSON format.
  * 
- * Usage: nostr:republish <event_json> [--relay <relay_url>] [--json]
+ * Usage: nostr:republish <event_json> [--relay <relay_url>] [--raw]
  * 
  * Examples:
  *   sybil republish '{"kind":1,"content":"Hello","created_at":1234567890,"tags":[]}'
  *   sybil republish '{"kind":1,"content":"Hello"}' --relay wss://relay.example.com
- *   sybil republish '{"kind":1,"content":"Hello"}' --json
+ *   sybil republish '{"kind":1,"content":"Hello"}' --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -60,19 +60,19 @@ class RepublishCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command republishes a Nostr event by providing its JSON data.
 
-<info>php %command.full_name% <event_json> [--relay <relay_url>] [--json]</info>
+<info>php %command.full_name% <event_json> [--relay <relay_url>] [--raw]</info>
 
 Arguments:
   event_json  The JSON data of the event to republish (or '-' for stdin, or a file path)
 
 Options:
   --relay     The relay URL to publish to (optional)
-  --json      Output in JSON format
+  --raw      Output in JSON format
 
 Examples:
   <info>php %command.full_name% '{"kind":1,"content":"Hello","created_at":1234567890,"tags":[]}'</info>
   <info>php %command.full_name% '{"kind":1,"content":"Hello"}' --relay wss://relay.example.com</info>
-  <info>php %command.full_name% '{"kind":1,"content":"Hello"}' --json</info>
+  <info>php %command.full_name% '{"kind":1,"content":"Hello"}' --raw</info>
   <info>cat event.json | php %command.full_name% -</info>
 HELP;
     }

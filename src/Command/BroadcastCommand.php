@@ -53,7 +53,7 @@ class BroadcastCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command broadcasts a Nostr event to multiple relays.
 
-<info>php %command.full_name% <event_json> [--relays <relay_urls>] [--json]</info>
+<info>php %command.full_name% <event_json> [--relays <relay_urls>] [--raw]</info>
 
 The <event_json> argument can be:
   - A JSON string containing the event data
@@ -62,7 +62,7 @@ The <event_json> argument can be:
 
 Options:
   --relays (-r)    Comma-separated list of relay URLs to broadcast to
-  --json           Output raw event data in JSON format
+  --raw           Output raw event data in JSON format
 
 Examples:
   <info>php %command.full_name% '{"kind":1,"content":"Hello"}'</info>

@@ -13,14 +13,14 @@ use Sybil\Command\Trait\{
  * Command for listing Nostr relays
  * 
  * This command handles the 'relay-list' command, which displays
- * a list of known Nostr relays. The --json option outputs the list
+ * a list of known Nostr relays. The --raw option outputs the list
  * in JSON format.
  * 
- * Usage: nostr:relay-list [--json]
+ * Usage: nostr:relay-list [--raw]
  * 
  * Examples:
  *   sybil relay-list
- *   sybil relay-list --json
+ *   sybil relay-list --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -58,14 +58,14 @@ class RelayListCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command displays a list of known Nostr relays.
 
-<info>php %command.full_name% [--json]</info>
+<info>php %command.full_name% [--raw]</info>
 
 Options:
-  --json       Output in JSON format
+  --raw       Output in JSON format
 
 Examples:
   <info>php %command.full_name%</info>
-  <info>php %command.full_name% --json</info>
+  <info>php %command.full_name% --raw</info>
 HELP;
     }
 

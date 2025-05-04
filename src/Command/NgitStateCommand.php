@@ -12,10 +12,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'git-state',
+    name: 'ngit-state',
     description: 'Announce git repository state (kind 30618)',
 )]
-class GitStateCommand extends Command
+class NgitStateCommand extends Command
 {
     public function __construct(
         private readonly NostrService $nostrService,

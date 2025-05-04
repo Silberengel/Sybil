@@ -15,14 +15,14 @@ use Sybil\Command\Trait\{
  * This command handles the 'query' command, which allows querying
  * Nostr relays for events with various filters. You can filter by
  * kind, author, tags, and time range. The --sync option saves events
- * to the local database, and --json outputs in JSON format.
+ * to the local database, and --raw outputs in JSON format.
  * 
  * Usage: nostr:query -r <relay> [-k <kind>] [-a <author>] [-t <tag>] [-s <since>] [-u <until>] [-l <limit>] [--sync] [-j]
  * 
  * Examples:
  *   sybil query -r wss://relay.example.com -k 1
  *   sybil query -r wss://relay.example.com -a npub1... -t e:abc123
- *   sybil query -r wss://relay.example.com -k 1 -s 1234567890 -l 10 --json
+ *   sybil query -r wss://relay.example.com -k 1 -s 1234567890 -l 10 --raw
  *   sybil query -r wss://relay.example.com -k 1 --sync
  * 
  * Test examples can be found in:
@@ -76,12 +76,12 @@ Arguments:
   -u, --until    Filter by end timestamp
   -l, --limit    Limit number of results
   --sync         Save events to local database
-  -j, --json     Output in JSON format
+  -j, --raw     Output in JSON format
 
 Examples:
   <info>php %command.full_name% -r wss://relay.example.com -k 1</info>
   <info>php %command.full_name% -r wss://relay.example.com -a npub1... -t e:abc123</info>
-  <info>php %command.full_name% -r wss://relay.example.com -k 1 -s 1234567890 -l 10 --json</info>
+  <info>php %command.full_name% -r wss://relay.example.com -k 1 -s 1234567890 -l 10 --raw</info>
   <info>php %command.full_name% -r wss://relay.example.com -k 1 --sync</info>
 HELP;
     }

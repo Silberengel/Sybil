@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'wiki-feed',
-    description: 'Display wiki content (kind 30030) with their replies',
+    description: 'Display wiki content (kind 30818) with their replies',
 )]
 class WikiFeedCommand extends Command
 {
@@ -59,7 +59,7 @@ class WikiFeedCommand extends Command
 
         // Query for wiki content and their replies
         $filters = [
-            'kinds' => [30030, 1111], // Wiki content and replies
+            'kinds' => [30818, 1111], // Wiki content and replies
             'limit' => $limit,
         ];
 
@@ -100,9 +100,14 @@ class WikiFeedCommand extends Command
     private function getKindName(int $kind): string
     {
         return match ($kind) {
-            30030 => 'Wiki',
+            30818 => 'Wiki',
             1111 => 'Reply',
             default => 'Unknown',
         };
+    }
+
+    public function getDescription(): string
+    {
+        return 'Display wiki content (kind 30818) with their replies';
     }
 } 

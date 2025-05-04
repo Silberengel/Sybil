@@ -2,12 +2,15 @@
 
 namespace Sybil\Command;
 
-use Sybil\Command\Trait\{
-    CommandTrait,
-    RelayCommandTrait,
-    EventCommandTrait,
-    CommandImportsTrait
-};
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Helper\TableSeparator;
 
 /**
  * Command for displaying help information
@@ -16,13 +19,51 @@ use Sybil\Command\Trait\{
  * for the application and its commands.
  * Usage: nostr:help [<command>]
  */
-class HelpCommand extends Command implements CommandInterface
+class HelpCommand extends Command
 {
-    use CommandTrait;
-    use RelayCommandTrait;
-    use EventCommandTrait;
-    use CommandImportsTrait;
     private LoggerInterface $logger;
+    private array $commandTopics = [
+        'core' => [
+            'name' => 'Core Functions',
+            'description' => 'Basic Nostr operations and utilities',
+            'commands' => ['note', 'reply', 'query', 'delete', 'republish', 'broadcast', 'highlight', 'note:feed']
+        ],
+        'relay' => [
+            'name' => 'Relay Management',
+            'description' => 'Commands for managing Nostr relays',
+            'commands' => ['relay:add', 'relay:remove', 'relay:list', 'relay:info', 'relay:test']
+        ],
+        'article' => [
+            'name' => 'Article and Content Management',
+            'description' => 'Commands for managing long-form content, publications, and wikis. All publications require type and c tags (default: "book").',
+            'commands' => [
+                'longform', 'longform:feed',
+                'publication', 'publication:feed',
+                'wiki', 'wiki:feed'
+            ]
+        ],
+        'git' => [
+            'name' => 'Git Integration',
+            'description' => 'Commands for Git repository integration',
+            'commands' => [
+                'ngit-patch', 'ngit-status', 'ngit-state',
+                'ngit-issue', 'ngit-announce', 'ngit-feed'
+            ]
+        ],
+        'citation' => [
+            'name' => 'Citation Management',
+            'description' => 'Commands for managing citations and references',
+            'commands' => ['citation', 'citation:feed']
+        ],
+        'utility' => [
+            'name' => 'Utility Commands',
+            'description' => 'General utility and configuration commands',
+            'commands' => [
+                'version', 'completion', 'nip:info',
+                'help', 'convert'
+            ]
+        ]
+    ];
 
     public function __construct(LoggerInterface $logger)
     {
@@ -62,212 +103,254 @@ HELP;
         $this
             ->setName('help')
             ->setDescription('Display help information')
-            ->addArgument('command', InputArgument::OPTIONAL, 'The command to get help for');
+            ->addArgument('topic', InputArgument::OPTIONAL, 'The topic or command to get help for')
+            ->addOption('all', 'a', InputOption::VALUE_NONE, 'Show all command details');
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->writeln('Sybil - Nostr Command Line Tool');
-        $output->writeln('=============================');
-        $output->writeln('');
+        $io = new SymfonyStyle($input, $output);
+        $topic = $input->getArgument('topic');
+        $showAll = $input->getOption('all');
 
-        $output->writeln('Common Options:');
-        $output->writeln('  --relay <url>     Specify relay URL (default: wss://relay.damus.io)');
-        $output->writeln('  --protocol <ws|http> Protocol to use (default: ws)');
-        $output->writeln('  --key <key>       Specify key to use (default: NOSTR_SECRET_KEY env var)');
-        $output->writeln('');
+        try {
+            if ($showAll) {
+                return $this->showAllCommands($io);
+            }
 
-        $output->writeln('Content Creation:');
-        $output->writeln('  sybil note <content> [--relay <url>] [--key <key>]');
-        $output->writeln('  sybil longform <content> [--relay <url>] [--key <key>]');
-        $output->writeln('  sybil wiki <content> [--relay <url>] [--key <key>]');
-        $output->writeln('  sybil publication <content> [--relay <url>] [--key <key>]');
-        $output->writeln('');
+            if ($topic === null) {
+                return $this->showMainHelp($io);
+            }
 
-        $output->writeln('Event Interaction:');
-        $output->writeln('  query');
-        $output->writeln('    Query Nostr relays for events');
-        $output->writeln('    Usage: sybil query -r <relay> [-k <kind>] [-a <author>] [-t <tag>] [-s <since>] [-u <until>] [-l <limit>] [--sync]');
-        $output->writeln('');
+            if (isset($this->commandTopics[$topic])) {
+                return $this->showTopicHelp($io, $topic);
+            }
+
+            // Check if it's a command name
+            $command = $this->getApplication()->find($topic);
+            if ($command) {
+                return $this->showCommandHelp($io, $command);
+            }
+
+            $io->error("Unknown topic or command: $topic");
+            return Command::FAILURE;
+
+        } catch (\Exception $e) {
+            $this->logger->error('Error displaying help', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $io->error('Error displaying help: ' . $e->getMessage());
+            return Command::FAILURE;
+        }
+    }
+
+    private function showMainHelp(SymfonyStyle $io): int
+    {
+        $io->title('Sybil Command Line Tool');
+        $io->text('A powerful command-line interface for interacting with Nostr.');
+        $io->newLine();
         
-        $output->writeln('  reply');
-        $output->writeln('    Reply to a Nostr event');
-        $output->writeln('    Usage: sybil reply <event_id> <content> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  republish');
-        $output->writeln('    Republish a Nostr event');
-        $output->writeln('    Usage: sybil republish <event_json> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  broadcast');
-        $output->writeln('    Broadcast a Nostr event to multiple relays');
-        $output->writeln('    Usage: sybil broadcast <event_json> [--relays <relay_urls>]');
-        $output->writeln('');
-        
-        $output->writeln('  delete');
-        $output->writeln('    Delete a Nostr event');
-        $output->writeln('    Usage: sybil delete <event_id> [--reason <reason>]');
-        $output->writeln('');
+        $io->section('Documentation');
+        $io->text('For detailed documentation:');
+        $io->listing([
+            '<href=README.md>README.md</> - Project overview and getting started',
+            '<href=docs/command-reference.md>docs/command-reference.md</> - Complete command reference',
+            '<href=docs/scriptorium.md>docs/scriptorium.md</> - Document conversion guide',
+            '<href=docs/relay-management.md>docs/relay-management.md</> - Relay management guide',
+            '<href=docs/git-integration.md>docs/git-integration.md</> - Git integration guide',
+            '<href=docs/content-management.md>docs/content-management.md</> - Content management guide'
+        ]);
+        $io->newLine();
 
-        $output->writeln('Git Repository Management:');
-        $output->writeln('  sybil git-announce --id <repo-id> --name <name> --description <desc> [--web <url>] [--clone <url>] [--relays <urls>] [--maintainers <pubkeys>] [--tags <tags>] [--euc <commit-id>]');
-        $output->writeln('  sybil git-state --id <repo-id> [--refs-heads <branch=commit>] [--refs-tags <tag=commit>] [--head <ref>]');
-        $output->writeln('  sybil git-patch --repo-id <repo-id> --owner <pubkey> --content <file> [--commit <id>] [--parent-commit <id>] [--commit-pgp-sig <sig>] [--committer <info>] [--root] [--root-revision] [--reply-to <event-id>]');
-        $output->writeln('  sybil git-issue --repo-id <repo-id> --owner <pubkey> --subject <subject> --content <file> [--labels <labels>]');
-        $output->writeln('  sybil git-status --event-id <event-id> --status <status> [--content <message>] [--repo-id <repo-id>] [--owner <pubkey>] [--revision-id <event-id>] [--merge-commit <id>] [--applied-commits <ids>]');
-        $output->writeln('');
+        $io->section('Available Topics');
+        $table = new Table($io);
+        $table->setHeaders(['Topic', 'Description']);
+        
+        foreach ($this->commandTopics as $key => $topic) {
+            $table->addRow([
+                "<info>$key</info>",
+                $topic['description']
+            ]);
+        }
+        
+        $table->render();
+        $io->newLine();
 
-        $output->writeln('For more information, visit: https://github.com/Silberengel/sybil');
+        $io->section('Usage');
+        $io->text('  sybil help <topic>     Show help for a specific topic');
+        $io->text('  sybil help <command>   Show help for a specific command');
+        $io->text('  sybil help --all       Show all command details');
+        $io->newLine();
+
+        $io->section('Global Options');
+        $io->text('  -h, --help            Display this help message');
+        $io->text('  -V, --version         Display version information');
+        $io->text('  --no-interaction      Do not ask any interactive question');
+        $io->text('  -v|vv|vvv, --verbose  Increase the verbosity of messages');
+        $io->newLine();
 
         return Command::SUCCESS;
     }
 
-    private function displayGeneralHelp(OutputInterface $output): void
+    private function showTopicHelp(SymfonyStyle $io, string $topic): int
     {
-        $output->writeln('Sybil - A Nostr event creation and publishing tool');
-        $output->writeln('');
-        $output->writeln('Usage: sybil <command> [arguments]');
-        $output->writeln('');
-        
-        $output->writeln('Common Options:');
-        $output->writeln('  --relay <relay_url>    Specify a relay URL');
-        $output->writeln('  --protocol <ws|http>   Specify the protocol to use (default: ws, can be omitted)');
-        $output->writeln('  --key <key_env_var>    Use a different private key (default: NOSTR_SECRET_KEY)');
-        $output->writeln('  --json                 Output results in JSON format');
-        $output->writeln('  --limit <number>       Limit the number of results');
-        $output->writeln('  --force                Force an operation without confirmation');
-        $output->writeln('');
-        
-        $output->writeln('Available commands:');
-        $output->writeln('');
-        
-        // Content Creation Commands
-        $output->writeln('Content Creation:');
-        $output->writeln('  note');
-        $output->writeln('    Post a text note');
-        $output->writeln('    Usage: sybil note <content> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  longform');
-        $output->writeln('    Create and publish a longform article');
-        $output->writeln('    Usage: sybil longform <file_path> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  wiki');
-        $output->writeln('    Create and publish a wiki article');
-        $output->writeln('    Usage: sybil wiki <file_path> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  publication');
-        $output->writeln('    Create and publish a publication');
-        $output->writeln('    Usage: sybil publication <file_path> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        // Relay Management Commands
-        $output->writeln('Relay Management:');
-        $output->writeln('  relay-add');
-        $output->writeln('    Add a new Nostr relay');
-        $output->writeln('    Usage: sybil relay-add <relay> [--test]');
-        $output->writeln('');
-        
-        $output->writeln('  relay-list');
-        $output->writeln('    Display a list of known Nostr relays');
-        $output->writeln('    Usage: sybil relay-list');
-        $output->writeln('');
-        
-        $output->writeln('  relay-info');
-        $output->writeln('    Display detailed information about a Nostr relay');
-        $output->writeln('    Usage: sybil relay-info <relay>');
-        $output->writeln('');
-        
-        $output->writeln('  relay-remove');
-        $output->writeln('    Remove a Nostr relay');
-        $output->writeln('    Usage: sybil relay-remove <relay> [--force]');
-        $output->writeln('');
-        
-        $output->writeln('  relay-test');
-        $output->writeln('    Test a Nostr relay\'s connectivity and features');
-        $output->writeln('    Usage: sybil relay-test <relay>');
-        $output->writeln('');
-        
-        // Event Interaction Commands
-        $output->writeln('Event Interaction:');
-        $output->writeln('  query');
-        $output->writeln('    Query Nostr relays for events');
-        $output->writeln('    Usage: sybil query -r <relay> [-k <kind>] [-a <author>] [-t <tag>] [-s <since>] [-u <until>] [-l <limit>] [--sync]');
-        $output->writeln('');
-        
-        $output->writeln('  reply');
-        $output->writeln('    Reply to a Nostr event');
-        $output->writeln('    Usage: sybil reply <event_id> <content> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  republish');
-        $output->writeln('    Republish a Nostr event');
-        $output->writeln('    Usage: sybil republish <event_json> [--relay <relay_url>]');
-        $output->writeln('');
-        
-        $output->writeln('  broadcast');
-        $output->writeln('    Broadcast a Nostr event to multiple relays');
-        $output->writeln('    Usage: sybil broadcast <event_json> [--relays <relay_urls>]');
-        $output->writeln('');
-        
-        $output->writeln('  delete');
-        $output->writeln('    Delete a Nostr event');
-        $output->writeln('    Usage: sybil delete <event_id> [--reason <reason>]');
-        $output->writeln('');
-        
-        // Information Commands
-        $output->writeln('Information:');
-        $output->writeln('  nip-info');
-        $output->writeln('    Display information about Nostr Improvement Proposals');
-        $output->writeln('    Usage: sybil nip-info [<nip>] [--category <category>] [--status <status>]');
-        $output->writeln('');
-        
-        $output->writeln('  nkbip');
-        $output->writeln('    Display information about Nostr Knowledge Base Improvement Proposals');
-        $output->writeln('    Usage: sybil nkbip [<nkbip>] [--category <category>] [--status <status>]');
-        $output->writeln('');
-        
-        $output->writeln('  help');
-        $output->writeln('    Display help information');
-        $output->writeln('    Usage: sybil help [<command>]');
-        $output->writeln('');
-        
-        $output->writeln('For more information about Sybil, visit: https://github.com/Silberengel/sybil');
+        $topicInfo = $this->commandTopics[$topic];
+        $io->title($topicInfo['name']);
+        $io->text($topicInfo['description']);
+        $io->newLine();
+
+        // Add documentation link for specific topics
+        $docLinks = [
+            'relay' => 'docs/relay-management.md',
+            'git' => 'docs/git-integration.md',
+            'article' => 'docs/content-management.md',
+            'format' => 'docs/scriptorium.md'
+        ];
+
+        if (isset($docLinks[$topic])) {
+            $io->section('Documentation');
+            $io->text("For detailed documentation, see <href={$docLinks[$topic]}>{$docLinks[$topic]}</>");
+            $io->newLine();
+        }
+
+        // Add specific information for article topic
+        if ($topic === 'article') {
+            $io->section('Required Tags');
+            $io->text('All publications must include the following tags:');
+            $io->listing([
+                'type - Publication type (default: "book")',
+                'c - Content type (default: "book")'
+            ]);
+            $io->text('These tags can be overridden in the YAML frontmatter of your publication.');
+            $io->newLine();
+        }
+
+        $io->section('Available Commands');
+        $table = new Table($io);
+        $table->setHeaders(['Command', 'Description']);
+
+        foreach ($topicInfo['commands'] as $commandName) {
+            $command = $this->getApplication()->find($commandName);
+            if ($command) {
+                $table->addRow([
+                    "<info>$commandName</info>",
+                    $command->getDescription()
+                ]);
+            }
+        }
+
+        $table->render();
+        $io->newLine();
+
+        $io->section('Usage');
+        $io->text("  sybil help $topic <command>   Show help for a specific command");
+        $io->newLine();
+
+        return Command::SUCCESS;
     }
 
-    private function displayCommandHelp(string $command, OutputInterface $output): void
+    private function showCommandHelp(SymfonyStyle $io, Command $command): int
     {
-        switch ($command) {
-            case 'feed':
-                $output->writeln('Command: feed');
-                $output->writeln('');
-                $output->writeln('Show a relay\'s feed with formatted output');
-                $output->writeln('');
-                $output->writeln('Usage: sybil feed -r <relay> [--protocol <ws|http>] [--limit <number>]');
-                $output->writeln('');
-                $output->writeln('Arguments:');
-                $output->writeln('  -r, --relay');
-                $output->writeln('    Relay URL to query (required)');
-                $output->writeln('  --limit');
-                $output->writeln('    Maximum number of events to show (default: 20)');
-                $output->writeln('');
-                $output->writeln('Examples:');
-                $output->writeln('  sybil feed -r wss://relay.damus.io');
-                $output->writeln('  sybil feed -r wss://relay.damus.io --limit 50');
-                $output->writeln('');
-                $output->writeln('Notes:');
-                $output->writeln('  The feed command shows kind 1 (text note) events from the specified relay.');
-                $output->writeln('  Events are sorted by creation time (newest first).');
-                $output->writeln('  Author names are resolved from their metadata (kind 0) events.');
-                $output->writeln('  URLs are formatted in blue and mentions in green.');
-                break;
+        $io->title($command->getName());
+        $io->text($command->getDescription());
+        $io->newLine();
 
-            default:
-                $output->writeln(sprintf('No help available for command "%s"', $command));
-                break;
+        if ($command->getHelp()) {
+            $io->section('Help');
+            $io->text($command->getHelp());
+            $io->newLine();
         }
+
+        $io->section('Usage');
+        $io->text($command->getSynopsis());
+        $io->newLine();
+
+        if ($command->getAliases()) {
+            $io->section('Aliases');
+            $io->text(implode(', ', $command->getAliases()));
+            $io->newLine();
+        }
+
+        $definition = $command->getDefinition();
+        if ($definition->getArguments()) {
+            $io->section('Arguments');
+            $table = new Table($io);
+            $table->setHeaders(['Name', 'Description']);
+            foreach ($definition->getArguments() as $argument) {
+                $table->addRow([
+                    $argument->getName(),
+                    $argument->getDescription()
+                ]);
+            }
+            $table->render();
+            $io->newLine();
+        }
+
+        if ($definition->getOptions()) {
+            $io->section('Options');
+            $table = new Table($io);
+            $table->setHeaders(['Name', 'Description']);
+            foreach ($definition->getOptions() as $option) {
+                $table->addRow([
+                    '--' . $option->getName(),
+                    $option->getDescription()
+                ]);
+            }
+            $table->render();
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function showAllCommands(SymfonyStyle $io): int
+    {
+        $io->title('Sybil Command Line Tool - All Commands');
+        $io->text('A comprehensive list of all available commands and their details.');
+        $io->newLine();
+
+        foreach ($this->commandTopics as $topic => $topicInfo) {
+            $io->section($topicInfo['name']);
+            $io->text($topicInfo['description']);
+            $io->newLine();
+
+            foreach ($topicInfo['commands'] as $commandName) {
+                $command = $this->getApplication()->find($commandName);
+                if ($command) {
+                    $io->section($command->getName());
+                    $io->text($command->getDescription());
+                    $io->newLine();
+
+                    if ($command->getHelp()) {
+                        $io->text($command->getHelp());
+                        $io->newLine();
+                    }
+
+                    $io->text('Usage: ' . $command->getSynopsis());
+                    $io->newLine();
+
+                    $definition = $command->getDefinition();
+                    if ($definition->getArguments()) {
+                        $io->text('Arguments:');
+                        foreach ($definition->getArguments() as $argument) {
+                            $io->text('  ' . $argument->getName() . ': ' . $argument->getDescription());
+                        }
+                        $io->newLine();
+                    }
+
+                    if ($definition->getOptions()) {
+                        $io->text('Options:');
+                        foreach ($definition->getOptions() as $option) {
+                            $io->text('  --' . $option->getName() . ': ' . $option->getDescription());
+                        }
+                        $io->newLine();
+                    }
+
+                    $io->newLine(2);
+                }
+            }
+        }
+
+        return Command::SUCCESS;
     }
 } 

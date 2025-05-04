@@ -15,11 +15,11 @@ use Sybil\Command\Trait\{
  * This command handles the 'relay-test' command, which tests
  * the connectivity and functionality of a Nostr relay.
  * 
- * Usage: nostr:relay-test <relay> [--json]
+ * Usage: nostr:relay-test <relay> [--raw]
  * 
  * Examples:
  *   sybil relay-test wss://relay.example.com
- *   sybil relay-test wss://relay.example.com --json
+ *   sybil relay-test wss://relay.example.com --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -57,17 +57,17 @@ class RelayTestCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command tests the connectivity and functionality of a Nostr relay.
 
-<info>php %command.full_name% <relay> [--json]</info>
+<info>php %command.full_name% <relay> [--raw]</info>
 
 Arguments:
   relay       The URL of the relay to test (must start with ws:// or wss://)
 
 Options:
-  --json      Output in JSON format
+  --raw      Output in JSON format
 
 Examples:
   <info>php %command.full_name% wss://relay.example.com</info>
-  <info>php %command.full_name% wss://relay.example.com --json</info>
+  <info>php %command.full_name% wss://relay.example.com --raw</info>
 HELP;
     }
 

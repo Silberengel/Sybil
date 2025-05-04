@@ -49,7 +49,7 @@ The feed also includes:
 Example:
   <info>%command.full_name% --type content --author npub1abc123</info>
   <info>%command.full_name% --identifier my-publication --type all</info>
-  <info>%command.full_name% --verbose --json</info>
+  <info>%command.full_name% --verbose --raw</info>
 HELP
             )
             ->addOption('relay', 'r', InputOption::VALUE_REQUIRED, 'Relay URL to query')

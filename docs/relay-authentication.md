@@ -175,28 +175,5 @@ class MyRelayTest extends RelayAuthTest
 - `ERROR_MIDDLEWARE_PROCESS`: Processing error
 - `ERROR_MIDDLEWARE_RESPONSE`: Response error
 
-## Best Practices
 
-1. Always use proper error handling and logging
-2. Implement rate limiting for authentication attempts
-3. Use secure key storage (environment variables or secure vault)
-4. Validate all input data before authentication
-5. Use HTTPS for all HTTP authentication
-6. Implement proper session management
-7. Monitor authentication failures
-8. Keep authentication tokens short-lived
-9. Implement proper cleanup of expired sessions
-10. Use proper logging levels for different types of events
-
-## Security Considerations
-
-1. Never log sensitive data (private keys, tokens)
-2. Implement proper rate limiting
-3. Use secure key storage
-4. Validate all input data
-5. Use HTTPS for all HTTP communication
-6. Implement proper session management
-7. Monitor authentication failures
-8. Keep authentication tokens short-lived
-9. Implement proper cleanup
-10. Use proper logging levels 
+Return to the [Read Me](./../README.md)

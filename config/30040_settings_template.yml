@@ -24,6 +24,8 @@ tags:
 # document content-type for the publication
 # choices are: book (default), Bible, illustrated, magazine, documentation, academic, blog, flyer, scroll
   - ['type', 'book']
+# the type-tag is deprecated, so use the c-tag in addition to the type-tag
+  - ['c', 'book']
 # document instructions for the stylesheet of the viewer. The default is set here.
   - ['l', 'en, ISO-639-1']
   - ['reading-direction', 'left-to-right, top-to-bottom']
@@ -56,6 +58,7 @@ auto-update: 'yes'
 tags:
   - ['image', 'https://mymediaserver.com/imagefile.jpg']
   - ['type', 'book']
+  - ['c', 'book']
   - ['l', 'en, ISO-639-1']
   - ['reading-direction', 'left-to-right, top-to-bottom']
   - ['t', 'novel']

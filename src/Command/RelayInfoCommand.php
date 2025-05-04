@@ -15,11 +15,11 @@ use Sybil\Command\Trait\{
  * This command handles the 'relay-info' command, which displays
  * information about a Nostr relay.
  * 
- * Usage: nostr:relay-info <relay> [--json]
+ * Usage: nostr:relay-info <relay> [--raw]
  * 
  * Examples:
  *   sybil relay-info wss://relay.example.com
- *   sybil relay-info wss://relay.example.com --json
+ *   sybil relay-info wss://relay.example.com --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -57,17 +57,17 @@ class RelayInfoCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command displays information about a Nostr relay.
 
-<info>php %command.full_name% RELAY_URL [--json]</info>
+<info>php %command.full_name% RELAY_URL [--raw]</info>
 
 Arguments:
   RELAY_URL    The WebSocket URL of the relay to query (required)
 
 Options:
-  --json       Output in JSON format
+  --raw       Output in JSON format
 
 Examples:
   <info>php %command.full_name% wss://relay.example.com</info>
-  <info>php %command.full_name% wss://relay.example.com --json</info>
+  <info>php %command.full_name% wss://relay.example.com --raw</info>
 HELP;
     }
 

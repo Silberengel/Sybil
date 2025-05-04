@@ -12,6 +12,7 @@ use Sybil\Event\Traits\EventPublishingTrait;
 use Sybil\Event\Traits\EventSerializationTrait;
 use Sybil\Event\Traits\EventSigningTrait;
 use Sybil\Event\Traits\EventValidationTrait;
+use Sybil\Utility\MimeType\MimeTypeUtility;
 
 /**
  * @ORM\Entity
@@ -59,7 +60,7 @@ class WikiEvent extends AbstractNostrEvent
     public function __construct(LoggerInterface $logger)
     {
         parent::__construct($logger);
-        $this->kind = 30023; // Long-form content kind
+        $this->kind = 30818; // Wiki article kind
     }
 
     public function getKindName(): string
@@ -115,6 +116,9 @@ class WikiEvent extends AbstractNostrEvent
                 $this->setTagValue('t', $tag);
             }
         }
+
+        // Add MIME type tags
+        MimeTypeUtility::addMimeTypeTags($this->tags, $this->kind);
 
         // Sort tags for consistent ordering
         sort($this->tags);

@@ -11,6 +11,7 @@ use Sybil\Event\Traits\EventMetadataTrait;
 use Sybil\Event\Traits\EventPublishingTrait;
 use Sybil\Event\Traits\EventSerializationTrait;
 use Sybil\Event\Traits\EventValidationTrait;
+use Sybil\Utility\MimeType\MimeTypeUtility;
 
 /**
  * @ORM\Entity
@@ -131,6 +132,12 @@ class LongformEvent extends AbstractNostrEvent
             $this->setTagValue('image', $this->image);
         }
 
+        if ($this->hashtags !== null) {
+            foreach ($this->hashtags as $tag) {
+                $this->setTagValue('t', $tag);
+            }
+        }
+
         if ($this->summary !== null) {
             $this->setTagValue('summary', $this->summary);
         }
@@ -140,14 +147,11 @@ class LongformEvent extends AbstractNostrEvent
         }
 
         if ($this->canonicalUrl !== null) {
-            $this->setTagValue('canonical_url', $this->canonicalUrl);
+            $this->setTagValue('canonical', $this->canonicalUrl);
         }
 
-        if ($this->hashtags !== null) {
-            foreach ($this->hashtags as $tag) {
-                $this->setTagValue('t', $tag);
-            }
-        }
+        // Add MIME type tags
+        MimeTypeUtility::addMimeTypeTags($this->tags, $this->kind);
 
         // Sort tags for consistent ordering
         sort($this->tags);

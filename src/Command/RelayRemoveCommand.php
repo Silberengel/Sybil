@@ -16,12 +16,12 @@ use Sybil\Command\Trait\{
  * Nostr relay from the list of known relays. The --force option can
  * be used to remove a relay even if it's still active.
  * 
- * Usage: nostr:relay-remove <relay> [--force] [--json]
+ * Usage: nostr:relay-remove <relay> [--force] [--raw]
  * 
  * Examples:
  *   sybil relay-remove wss://relay.example.com
  *   sybil relay-remove wss://relay.example.com --force
- *   sybil relay-remove wss://relay.example.com --json
+ *   sybil relay-remove wss://relay.example.com --raw
  * 
  * Test examples can be found in:
  *   tests/Integration/CoreIntegrationTest.php
@@ -59,19 +59,19 @@ class RelayRemoveCommand extends Command implements CommandInterface
         return <<<'HELP'
 The <info>%command.name%</info> command removes a Nostr relay from the list of known relays.
 
-<info>php %command.full_name% <relay> [--force] [--json]</info>
+<info>php %command.full_name% <relay> [--force] [--raw]</info>
 
 Arguments:
   relay       The URL of the relay to remove (must start with ws:// or wss://)
 
 Options:
   --force     Remove the relay without confirmation
-  --json      Output in JSON format
+  --raw      Output in JSON format
 
 Examples:
   <info>php %command.full_name% wss://relay.example.com</info>
   <info>php %command.full_name% wss://relay.example.com --force</info>
-  <info>php %command.full_name% wss://relay.example.com --json</info>
+  <info>php %command.full_name% wss://relay.example.com --raw</info>
 HELP;
     }
 

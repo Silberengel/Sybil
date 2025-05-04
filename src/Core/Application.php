@@ -8,6 +8,32 @@ use Sybil\Command\HelpCommand;
 use Sybil\Command\NoteCommand;
 use Sybil\Command\QueryCommand;
 use Sybil\Command\RelayInfoCommand;
+use Sybil\Command\ConvertCommand;
+use Sybil\Command\ReplyCommand;
+use Sybil\Command\RelayTestCommand;
+use Sybil\Command\GitPatchCommand;
+use Sybil\Command\NoteFeedCommand;
+use Sybil\Command\GitStatusCommand;
+use Sybil\Command\CitationFeedCommand;
+use Sybil\Command\PublicationCommand;
+use Sybil\Command\LongformFeedCommand;
+use Sybil\Command\GitFeedCommand;
+use Sybil\Command\WikiFeedCommand;
+use Sybil\Command\CompletionCommand;
+use Sybil\Command\GitStateCommand;
+use Sybil\Command\GitIssueCommand;
+use Sybil\Command\GitAnnounceCommand;
+use Sybil\Command\BroadcastCommand;
+use Sybil\Command\RelayRemoveCommand;
+use Sybil\Command\LongformCommand;
+use Sybil\Command\HighlightCommand;
+use Sybil\Command\PublicationFeedCommand;
+use Sybil\Command\NipInfoCommand;
+use Sybil\Command\DeleteCommand;
+use Sybil\Command\WikiCommand;
+use Sybil\Command\RelayAddCommand;
+use Sybil\Command\RelayListCommand;
+use Sybil\Command\RepublishCommand;
 use Sybil\Utility\Log\Logger;
 use Sybil\Utility\Error\ErrorHandler;
 use Sybil\Utility\Key\KeyUtility;
@@ -51,6 +77,14 @@ use Sybil\Service\ServiceInitializerInterface;
 use Sybil\Service\ServiceShutdownInterface;
 use Sybil\Utility\Event\EventBroadcastUtility;
 use Sybil\Service\EventBroadcastService;
+use Sybil\Command\CitationCommand;
+use Sybil\Command\VersionCommand;
+use Sybil\Command\NgitPatchCommand;
+use Sybil\Command\NgitStatusCommand;
+use Sybil\Command\NgitFeedCommand;
+use Sybil\Command\NgitStateCommand;
+use Sybil\Command\NgitIssueCommand;
+use Sybil\Command\NgitAnnounceCommand;
 
 /**
  * Main application class
@@ -188,7 +222,48 @@ class Application extends BaseApplication implements EventSubscriberInterface
             $this->registerCommand(new NoteCommand($eventService));
             $this->registerCommand(new QueryCommand($eventService));
             $this->registerCommand(new RelayInfoCommand($relayQueryService));
-            $this->registerCommand(new HelpCommand($this->getService('logger')));
+            $this->registerCommand(new HelpCommand($this->logger));
+            $this->registerCommand(new CitationCommand(
+                $eventService,
+                $this->logger,
+                $this->container->get('parameter_bag')
+            ));
+            $this->registerCommand(new CitationFeedCommand(
+                $eventService,
+                $this->logger
+            ));
+            $this->registerCommand(new VersionCommand($this->container->get('parameter_bag')));
+            $this->registerCommand(new ConvertCommand());
+            
+            // Register additional commands
+            $this->registerCommand(new ReplyCommand(
+                $eventService,
+                $this->logger,
+                $this->container->get('parameter_bag')
+            ));
+            $this->registerCommand(new RelayTestCommand($relayQueryService));
+            $this->registerCommand(new NgitPatchCommand());
+            $this->registerCommand(new NoteFeedCommand($eventService));
+            $this->registerCommand(new NgitStatusCommand());
+            $this->registerCommand(new PublicationCommand($eventService));
+            $this->registerCommand(new LongformFeedCommand($eventService));
+            $this->registerCommand(new NgitFeedCommand());
+            $this->registerCommand(new WikiFeedCommand($eventService));
+            $this->registerCommand(new CompletionCommand());
+            $this->registerCommand(new NgitStateCommand());
+            $this->registerCommand(new NgitIssueCommand());
+            $this->registerCommand(new NgitAnnounceCommand());
+            $this->registerCommand(new BroadcastCommand($eventService));
+            $this->registerCommand(new RelayRemoveCommand($relayQueryService));
+            $this->registerCommand(new LongformCommand($eventService));
+            $this->registerCommand(new HighlightCommand($eventService));
+            $this->registerCommand(new PublicationFeedCommand($eventService));
+            $this->registerCommand(new NipInfoCommand($this->logger));
+            $this->registerCommand(new DeleteCommand($eventService));
+            $this->registerCommand(new WikiCommand($eventService));
+            $this->registerCommand(new RelayAddCommand($relayQueryService));
+            $this->registerCommand(new RelayListCommand($relayQueryService));
+            $this->registerCommand(new RepublishCommand($eventService));
 
             // Register event subscribers
             $this->dispatcher->addSubscriber($this);
