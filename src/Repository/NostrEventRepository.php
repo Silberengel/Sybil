@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Sybil\Entity\NostrEvent;
+use Sybil\Entity\NostrEventEntity;
 use Sybil\Service\RelayQueryService;
 use Sybil\Exception\NostrException;
 use Sybil\Exception\ValidationException;
@@ -17,7 +17,7 @@ use Sybil\Utility\Validation\EventValidator;
 use swentel\nostr\Filter\Filter;
 
 /**
- * @extends EntityRepository<NostrEvent>
+ * @extends EntityRepository<NostrEventEntity>
  */
 class NostrEventRepository extends EntityRepository
 {
@@ -32,9 +32,9 @@ class NostrEventRepository extends EntityRepository
         ?LoggerInterface $logger = null,
         ?AuthenticationManager $authManager = null
     ) {
-        parent::__construct($entityManager, $entityManager->getClassMetadata(NostrEvent::class));
+        parent::__construct($entityManager, $entityManager->getClassMetadata(NostrEventEntity::class));
         $this->relayQueryService = $relayQueryService;
-        $this->logger = $logger ?? LoggerFactory::createLogger('nostr_event_repository');
+        $this->logger = $logger ?? new NullLogger();
         $this->authManager = $authManager ?? new AuthenticationManager($this->logger);
         $this->validator = new EventValidator($this->logger);
     }
@@ -293,7 +293,7 @@ class NostrEventRepository extends EntityRepository
             $result = $this->createQueryBuilder('e')
                 ->andWhere('e.published = :published')
                 ->setParameter('published', false)
-                ->orderBy('e.createdAt', 'ASC')
+                ->orderBy('e.createdAt', 'DESC')
                 ->getQuery()
                 ->getResult();
 
@@ -430,7 +430,7 @@ class NostrEventRepository extends EntityRepository
      * @throws AuthenticationException If user is not authorized
      * @throws ValidationException If event is invalid
      */
-    public function save(NostrEvent $event): void
+    public function save(NostrEventEntity $event): void
     {
         $this->logger->debug('Saving event', [
             'event_id' => $event->getId(),
@@ -467,7 +467,7 @@ class NostrEventRepository extends EntityRepository
      * @throws AuthenticationException If user is not authorized
      * @throws ValidationException If event is invalid
      */
-    public function remove(NostrEvent $event): void
+    public function remove(NostrEventEntity $event): void
     {
         $this->logger->debug('Removing event', [
             'event_id' => $event->getId(),
@@ -525,7 +525,7 @@ class NostrEventRepository extends EntityRepository
         try {
             $events = $this->relayQueryService->queryRelays($relays, $filter);
             foreach ($events as $eventData) {
-                $event = new NostrEvent();
+                $event = new NostrEventEntity();
                 $event->fromArray($eventData);
                 $this->validator->validate($event);
                 $this->getEntityManager()->persist($event);

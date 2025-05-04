@@ -29,6 +29,7 @@ sybil note "Hello, Nostr!"
 - [Command Reference](docs/command-reference.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Scriptorium Converter](docs/scriptorium.md)
+- [Database Documentation](docs/database.md)
 
 ## Support
 

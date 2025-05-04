@@ -1,0 +1,5 @@
+Symfony\Component\DependencyInjection\Compiler\ResolveChildDefinitionsPass: Resolving inheritance for ".instanceof.Symfony\Component\Console\Command\Command.0.Sybil\Command\DoctrineTestCommand" (parent: .abstract.instanceof.Sybil\Command\DoctrineTestCommand).
+Symfony\Component\DependencyInjection\Compiler\ResolveChildDefinitionsPass: Resolving inheritance for "Sybil\Command\DoctrineTestCommand" (parent: .instanceof.Symfony\Component\Console\Command\Command.0.Sybil\Command\DoctrineTestCommand).
+Symfony\Component\DependencyInjection\Compiler\RemoveAbstractDefinitionsPass: Removed service ".instanceof.Symfony\Component\Console\Command\Command.0.Sybil\Command\DoctrineTestCommand"; reason: abstract.
+Symfony\Component\DependencyInjection\Compiler\RemoveAbstractDefinitionsPass: Removed service ".abstract.instanceof.Sybil\Command\DoctrineTestCommand"; reason: abstract.
+Symfony\Component\DependencyInjection\Compiler\RemoveUnusedDefinitionsPass: Removed service "Sybil\Command\DoctrineTestCommand"; reason: unused.

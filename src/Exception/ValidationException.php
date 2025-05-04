@@ -16,7 +16,7 @@ use Sybil\Utility\Log\LoggerFactory;
  * - Type validation fails
  * - Constraint validation fails
  */
-class ValidationException extends SybilException
+class ValidationException extends \Exception
 {
     // Validation error codes
     public const ERROR_DATA = 5000;
@@ -81,7 +81,7 @@ class ValidationException extends SybilException
             'trace' => $this->getTraceAsString()
         ]);
 
-        parent::__construct($message, $code, $previous, $context);
+        parent::__construct($message, $code, $previous);
         $this->errors = $errors;
     }
 

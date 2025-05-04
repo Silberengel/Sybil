@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Console\Application;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Sybil\Command\DoctrineSchemaCreateCommand;
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+// Set up Doctrine
+$config = ORMSetup::createAttributeMetadataConfiguration(
+    [dirname(__DIR__) . '/src/Entity'],
+    true
+);
+
+$connection = \Doctrine\DBAL\DriverManager::getConnection([
+    'driver' => 'pdo_sqlite',
+    'path' => dirname(__DIR__) . '/var/data.db',
+], $config);
+
+$entityManager = new EntityManager($connection, $config);
+
+// Create the application
+$application = new Application('Sybil', '1.0.0');
+
+// Add commands
+$application->add(new DoctrineSchemaCreateCommand($entityManager));
+
+$application->run(); 
